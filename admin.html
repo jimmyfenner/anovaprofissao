@@ -1,0 +1,408 @@
+<title>Painel de Leads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+<style>
+:root{
+  --ink:#0A0D0C; --surface:#111614; --surface-2:#171E1B; --line:#232E29; --line-soft:#1A211E;
+  --text:#EAF2ED; --muted:#8FA39A; --muted-dim:#61736B;
+  --credit:#34DB8B; --credit-dim:#1F7D52;
+  --st-contatado:#6BA8D8; --st-conversa:#E0A83C; --st-perdido:#C4785A;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em;line-height:1.15}
+p{margin:0}
+:focus-visible{outline:2px solid var(--credit);outline-offset:2px;border-radius:3px}
+.wrap{max-width:1180px;margin-inline:auto;padding-inline:clamp(16px,3.5vw,32px)}
+.hidden{display:none !important}
+.mono{font-family:var(--mono)}
+
+/* topbar */
+.top{position:sticky;top:0;z-index:40;background:rgba(10,13,12,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft)}
+.top__in{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-block:.85rem;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:.98rem;letter-spacing:-.02em}
+.brand em{font-style:normal;color:var(--credit)}
+.brand small{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-dim);font-weight:400;margin-top:.15rem}
+.top__act{display:flex;gap:.6rem;align-items:center}
+
+/* buttons */
+.btn{font-family:var(--body);font-size:.88rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:.5em;padding:.62em 1.05em;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;text-decoration:none;transition:border-color .16s,background .16s}
+.btn:hover{border-color:var(--muted-dim);background:var(--surface)}
+.btn--primary{background:var(--credit);border-color:var(--credit);color:#04120B}
+.btn--primary:hover{background:#4BEA9C;border-color:#4BEA9C}
+.btn--sm{font-size:.8rem;padding:.48em .8em}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* demo banner */
+.demo{background:rgba(224,168,60,.1);border-bottom:1px solid rgba(224,168,60,.3);color:#E0A83C;font-family:var(--mono);font-size:.76rem;letter-spacing:.04em;padding:.65rem 0}
+.demo .wrap{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-block:clamp(1.5rem,3vw,2.2rem)}
+@media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--surface);padding:1.1rem 1.25rem}
+.stat dt{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.4rem}
+.stat dd{margin:0;font-family:var(--display);font-weight:700;font-size:1.9rem;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.stat--hi dd{color:var(--credit)}
+
+/* filters */
+.filters{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1.2rem}
+.inp{font-family:var(--body);font-size:.88rem;padding:.6em .85em;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--text)}
+.inp::placeholder{color:var(--muted-dim)}
+.inp:focus{outline:none;border-color:var(--credit-dim)}
+#busca{flex:1;min-width:180px}
+.count{margin-left:auto;font-family:var(--mono);font-size:.75rem;color:var(--muted-dim);white-space:nowrap}
+
+/* lead list */
+.list{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.lead{border-bottom:1px solid var(--line-soft)}
+.lead:last-child{border-bottom:0}
+.lead__head{display:flex;align-items:center;gap:.9rem;width:100%;padding:.95rem 1.15rem;background:none;border:0;border-left:2px solid transparent;color:var(--text);font-family:var(--body);font-size:.94rem;text-align:left;cursor:pointer;transition:background .15s}
+.lead__head:hover{background:var(--surface-2)}
+.lead.is-novo .lead__head{border-left-color:var(--credit)}
+.lead__who{flex:1;min-width:0}
+.lead__who strong{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead__who span{font-size:.8rem;color:var(--muted-dim)}
+.lead__when{font-family:var(--mono);font-size:.74rem;color:var(--muted-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
+.lead__chev{color:var(--muted-dim);flex:none;transition:transform .2s}
+.lead.is-open .lead__chev{transform:rotate(90deg)}
+
+.pill{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;padding:.3em .6em;border-radius:4px;white-space:nowrap;border:1px solid}
+.pill--novo{color:var(--credit);border-color:rgba(52,219,139,.35);background:rgba(52,219,139,.1)}
+.pill--contatado{color:var(--st-contatado);border-color:rgba(107,168,216,.32);background:rgba(107,168,216,.09)}
+.pill--em_conversa{color:var(--st-conversa);border-color:rgba(224,168,60,.32);background:rgba(224,168,60,.09)}
+.pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
+.pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
+.src{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.28em .55em;white-space:nowrap}
+@media(max-width:700px){.lead__when,.src{display:none}}
+
+/* detail */
+.detail{padding:0 1.15rem 1.35rem;display:grid;gap:1.3rem}
+@media(min-width:860px){.detail{grid-template-columns:1.25fr 1fr}}
+.dl{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.dl__r{display:flex;gap:1rem;padding:.6rem .9rem;border-bottom:1px solid var(--line-soft);font-size:.86rem}
+.dl__r:last-child{border-bottom:0}
+.dl__r dt{font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-dim);flex:none;width:12ch;padding-top:.15em}
+.dl__r dd{margin:0}
+.panelbox{display:flex;flex-direction:column;gap:.8rem}
+.panelbox h3{font-size:.76rem;font-family:var(--mono);font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim)}
+textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);line-height:1.5}
+.acts{display:flex;gap:.55rem;flex-wrap:wrap}
+
+.empty{padding:3.5rem 1.5rem;text-align:center;color:var(--muted-dim)}
+.empty p:first-child{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--muted);margin-bottom:.4rem}
+
+/* login */
+.login{min-height:82vh;display:grid;place-items:center;padding:2rem 0}
+.login__box{width:100%;max-width:380px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:clamp(1.6rem,4vw,2.2rem);display:flex;flex-direction:column;gap:1rem}
+.login__box h1{font-size:1.35rem;margin-bottom:.2rem}
+.login__box p{color:var(--muted);font-size:.9rem}
+.field{display:flex;flex-direction:column;gap:.35rem}
+.field label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim)}
+.erro{color:var(--st-perdido);font-size:.85rem}
+</style>
+
+<div class="demo hidden" id="demo-banner">
+  <div class="wrap">
+    <span>◆ MODO DEMONSTRAÇÃO — os leads abaixo são exemplos fictícios, para você avaliar o painel.</span>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="login hidden" id="tela-login">
+  <form class="login__box" id="form-login">
+    <div>
+      <h1>Painel de Leads</h1>
+      <p style="margin-top:.3rem">A Nova Profissão</p>
+    </div>
+    <div class="field">
+      <label for="l-email">E-mail</label>
+      <input class="inp" id="l-email" type="email" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="l-senha">Senha</label>
+      <input class="inp" id="l-senha" type="password" autocomplete="current-password" required>
+    </div>
+    <p class="erro hidden" id="l-erro"></p>
+    <button class="btn btn--primary" type="submit" id="l-go">Entrar</button>
+  </form>
+</div>
+
+<!-- PAINEL -->
+<div class="hidden" id="tela-painel">
+  <header class="top">
+    <div class="wrap top__in">
+      <div class="brand">A Nova <em>Profissão</em><small>Painel de leads</small></div>
+      <div class="top__act">
+        <button class="btn btn--sm" id="btn-csv">Exportar CSV</button>
+        <button class="btn btn--sm" id="btn-sair">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <dl class="stats">
+      <div class="stat stat--hi"><dt>Novos</dt><dd id="s-novos">0</dd></div>
+      <div class="stat"><dt>Hoje</dt><dd id="s-hoje">0</dd></div>
+      <div class="stat"><dt>Últimos 7 dias</dt><dd id="s-semana">0</dd></div>
+      <div class="stat"><dt>Total</dt><dd id="s-total">0</dd></div>
+    </dl>
+
+    <div class="filters">
+      <input class="inp" id="busca" type="search" placeholder="Buscar por nome, cidade ou telefone">
+      <select class="inp" id="f-status">
+        <option value="">Todos os status</option>
+        <option value="novo">Novo</option>
+        <option value="contatado">Contatado</option>
+        <option value="em_conversa">Em conversa</option>
+        <option value="ganho">Ganho</option>
+        <option value="sem_retorno">Sem retorno</option>
+        <option value="descartado">Descartado</option>
+      </select>
+      <select class="inp" id="f-origem"><option value="">Todas as origens</option></select>
+      <select class="inp" id="f-periodo">
+        <option value="">Desde sempre</option>
+        <option value="1">Hoje</option>
+        <option value="7">Últimos 7 dias</option>
+        <option value="30">Últimos 30 dias</option>
+      </select>
+      <span class="count" id="contador"></span>
+    </div>
+
+    <div class="list" id="lista"></div>
+    <p style="font-size:.78rem;color:var(--muted-dim);margin:1.5rem 0 3rem;max-width:70ch">
+      Dados pessoais de terceiros. Trate conforme a LGPD: use apenas para o contato que a pessoa autorizou e atenda pedidos de exclusão.
+    </p>
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ CONFIGURAÇÃO ============
+   Preencha depois de criar o projeto no Supabase.
+   Enquanto estiver vazio, o painel roda em modo demonstração. */
+var CFG = {
+  url:     "",   // ex: https://xxxxxxxx.supabase.co
+  anonKey: ""    // chave "anon public" do projeto
+};
+/* ====================================== */
+
+var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+var DEMO = !CFG.url || !CFG.anonKey;
+var sb = null, leads = [], aberto = null;
+
+var STATUS = {novo:"Novo",contatado:"Contatado",em_conversa:"Em conversa",ganho:"Ganho",sem_retorno:"Sem retorno",descartado:"Descartado"};
+
+var EXEMPLOS = [
+  {id:"d1",criado_em:hrAtras(2),nome:"[exemplo] Marcos Vinícius",whatsapp:"(47) 99xxx-xxxx",whatsapp_e164:"5547990000001",cidade:"Itajaí",uf:"SC",objetivo:"Construir uma renda recorrente",tempo:"1 a 2 horas por dia",experiencia:"Já trabalhei com vendas",solucao:"Quero trabalhar com várias",perfil:"Um pouco de tudo",utm_source:"instagram",utm_medium:"social",utm_campaign:"reels_carteira",device:"mobile",referrer:"instagram.com",status:"novo",anotacoes:null},
+  {id:"d2",criado_em:hrAtras(9),nome:"[exemplo] Patrícia Almeida",whatsapp:"(48) 99xxx-xxxx",whatsapp_e164:"5548990000002",cidade:"Florianópolis",uf:"SC",objetivo:"Criar uma nova atividade profissional",tempo:"Meio período",experiencia:"Nunca trabalhei com vendas",solucao:"Seguro de carro/moto",perfil:"Atendendo consumidores",utm_source:"youtube",utm_medium:"video",utm_campaign:"canal_jimmy",device:"desktop",referrer:"youtube.com",status:"contatado",anotacoes:"Ligou de volta. Quer conversar na quinta à noite."},
+  {id:"d3",criado_em:hrAtras(31),nome:"[exemplo] Eduardo Ranzani",whatsapp:"(11) 9xxxx-xxxx",whatsapp_e164:"5511990000003",cidade:"Campinas",uf:"SP",objetivo:"Construir um negócio",tempo:"Tempo integral",experiencia:"Já trabalho com vendas",solucao:"Mercado Livre de Energia",perfil:"Atendendo empresas",utm_source:"google",utm_medium:"cpc",utm_campaign:"licenciado_igreen",device:"desktop",referrer:"google.com",status:"em_conversa",anotacoes:"Já tem carteira B2B de contabilidade. Perfil forte pra Conexão Livre."},
+  {id:"d4",criado_em:hrAtras(74),nome:"[exemplo] Simone Krüger",whatsapp:"(47) 98xxx-xxxx",whatsapp_e164:"5547990000004",cidade:"Balneário Camboriú",uf:"SC",objetivo:"Uma renda complementar",tempo:"Algumas horas por semana",experiencia:"Tenho muitos contatos, mas não sou vendedor",solucao:"Energia",perfil:"Ainda não sei",utm_source:"",utm_medium:"",utm_campaign:"",device:"mobile",referrer:"direto",status:"ganho",anotacoes:"Fechou. Começou pelo Conexão Green."},
+  {id:"d5",criado_em:hrAtras(120),nome:"[exemplo] Rafael Tonetti",whatsapp:"(51) 99xxx-xxxx",whatsapp_e164:"5551990000005",cidade:"Porto Alegre",uf:"RS",objetivo:"Ainda estou pesquisando",tempo:"Ainda não sei",experiencia:"Nunca trabalhei com vendas",solucao:"Ainda não sei",perfil:"Ainda não sei",utm_source:"instagram",utm_medium:"social",utm_campaign:"stories",device:"mobile",referrer:"instagram.com",status:"sem_retorno",anotacoes:null}
+];
+function hrAtras(h){ return new Date(Date.now()-h*3600e3).toISOString(); }
+
+/* ---------- arranque ---------- */
+if(DEMO){
+  $("#demo-banner").classList.remove("hidden");
+  leads = EXEMPLOS.slice();
+  abrirPainel();
+}else{
+  sb = window.supabase.createClient(CFG.url, CFG.anonKey);
+  sb.auth.getSession().then(function(r){
+    if(r.data.session){ carregar(); } else { $("#tela-login").classList.remove("hidden"); }
+  });
+}
+
+$("#form-login").addEventListener("submit", function(e){
+  e.preventDefault();
+  var b=$("#l-go"), erro=$("#l-erro");
+  b.disabled=true; b.textContent="Entrando…"; erro.classList.add("hidden");
+  sb.auth.signInWithPassword({email:$("#l-email").value.trim(), password:$("#l-senha").value})
+    .then(function(r){
+      if(r.error){ throw r.error; }
+      $("#tela-login").classList.add("hidden");
+      carregar();
+    })
+    .catch(function(){ erro.textContent="E-mail ou senha incorretos."; erro.classList.remove("hidden"); })
+    .finally(function(){ b.disabled=false; b.textContent="Entrar"; });
+});
+
+$("#btn-sair").addEventListener("click", function(){
+  if(DEMO){ return; }
+  sb.auth.signOut().then(function(){ location.reload(); });
+});
+
+function carregar(){
+  sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000)
+    .then(function(r){
+      if(r.error){ console.error(r.error); return; }
+      leads = r.data || [];
+      abrirPainel();
+    });
+}
+
+function abrirPainel(){
+  $("#tela-painel").classList.remove("hidden");
+  montarOrigens();
+  render();
+}
+
+/* ---------- filtros ---------- */
+["#busca","#f-status","#f-origem","#f-periodo"].forEach(function(s){
+  $(s).addEventListener("input", render);
+  $(s).addEventListener("change", render);
+});
+
+function montarOrigens(){
+  var vistos = {}, sel = $("#f-origem");
+  leads.forEach(function(l){ var o = l.utm_source || "direto"; vistos[o]=1; });
+  Object.keys(vistos).sort().forEach(function(o){
+    var op=document.createElement("option"); op.value=o; op.textContent=o; sel.appendChild(op);
+  });
+}
+
+function filtrados(){
+  var q = $("#busca").value.trim().toLowerCase();
+  var st = $("#f-status").value, or = $("#f-origem").value, pd = $("#f-periodo").value;
+  var corte = pd ? Date.now() - parseInt(pd,10)*86400e3 : 0;
+  return leads.filter(function(l){
+    if(st && l.status !== st) return false;
+    if(or && (l.utm_source || "direto") !== or) return false;
+    if(corte && new Date(l.criado_em).getTime() < corte) return false;
+    if(q){
+      var alvo = [l.nome,l.cidade,l.uf,l.whatsapp].join(" ").toLowerCase();
+      if(alvo.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+
+/* ---------- render ---------- */
+function render(){
+  var hoje = Date.now()-86400e3, semana = Date.now()-7*86400e3;
+  $("#s-novos").textContent  = leads.filter(function(l){return l.status==="novo"}).length;
+  $("#s-hoje").textContent   = leads.filter(function(l){return new Date(l.criado_em).getTime()>hoje}).length;
+  $("#s-semana").textContent = leads.filter(function(l){return new Date(l.criado_em).getTime()>semana}).length;
+  $("#s-total").textContent  = leads.length;
+
+  var fs = filtrados(), lista = $("#lista");
+  $("#contador").textContent = fs.length + (fs.length===1?" lead":" leads");
+
+  if(!fs.length){
+    lista.innerHTML = '<div class="empty"><p>Nenhum lead por aqui</p><p>'+
+      (leads.length ? "Tente afrouxar os filtros." : "Assim que alguém terminar o quiz no site, ele aparece aqui.")+'</p></div>';
+    return;
+  }
+
+  lista.innerHTML = fs.map(function(l){
+    var aberta = aberto === l.id;
+    return '<div class="lead '+(l.status==="novo"?"is-novo ":"")+(aberta?"is-open":"")+'" data-id="'+l.id+'">'+
+      '<button class="lead__head" type="button" aria-expanded="'+aberta+'">'+
+        '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):"")+'</span></span>'+
+        '<span class="src">'+esc(l.utm_source||"direto")+'</span>'+
+        '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
+        '<span class="lead__when">'+quando(l.criado_em)+'</span>'+
+      '</button>'+
+      (aberta ? detalhe(l) : "")+
+    '</div>';
+  }).join("");
+
+  $$(".lead__head").forEach(function(b){
+    b.addEventListener("click", function(){
+      var id = b.closest(".lead").getAttribute("data-id");
+      aberto = (aberto === id) ? null : id;
+      render();
+    });
+  });
+  $$("[data-status]").forEach(function(s){
+    s.addEventListener("change", function(){ mudarStatus(s.getAttribute("data-status"), s.value); });
+  });
+  $$("[data-nota]").forEach(function(t){
+    t.addEventListener("blur", function(){ salvarNota(t.getAttribute("data-nota"), t.value); });
+  });
+}
+
+function detalhe(l){
+  return '<div class="detail">'+
+    '<dl class="dl">'+
+      linha("Objetivo", l.objetivo)+
+      linha("Tempo", l.tempo)+
+      linha("Experiência", l.experiencia)+
+      linha("Interesse", l.solucao)+
+      linha("Perfil", l.perfil)+
+      linha("WhatsApp", l.whatsapp)+
+      linha("Recebido", new Date(l.criado_em).toLocaleString("pt-BR"))+
+      linha("Origem", [l.utm_source,l.utm_medium,l.utm_campaign].filter(Boolean).join(" / ") || "direto")+
+      linha("Veio de", l.referrer || "—")+
+      linha("Dispositivo", l.device || "—")+
+    '</dl>'+
+    '<div class="panelbox">'+
+      '<div><h3>Status</h3>'+
+        '<select class="inp" style="width:100%;margin-top:.4rem" data-status="'+l.id+'">'+
+          Object.keys(STATUS).map(function(k){
+            return '<option value="'+k+'"'+(l.status===k?" selected":"")+'>'+STATUS[k]+'</option>';
+          }).join("")+
+        '</select></div>'+
+      '<div><h3>Anotações</h3>'+
+        '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
+      '<div class="acts">'+
+        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent("Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
+        '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+function linha(k,v){ return '<div class="dl__r"><dt>'+k+'</dt><dd>'+esc(v||"—")+'</dd></div>'; }
+
+function mudarStatus(id, valor){
+  var l = leads.find(function(x){return x.id===id}); if(!l) return;
+  l.status = valor;
+  if(!DEMO){
+    var patch = {status:valor};
+    if(valor!=="novo" && !l.contatado_em){ patch.contatado_em = new Date().toISOString(); }
+    sb.from("leads").update(patch).eq("id",id).then(function(r){ if(r.error) console.error(r.error); });
+  }
+  render();
+}
+function salvarNota(id, texto){
+  var l = leads.find(function(x){return x.id===id}); if(!l || l.anotacoes===texto) return;
+  l.anotacoes = texto;
+  if(!DEMO){ sb.from("leads").update({anotacoes:texto}).eq("id",id).then(function(r){ if(r.error) console.error(r.error); }); }
+}
+
+/* ---------- CSV ---------- */
+$("#btn-csv").addEventListener("click", function(){
+  var cols = ["criado_em","nome","whatsapp","cidade","uf","status","objetivo","tempo","experiencia","solucao","perfil","utm_source","utm_medium","utm_campaign","referrer","device","anotacoes"];
+  var linhas = [cols.join(";")].concat(filtrados().map(function(l){
+    return cols.map(function(c){ return '"'+String(l[c]==null?"":l[c]).replace(/"/g,'""')+'"'; }).join(";");
+  }));
+  var blob = new Blob(["﻿"+linhas.join("\n")], {type:"text/csv;charset=utf-8"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "leads-anovaprofissao-"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+});
+
+/* ---------- utilidades ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function quando(iso){
+  var d = (Date.now()-new Date(iso).getTime())/3600e3;
+  if(d < 1) return Math.max(1,Math.round(d*60))+" min";
+  if(d < 24) return Math.round(d)+" h";
+  if(d < 48) return "ontem";
+  if(d < 168) return Math.round(d/24)+" d";
+  return new Date(iso).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+}
+})();
+</script>
