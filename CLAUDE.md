@@ -49,21 +49,30 @@ Para alterar o site: edite `home.html`, rode `node build.js` para conferir,
 
 ## Backend dos leads
 
-- `db/schema.sql` — tabela `leads` + RLS. Cole no SQL Editor do Supabase.
-- `supabase/functions/lead/index.ts` — Edge Function que grava o lead e
-  dispara os avisos (WhatsApp via Evolution API + e-mail via Resend).
-  Os segredos ficam nas Secrets do Supabase, nunca no código.
-- O site público só **grava** (via Edge Function com service_role).
-  Ler a base exige login no painel `/admin`. Isso é exigência de LGPD.
+Arquitetura simplificada (set/2026): o site grava **direto** no Supabase via
+PostgREST, sem Edge Function no meio. Foi uma decisão deliberada — o Jimmy é
+leigo e a função exigia passos demais. A segurança não mudou:
 
-## Configuração pendente
+- `db/schema.sql` — tabela `leads` + RLS. O papel `anon` só tem INSERT, e só
+  nas colunas do formulário (grant por coluna). Não lê, não altera status, não
+  mexe em anotações. SELECT e UPDATE exigem `authenticated`, ou seja, login.
+- URL e chave anon ficam em `home.html` e `admin.html`. A chave anon é pública
+  por natureza; quem protege os dados é a RLS.
+- `supabase/functions/lead/` está guardado para a FASE 2: avisos de lead novo
+  por WhatsApp (Evolution API) e e-mail (Resend). Ainda não está em uso.
 
-Em `home.html`, no bloco "CONFIGURAÇÃO EDITÁVEL":
-- `LEAD_ENDPOINT` — URL da Edge Function. Vazio = lead só no navegador.
+Limitação do ambiente: o domínio supabase.co é bloqueado pela política de
+egresso tanto na nuvem quanto no VM do Mac. Não dá para testar a API do
+Supabase a partir de nenhuma sessão do Claude — a verificação tem que ser
+feita pelo Jimmy, usando o site publicado.
 
-Em `admin.html`, no bloco "CONFIGURAÇÃO":
-- `CFG.url` e `CFG.anonKey` do Supabase. Vazios = painel em modo
-  demonstração com leads de exemplo.
+## Pendências conhecidas
+
+- Proteção anti-spam no formulário (honeypot + limite por IP). O endpoint de
+  gravação é público; antes de apontar o domínio real, fechar isso.
+- Avisos de lead novo (fase 2, ver acima).
+- Domínio anovaprofissao.com.br ainda não apontado — o Jimmy mantém o domínio
+  em outro destino até o site estar 100%.
 
 ## Sistema visual
 

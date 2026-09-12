@@ -1018,9 +1018,10 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   /* ====== CONFIGURAÇÃO EDITÁVEL ====== */
   var WHATSAPP = "5548991067007";   // <- número que recebe os leads
   var NOME     = "Jimmy";
-  // Endpoint que grava o lead e dispara os avisos (Edge Function do Supabase).
-  // Enquanto estiver vazio, o lead fica só no navegador.
-  var LEAD_ENDPOINT = "";  // ex: https://xxxxxxxx.supabase.co/functions/v1/lead
+  // Banco de leads (Supabase). A chave anon é pública por natureza: quem protege
+  // os dados é a regra de acesso do banco, que só permite GRAVAR, nunca ler.
+  var SUPABASE_URL = "https://buapklmgdjcoyzrmhhcd.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
   /* =================================== */
 
   var $  = function(s,c){return (c||document).querySelector(s)};
@@ -1205,21 +1206,48 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   }
 
   function salvarLead(){
-    var lead = Object.assign({}, respostas, origem, {criado_em: new Date().toISOString()});
-    // cópia local: se a rede falhar, o lead não se perde antes de uma nova tentativa
+    var d = String(respostas.whatsapp || "").replace(/\D/g, "");
+    // só as colunas que o banco autoriza o site a escrever
+    var lead = {
+      nome: respostas.nome,
+      whatsapp: respostas.whatsapp,
+      whatsapp_e164: d ? (d.indexOf("55") === 0 ? d : "55" + d) : null,
+      cidade: respostas.cidade,
+      uf: respostas.uf,
+      objetivo: respostas.objetivo,
+      tempo: respostas.tempo,
+      experiencia: respostas.experiencia,
+      solucao: respostas.solucao,
+      perfil: respostas.perfil,
+      utm_source: origem.utm_source || null,
+      utm_medium: origem.utm_medium || null,
+      utm_campaign: origem.utm_campaign || null,
+      utm_content: origem.utm_content || null,
+      utm_term: origem.utm_term || null,
+      landing: origem.landing || null,
+      referrer: origem.referrer || null,
+      device: origem.device || null
+    };
+    // cópia local: se a rede falhar, o lead não se perde de imediato
     try{ localStorage.setItem("anp_ultimo_lead", JSON.stringify(lead)); }catch(e){}
     window.__anpLead = lead;
-    if(!LEAD_ENDPOINT) return;
+
+    if(!SUPABASE_URL || !SUPABASE_KEY) return;
     // keepalive: a gravação sobrevive mesmo se a pessoa sair para o WhatsApp em seguida
-    fetch(LEAD_ENDPOINT, {
+    fetch(SUPABASE_URL + "/rest/v1/leads", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY,
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "Prefer": "return=minimal"
+      },
       body: JSON.stringify(lead),
       keepalive: true
     }).then(function(r){
       if(r.ok){ try{ localStorage.removeItem("anp_ultimo_lead"); }catch(e){} }
-      else { console.error("lead não gravado:", r.status); }
-    }).catch(function(e){ console.error("lead não gravado:", e); });
+      else { r.text().then(function(t){ console.error("lead nao gravado:", r.status, t); }); }
+    }).catch(function(e){ console.error("lead nao gravado:", e); });
   }
 
   function mensagem(){
