@@ -98,6 +98,22 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
 .empty{padding:3.5rem 1.5rem;text-align:center;color:var(--muted-dim)}
 .empty p:first-child{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--muted);margin-bottom:.4rem}
 
+/* conteúdo */
+.campo{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem}
+.campo label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim)}
+.campo .dica{font-size:.78rem;color:var(--muted-dim);margin-top:.15rem}
+textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);line-height:1.5}
+.dep{display:flex;gap:.8rem;align-items:flex-start;padding:.85rem 0;border-bottom:1px solid var(--line-soft)}
+.dep:last-of-type{border-bottom:0}
+.dep__f{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;background:var(--surface-2)}
+.dep__i{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;background:rgba(52,219,139,.1);border:1px solid var(--credit-dim);color:var(--credit);font-family:var(--mono);font-size:.72rem}
+.dep__c{flex:1;min-width:0}
+.dep__c strong{display:block;font-size:.9rem}
+.dep__c span{font-size:.78rem;color:var(--muted-dim)}
+.dep__c p{font-size:.83rem;color:var(--muted);margin-top:.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dep__a{display:flex;gap:.35rem;flex:none}
+.previa{width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid var(--line);margin-top:.4rem}
+
 /* whatsapp */
 .wa{display:grid;gap:1.2rem;margin-block:clamp(1.5rem,3vw,2.2rem)}
 @media(min-width:900px){.wa{grid-template-columns:1fr 1fr;align-items:start}}
@@ -172,6 +188,7 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
     <div class="wrap top__in">
       <div class="brand">A Nova <em>Profissão</em><small>Painel de leads</small></div>
       <div class="top__act">
+        <button class="btn btn--sm" id="btn-cont">Conteúdo</button>
         <button class="btn btn--sm" id="btn-wa">Notificações</button>
         <button class="btn btn--sm" id="btn-csv">Exportar CSV</button>
         <button class="btn btn--sm" id="btn-sair">Sair</button>
@@ -209,6 +226,49 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
     </div>
 
     <div class="list" id="lista"></div>
+
+    <div class="wa hidden" id="tela-cont">
+      <div class="box">
+        <h2>Vídeos e contato</h2>
+        <p class="sub">Cole o link do YouTube ou do Vimeo. Deixando vazio, o espaço reservado continua aparecendo.</p>
+        <div class="campo"><label for="c-v1">Vídeo de abertura — topo da página</label>
+          <input class="inp" id="c-v1" type="url" placeholder="https://youtu.be/..."></div>
+        <div class="campo"><label for="c-v2">Vídeo da seção "isso é pirâmide?"</label>
+          <input class="inp" id="c-v2" type="url" placeholder="https://youtu.be/..."></div>
+        <div class="campo"><label for="c-v3">Vídeo da apresentação completa</label>
+          <input class="inp" id="c-v3" type="url" placeholder="https://youtu.be/..."></div>
+        <div class="campo"><label for="c-wanum">WhatsApp que recebe os leads</label>
+          <input class="inp" id="c-wanum" type="tel" inputmode="numeric" placeholder="5548991067007">
+          <span class="dica">Código do país + DDD + número, só dígitos.</span></div>
+        <button class="btn btn--primary btn--sm" id="c-salvar">Salvar</button>
+        <div id="c-msg"></div>
+      </div>
+
+      <div class="box">
+        <h2>Depoimentos</h2>
+        <p class="sub">A seção só aparece no site depois do primeiro depoimento. Clique em um para editar.</p>
+        <div id="c-lista"></div>
+        <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--line-soft)">
+          <h3 style="font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.9rem" id="c-form-t">Novo depoimento</h3>
+          <div class="fields fields--2" style="margin-bottom:1rem">
+            <div class="campo" style="margin:0"><label for="p-nome">Nome</label><input class="inp" id="p-nome" type="text"></div>
+            <div class="campo" style="margin:0"><label for="p-cidade">Cidade</label><input class="inp" id="p-cidade" type="text" placeholder="Itajaí / SC"></div>
+          </div>
+          <div class="campo"><label for="p-tempo">Tempo como licenciado</label>
+            <input class="inp" id="p-tempo" type="text" placeholder="2 anos"></div>
+          <div class="campo"><label for="p-texto">Depoimento</label>
+            <textarea class="inp" id="p-texto" placeholder="O que essa pessoa conta sobre o começo dela…"></textarea></div>
+          <div class="campo"><label for="p-foto">Foto</label>
+            <input class="inp" id="p-foto" type="file" accept="image/*">
+            <img class="previa hidden" id="p-previa" alt=""></div>
+          <div class="acts">
+            <button class="btn btn--primary btn--sm" id="p-salvar">Adicionar</button>
+            <button class="btn btn--sm hidden" id="p-cancelar">Cancelar edição</button>
+          </div>
+          <div id="p-msg"></div>
+        </div>
+      </div>
+    </div>
 
     <div class="wa hidden" id="tela-wa">
       <div class="box">
@@ -460,17 +520,163 @@ $("#btn-csv").addEventListener("click", function(){
 });
 
 /* ================= NOTIFICAÇÕES WHATSAPP ================= */
-var vendoWA = false, pollQR = null;
+var pollQR = null, vista = "leads";
 
-$("#btn-wa").addEventListener("click", function(){
-  vendoWA = !vendoWA;
-  $("#tela-wa").classList.toggle("hidden", !vendoWA);
-  $("#lista").classList.toggle("hidden", vendoWA);
-  $(".stats").classList.toggle("hidden", vendoWA);
-  $(".filters").classList.toggle("hidden", vendoWA);
-  $("#btn-wa").textContent = vendoWA ? "Ver leads" : "Notificações";
-  if(vendoWA){ waStatus(); carregarDest(); }
-  else if(pollQR){ clearInterval(pollQR); pollQR = null; }
+function mostrar(v){
+  vista = v;
+  $("#tela-wa").classList.toggle("hidden",   v !== "wa");
+  $("#tela-cont").classList.toggle("hidden", v !== "cont");
+  $("#lista").classList.toggle("hidden",     v !== "leads");
+  $(".stats").classList.toggle("hidden",     v !== "leads");
+  $(".filters").classList.toggle("hidden",   v !== "leads");
+  $("#btn-wa").textContent   = v === "wa"   ? "Ver leads" : "Notificações";
+  $("#btn-cont").textContent = v === "cont" ? "Ver leads" : "Conteúdo";
+  if(v !== "wa" && pollQR){ clearInterval(pollQR); pollQR = null; }
+  if(v === "wa"){ waStatus(); carregarDest(); }
+  if(v === "cont"){ carregarConfig(); carregarDepoimentos(); }
+}
+$("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
+$("#btn-cont").addEventListener("click", function(){ mostrar(vista === "cont" ? "leads" : "cont"); });
+
+/* ================= CONTEÚDO DO SITE ================= */
+function cmsg(el, txt, tipo){
+  $(el).innerHTML = txt ? '<p class="aviso aviso--'+(tipo||"erro")+'">'+esc(txt)+'</p>' : "";
+}
+
+function carregarConfig(){
+  if(DEMO){ cmsg("#c-msg","Indisponível em modo demonstração."); return; }
+  sb.from("site_config").select("chave,valor").then(function(r){
+    if(r.error){ cmsg("#c-msg", r.error.message); return; }
+    var m = {}; (r.data||[]).forEach(function(c){ m[c.chave] = c.valor || ""; });
+    $("#c-v1").value = m.video_hero || "";
+    $("#c-v2").value = m.video_piramide || "";
+    $("#c-v3").value = m.video_apresentacao || "";
+    $("#c-wanum").value = m.whatsapp_destino || "";
+  });
+}
+
+$("#c-salvar").addEventListener("click", function(){
+  var num = $("#c-wanum").value.replace(/\D/g,"");
+  if(num && (num.length < 12 || num.length > 13)){
+    cmsg("#c-msg","O WhatsApp precisa do código do país e do DDD. Exemplo: 5548991067007."); return;
+  }
+  var b = $("#c-salvar"); b.disabled = true; b.textContent = "Salvando…";
+  var vals = [
+    {chave:"video_hero",         valor:$("#c-v1").value.trim()},
+    {chave:"video_piramide",     valor:$("#c-v2").value.trim()},
+    {chave:"video_apresentacao", valor:$("#c-v3").value.trim()},
+    {chave:"whatsapp_destino",   valor:num}
+  ];
+  sb.from("site_config").upsert(vals, {onConflict:"chave"}).then(function(r){
+    b.disabled = false; b.textContent = "Salvar";
+    cmsg("#c-msg", r.error ? r.error.message : "Salvo. Atualize o site para ver.", r.error ? "erro" : "ok");
+  });
+});
+
+/* ---- depoimentos ---- */
+var editando = null, fotoNova = null;
+
+$("#p-foto").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  fotoNova = f || null;
+  var img = $("#p-previa");
+  if(f){ img.src = URL.createObjectURL(f); img.classList.remove("hidden"); }
+  else { img.classList.add("hidden"); }
+});
+
+function carregarDepoimentos(){
+  if(DEMO){ $("#c-lista").innerHTML = '<p class="sub">Indisponível em modo demonstração.</p>'; return; }
+  sb.from("depoimentos").select("*").order("ordem").order("criado_em").then(function(r){
+    if(r.error){ cmsg("#p-msg", r.error.message); return; }
+    var l = r.data || [];
+    $("#c-lista").innerHTML = l.length ? l.map(function(d){
+      var ini = String(d.nome||"?").trim().split(/\s+/).slice(0,2).map(function(p){return p[0];}).join("").toUpperCase();
+      return '<div class="dep">'+
+        (d.foto_url ? '<img class="dep__f" src="'+esc(d.foto_url)+'" alt="">'
+                    : '<span class="dep__i">'+esc(ini)+'</span>')+
+        '<span class="dep__c"><strong>'+esc(d.nome)+'</strong>'+
+          '<span>'+esc([d.cidade,d.tempo].filter(Boolean).join(" · ")||"—")+(d.ativo?"":" · oculto")+'</span>'+
+          '<p>'+esc(d.texto)+'</p></span>'+
+        '<span class="dep__a">'+
+          '<button class="btn btn--sm" data-edit="'+d.id+'">Editar</button>'+
+          '<button class="btn btn--sm" data-rm="'+d.id+'">Remover</button>'+
+        '</span></div>';
+    }).join("") : '<p class="sub">Nenhum depoimento ainda. A seção está oculta no site.</p>';
+
+    $$("[data-edit]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var d = l.filter(function(x){ return x.id === b.getAttribute("data-edit"); })[0];
+        if(!d) return;
+        editando = d.id; fotoNova = null;
+        $("#p-nome").value = d.nome || ""; $("#p-cidade").value = d.cidade || "";
+        $("#p-tempo").value = d.tempo || ""; $("#p-texto").value = d.texto || "";
+        $("#p-foto").value = "";
+        var img = $("#p-previa");
+        if(d.foto_url){ img.src = d.foto_url; img.classList.remove("hidden"); } else { img.classList.add("hidden"); }
+        $("#c-form-t").textContent = "Editando: " + (d.nome||"");
+        $("#p-salvar").textContent = "Salvar alterações";
+        $("#p-cancelar").classList.remove("hidden");
+        $("#p-nome").focus();
+      });
+    });
+    $$("[data-rm]").forEach(function(b){
+      b.addEventListener("click", function(){
+        sb.from("depoimentos").delete().eq("id", b.getAttribute("data-rm")).then(function(x){
+          if(x.error){ cmsg("#p-msg", x.error.message); } else { limparForm(); carregarDepoimentos(); }
+        });
+      });
+    });
+  });
+}
+
+function limparForm(){
+  editando = null; fotoNova = null;
+  ["p-nome","p-cidade","p-tempo","p-texto","p-foto"].forEach(function(i){ $("#"+i).value = ""; });
+  $("#p-previa").classList.add("hidden");
+  $("#c-form-t").textContent = "Novo depoimento";
+  $("#p-salvar").textContent = "Adicionar";
+  $("#p-cancelar").classList.add("hidden");
+  cmsg("#p-msg","");
+}
+$("#p-cancelar").addEventListener("click", limparForm);
+
+function subirFoto(f){
+  var ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
+  var caminho = "depoimentos/" + Date.now() + "-" + Math.random().toString(36).slice(2,8) + "." + ext;
+  return sb.storage.from("publico").upload(caminho, f, {cacheControl:"31536000"}).then(function(u){
+    if(u.error) throw u.error;
+    return sb.storage.from("publico").getPublicUrl(caminho).data.publicUrl;
+  });
+}
+
+$("#p-salvar").addEventListener("click", function(){
+  var nome = $("#p-nome").value.trim(), texto = $("#p-texto").value.trim();
+  if(nome.length < 2 || texto.length < 10){
+    cmsg("#p-msg","Preencha ao menos o nome e um depoimento com algumas palavras."); return;
+  }
+  var b = $("#p-salvar"), rotulo = b.textContent;
+  b.disabled = true; b.textContent = "Salvando…"; cmsg("#p-msg","");
+
+  (fotoNova ? subirFoto(fotoNova) : Promise.resolve(null)).then(function(url){
+    var dados = {
+      nome: nome,
+      cidade: $("#p-cidade").value.trim() || null,
+      tempo:  $("#p-tempo").value.trim() || null,
+      texto:  texto
+    };
+    if(url) dados.foto_url = url;
+    return editando
+      ? sb.from("depoimentos").update(dados).eq("id", editando)
+      : sb.from("depoimentos").insert(dados);
+  }).then(function(r){
+    b.disabled = false; b.textContent = rotulo;
+    if(r && r.error){ cmsg("#p-msg", r.error.message); return; }
+    limparForm(); carregarDepoimentos();
+    cmsg("#p-msg","Salvo. Atualize o site para ver.","ok");
+  }).catch(function(e){
+    b.disabled = false; b.textContent = rotulo;
+    cmsg("#p-msg", "Não consegui enviar a foto: " + (e.message || e));
+  });
 });
 
 function aviso(txt, tipo){

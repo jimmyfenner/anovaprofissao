@@ -77,6 +77,26 @@ egresso tanto na nuvem quanto no VM do Mac. Não dá para testar a API do
 Supabase a partir de nenhuma sessão do Claude — a verificação tem que ser
 feita pelo Jimmy, usando o site publicado.
 
+## Conteúdo editável pelo painel (aba "Conteúdo")
+
+Tabelas `site_config` (chave/valor) e `depoimentos`, mais o bucket `publico`
+do Storage para as fotos. O site lê essas duas tabelas em tempo de execução
+com a chave anon (leitura liberada; escrita só com login).
+
+O que é editável: os três vídeos (hero, pirâmide, apresentação), o WhatsApp
+de destino dos leads, e os depoimentos com nome, cidade, tempo, texto e foto.
+
+O que NÃO é editável e é proposital: FAQ, headlines e textos dos produtos
+ficam no código. Esses textos precisam estar no HTML servido, senão o Google
+não os lê na primeira passada — e o FAQPage schema é extraído deles no build.
+Se algum dia forem para o banco, o build precisa buscá-los em tempo de build
+(Vercel alcança o Supabase) e não em tempo de execução.
+
+A seção de depoimentos nasce com `hidden` e só aparece quando existe pelo
+menos um depoimento ativo — nunca mostrar espaço reservado a visitante real.
+Vídeos usam fachada: miniatura + botão, e o iframe só carrega no clique, para
+não pesar no Core Web Vitals.
+
 ## Pendências conhecidas
 
 - Proteção anti-spam no formulário (honeypot + limite por IP). O endpoint de
