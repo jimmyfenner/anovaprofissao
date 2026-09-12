@@ -58,8 +58,19 @@ leigo e a função exigia passos demais. A segurança não mudou:
   mexe em anotações. SELECT e UPDATE exigem `authenticated`, ou seja, login.
 - URL e chave anon ficam em `home.html` e `admin.html`. A chave anon é pública
   por natureza; quem protege os dados é a RLS.
-- `supabase/functions/lead/` está guardado para a FASE 2: avisos de lead novo
-  por WhatsApp (Evolution API) e e-mail (Resend). Ainda não está em uso.
+- `supabase/functions/whatsapp/` — avisos de lead novo por WhatsApp via
+  Evolution API. Guarda a chave da Evolution nos Secrets do Supabase. Ações:
+  connect (cria instância NOVA a cada conexão, nome `anovaprofissao-<data>`,
+  apagando a anterior — o Jimmy não quer nome fixo nem acúmulo de instâncias),
+  status, disconnect, notify e teste. Destinatários ficam na tabela
+  `notificacao_destinatarios`, gerenciados pelo painel. Disparo: Database
+  Webhook em INSERT na tabela leads.
+- Escrita às cegas: supabase.co e o host da Evolution são bloqueados pela
+  política de egresso em toda sessão do Claude. Só github.com passa. Por isso
+  o envio de mensagem tenta o formato v2 e cai para o v1 — não deu para
+  descobrir a versão do servidor. Qualquer ajuste depende do Jimmy testar e
+  trazer o erro.
+- E-mail (Resend) continua pendente para depois.
 
 Limitação do ambiente: o domínio supabase.co é bloqueado pela política de
 egresso tanto na nuvem quanto no VM do Mac. Não dá para testar a API do

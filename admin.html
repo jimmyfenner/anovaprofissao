@@ -98,6 +98,38 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
 .empty{padding:3.5rem 1.5rem;text-align:center;color:var(--muted-dim)}
 .empty p:first-child{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--muted);margin-bottom:.4rem}
 
+/* whatsapp */
+.wa{display:grid;gap:1.2rem;margin-block:clamp(1.5rem,3vw,2.2rem)}
+@media(min-width:900px){.wa{grid-template-columns:1fr 1fr;align-items:start}}
+.box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:1.35rem}
+.box h2{font-size:1.05rem;margin-bottom:.3rem}
+.box .sub{font-size:.86rem;color:var(--muted-dim);margin-bottom:1.1rem}
+.estado{display:flex;align-items:center;gap:.7rem;padding:.85rem 1rem;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);margin-bottom:1.1rem}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--muted-dim)}
+.dot.on{background:var(--credit);box-shadow:0 0 0 3px rgba(52,219,139,.18)}
+.dot.off{background:var(--st-perdido)}
+.estado__t{flex:1;min-width:0;font-size:.9rem}
+.estado__t small{display:block;font-family:var(--mono);font-size:.72rem;color:var(--muted-dim);margin-top:.15rem;word-break:break-all}
+.qr{margin-top:1.1rem;text-align:center;padding:1.2rem;border:1px dashed var(--line);border-radius:9px}
+.qr img{width:100%;max-width:260px;border-radius:8px;background:#fff;padding:8px}
+.qr p{font-size:.84rem;color:var(--muted);margin-top:.9rem;max-width:38ch;margin-inline:auto;line-height:1.5}
+.dest{display:flex;align-items:center;gap:.8rem;padding:.75rem 0;border-bottom:1px solid var(--line-soft)}
+.dest:last-of-type{border-bottom:0}
+.dest__n{flex:1;min-width:0}
+.dest__n strong{display:block;font-size:.92rem;font-weight:600}
+.dest__n span{font-family:var(--mono);font-size:.78rem;color:var(--muted-dim)}
+.sw{position:relative;width:36px;height:20px;flex:none;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.sw i{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .18s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .18s,background .18s}
+.sw input:checked + i{background:rgba(52,219,139,.28)}
+.sw input:checked + i::after{transform:translateX(16px);background:var(--credit)}
+.addrow{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--line-soft)}
+.addrow .inp{flex:1;min-width:120px}
+.aviso{font-size:.82rem;padding:.8rem 1rem;border-radius:7px;margin-top:1rem;line-height:1.5}
+.aviso--erro{background:rgba(196,120,90,.1);border:1px solid rgba(196,120,90,.3);color:var(--st-perdido)}
+.aviso--ok{background:rgba(52,219,139,.1);border:1px solid rgba(52,219,139,.3);color:var(--credit)}
+
 /* login */
 .login{min-height:82vh;display:grid;place-items:center;padding:2rem 0}
 .login__box{width:100%;max-width:380px;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:clamp(1.6rem,4vw,2.2rem);display:flex;flex-direction:column;gap:1rem}
@@ -140,6 +172,7 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
     <div class="wrap top__in">
       <div class="brand">A Nova <em>Profissão</em><small>Painel de leads</small></div>
       <div class="top__act">
+        <button class="btn btn--sm" id="btn-wa">Notificações</button>
         <button class="btn btn--sm" id="btn-csv">Exportar CSV</button>
         <button class="btn btn--sm" id="btn-sair">Sair</button>
       </div>
@@ -176,6 +209,39 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
     </div>
 
     <div class="list" id="lista"></div>
+
+    <div class="wa hidden" id="tela-wa">
+      <div class="box">
+        <h2>Conexão do WhatsApp</h2>
+        <p class="sub">O número conectado aqui é quem <em>envia</em> os avisos.</p>
+        <div class="estado">
+          <span class="dot" id="wa-dot"></span>
+          <span class="estado__t" id="wa-estado">Verificando…<small id="wa-inst"></small></span>
+        </div>
+        <div class="acts">
+          <button class="btn btn--primary btn--sm" id="wa-conectar">Conectar novo número</button>
+          <button class="btn btn--sm" id="wa-teste">Enviar teste</button>
+          <button class="btn btn--sm" id="wa-desconectar">Desconectar</button>
+        </div>
+        <div id="wa-msg"></div>
+        <div class="qr hidden" id="wa-qr">
+          <img id="wa-qr-img" alt="QR Code para conectar o WhatsApp">
+          <p>No celular, abra o WhatsApp e vá em <strong>Aparelhos conectados → Conectar aparelho</strong>. Aponte a câmera para este código.</p>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>Quem recebe os avisos</h2>
+        <p class="sub">Cada lead novo dispara uma mensagem para todos os números ativos.</p>
+        <div id="wa-dest"></div>
+        <div class="addrow">
+          <input class="inp" id="d-nome" type="text" placeholder="Nome">
+          <input class="inp" id="d-num" type="tel" inputmode="numeric" placeholder="5548999999999">
+          <button class="btn btn--primary btn--sm" id="d-add">Adicionar</button>
+        </div>
+        <p class="sub" style="margin:.9rem 0 0">Formato: código do país + DDD + número, só dígitos. Exemplo: 5548991067007.</p>
+      </div>
+    </div>
     <p style="font-size:.78rem;color:var(--muted-dim);margin:1.5rem 0 3rem;max-width:70ch">
       Dados pessoais de terceiros. Trate conforme a LGPD: use apenas para o contato que a pessoa autorizou e atenda pedidos de exclusão.
     </p>
@@ -391,6 +457,143 @@ $("#btn-csv").addEventListener("click", function(){
   a.href = URL.createObjectURL(blob);
   a.download = "leads-anovaprofissao-"+new Date().toISOString().slice(0,10)+".csv";
   document.body.appendChild(a); a.click(); a.remove();
+});
+
+/* ================= NOTIFICAÇÕES WHATSAPP ================= */
+var vendoWA = false, pollQR = null;
+
+$("#btn-wa").addEventListener("click", function(){
+  vendoWA = !vendoWA;
+  $("#tela-wa").classList.toggle("hidden", !vendoWA);
+  $("#lista").classList.toggle("hidden", vendoWA);
+  $(".stats").classList.toggle("hidden", vendoWA);
+  $(".filters").classList.toggle("hidden", vendoWA);
+  $("#btn-wa").textContent = vendoWA ? "Ver leads" : "Notificações";
+  if(vendoWA){ waStatus(); carregarDest(); }
+  else if(pollQR){ clearInterval(pollQR); pollQR = null; }
+});
+
+function aviso(txt, tipo){
+  $("#wa-msg").innerHTML = txt ? '<p class="aviso aviso--'+(tipo||"erro")+'">'+esc(txt)+'</p>' : "";
+}
+
+// chama a função do Supabase com o seu login
+function fn(action, extra){
+  if(DEMO) return Promise.resolve({error:"Painel em modo demonstração."});
+  return sb.auth.getSession().then(function(s){
+    var t = s.data.session && s.data.session.access_token;
+    return fetch(CFG.url + "/functions/v1/whatsapp", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":CFG.anonKey,"Authorization":"Bearer "+t},
+      body: JSON.stringify(Object.assign({action:action}, extra||{}))
+    });
+  }).then(function(r){ return r.json().catch(function(){ return {error:"Resposta inesperada do servidor."}; }); })
+    .catch(function(e){ return {error:String(e)}; });
+}
+
+function pintaEstado(estado, inst){
+  var dot = $("#wa-dot"), txt = $("#wa-estado");
+  dot.className = "dot";
+  var rotulo;
+  if(estado === "open"){ dot.classList.add("on"); rotulo = "Conectado e pronto para avisar"; }
+  else if(estado === "sem_instancia"){ rotulo = "Nenhum número conectado"; }
+  else if(estado === "connecting"){ rotulo = "Aguardando a leitura do QR…"; }
+  else { dot.classList.add("off"); rotulo = "Desconectado (" + estado + ")"; }
+  txt.childNodes[0].nodeValue = rotulo;
+  $("#wa-inst").textContent = inst || "";
+}
+
+function waStatus(){
+  return fn("status").then(function(r){
+    if(r.error){ pintaEstado("erro", ""); aviso(r.error); return r; }
+    pintaEstado(r.estado, r.instancia);
+    if(r.estado === "open"){ $("#wa-qr").classList.add("hidden"); aviso(""); }
+    return r;
+  });
+}
+
+$("#wa-conectar").addEventListener("click", function(){
+  var b = $("#wa-conectar"); b.disabled = true; b.textContent = "Criando conexão…";
+  aviso("");
+  fn("connect").then(function(r){
+    b.disabled = false; b.textContent = "Conectar novo número";
+    if(r.error){ aviso(r.error + (r.detalhe ? " — " + JSON.stringify(r.detalhe).slice(0,200) : "")); return; }
+    if(!r.qr){ aviso("A instância foi criada, mas a Evolution não devolveu o QR. Clique em Conectar de novo."); return; }
+    $("#wa-qr-img").src = r.qr;
+    $("#wa-qr").classList.remove("hidden");
+    pintaEstado("connecting", r.instancia);
+    if(pollQR) clearInterval(pollQR);
+    pollQR = setInterval(function(){
+      waStatus().then(function(s){
+        if(s && s.estado === "open"){
+          clearInterval(pollQR); pollQR = null;
+          aviso("WhatsApp conectado. Os avisos já vão funcionar.", "ok");
+        }
+      });
+    }, 4000);
+  });
+});
+
+$("#wa-desconectar").addEventListener("click", function(){
+  var b = $("#wa-desconectar"); b.disabled = true;
+  fn("disconnect").then(function(r){
+    b.disabled = false;
+    if(pollQR){ clearInterval(pollQR); pollQR = null; }
+    $("#wa-qr").classList.add("hidden");
+    if(r.error){ aviso(r.error); return; }
+    aviso("Desconectado.", "ok"); waStatus();
+  });
+});
+
+$("#wa-teste").addEventListener("click", function(){
+  var b = $("#wa-teste"); b.disabled = true; b.textContent = "Enviando…";
+  fn("teste").then(function(r){
+    b.disabled = false; b.textContent = "Enviar teste";
+    if(r.error){ aviso(r.error); return; }
+    aviso("Teste enviado para " + r.enviados + " de " + r.total + " destinatário(s). Confira o seu WhatsApp.", r.enviados ? "ok" : "erro");
+  });
+});
+
+/* ---- destinatários ---- */
+function carregarDest(){
+  if(DEMO){ $("#wa-dest").innerHTML = '<p class="sub">Indisponível em modo demonstração.</p>'; return; }
+  sb.from("notificacao_destinatarios").select("*").order("criado_em").then(function(r){
+    if(r.error){ $("#wa-dest").innerHTML = '<p class="aviso aviso--erro">'+esc(r.error.message)+'</p>'; return; }
+    var l = r.data || [];
+    $("#wa-dest").innerHTML = l.length ? l.map(function(d){
+      return '<div class="dest">'+
+        '<label class="sw"><input type="checkbox" data-on="'+d.id+'"'+(d.ativo?" checked":"")+'><i></i></label>'+
+        '<span class="dest__n"><strong>'+esc(d.nome||"Sem nome")+'</strong><span>'+esc(d.numero)+'</span></span>'+
+        '<button class="btn btn--sm" data-del="'+d.id+'">Remover</button>'+
+      '</div>';
+    }).join("") : '<p class="sub">Nenhum destinatário ainda.</p>';
+
+    $$("[data-on]").forEach(function(c){
+      c.addEventListener("change", function(){
+        sb.from("notificacao_destinatarios").update({ativo:c.checked}).eq("id",c.getAttribute("data-on"))
+          .then(function(x){ if(x.error) aviso(x.error.message); });
+      });
+    });
+    $$("[data-del]").forEach(function(b){
+      b.addEventListener("click", function(){
+        sb.from("notificacao_destinatarios").delete().eq("id",b.getAttribute("data-del"))
+          .then(function(x){ if(x.error){ aviso(x.error.message); } else { carregarDest(); } });
+      });
+    });
+  });
+}
+
+$("#d-add").addEventListener("click", function(){
+  var nome = $("#d-nome").value.trim();
+  var num  = $("#d-num").value.replace(/\D/g,"");
+  if(num.length < 12 || num.length > 13){
+    aviso("O número precisa ter o código do país e o DDD. Exemplo: 5548991067007."); return;
+  }
+  sb.from("notificacao_destinatarios").insert({numero:num, nome:nome||null}).then(function(r){
+    if(r.error){ aviso(r.error.message.indexOf("duplicate")>-1 ? "Esse número já está na lista." : r.error.message); return; }
+    $("#d-nome").value = ""; $("#d-num").value = ""; aviso("");
+    carregarDest();
+  });
 });
 
 /* ---------- utilidades ---------- */
