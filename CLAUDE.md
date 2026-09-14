@@ -70,7 +70,18 @@ leigo e a função exigia passos demais. A segurança não mudou:
   o envio de mensagem tenta o formato v2 e cai para o v1 — não deu para
   descobrir a versão do servidor. Qualquer ajuste depende do Jimmy testar e
   trazer o erro.
-- E-mail (Resend) continua pendente para depois.
+- E-mail via Resend no mesmo fluxo do WhatsApp. Um destinatário pode ter
+  numero, email ou os dois (tabela notificacao_destinatarios).
+- `notificacoes_log` registra TODA tentativa, com o erro quando falha, e o
+  painel mostra as 40 últimas na aba Notificações. Foi criada depois de um
+  lead (Moacir) não gerar aviso e não haver como descobrir o motivo — sem o
+  log, diagnosticar isso vira adivinhação.
+- Cada lead no painel tem "Reenviar aviso", que chama a função com lead_id e
+  refaz o envio. Serve para recuperar avisos perdidos.
+- ATENÇÃO ao diagnosticar "não recebi o aviso": o botão "Enviar teste" NÃO
+  passa pelo Database Webhook. Testar por ele e concluir que o fluxo está bom
+  é o erro clássico — confirme sempre que o webhook existe em Database >
+  Webhooks, tabela leads, evento Insert, tipo Supabase Edge Functions.
 
 Limitação do ambiente: o domínio supabase.co é bloqueado pela política de
 egresso tanto na nuvem quanto no VM do Mac. Não dá para testar a API do

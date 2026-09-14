@@ -7,6 +7,8 @@ const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
 const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
 const SB_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const RESEND_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
+const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? "A Nova Profissao <onboarding@resend.dev>";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -71,6 +73,38 @@ async function enviar(inst: string, numero: string, texto: string) {
   return r;
 }
 
+async function enviarEmail(para: string, assunto: string, texto: string) {
+  if (!RESEND_KEY) return { ok: false, status: 0, body: "RESEND_API_KEY nao configurada" };
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_KEY}` },
+    body: JSON.stringify({
+      from: EMAIL_FROM,
+      to: [para],
+      subject: assunto,
+      text: texto,
+      html: `<pre style="font:14px/1.6 -apple-system,Segoe UI,sans-serif;white-space:pre-wrap">${
+        texto.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))
+      }</pre>`,
+    }),
+  });
+  const t = await r.text();
+  return { ok: r.ok, status: r.status, body: t.slice(0, 400) };
+}
+
+// toda tentativa vira uma linha — é isto que responde "por que nao chegou"
+async function registrar(linhas: unknown[]) {
+  if (!linhas.length) return;
+  await fetch(`${SB_URL}/rest/v1/notificacoes_log`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, Prefer: "return=minimal",
+    },
+    body: JSON.stringify(linhas),
+  }).catch(() => {});
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   let body: any = {};
@@ -128,15 +162,19 @@ Deno.serve(async (req) => {
     }
 
     if (acao === "notify" || acao === "teste") {
-      const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
-      const inst = cfg?.[0]?.instancia;
-      if (!inst) return json({ error: "Nenhum WhatsApp conectado" }, 400);
-      const dest = await db("notificacao_destinatarios?ativo=eq.true&select=numero,nome");
+      // reenvio manual: o painel manda só o id e a função busca o lead
+      let L: any = body.record ?? {};
+      if (!L?.nome && body.lead_id) {
+        const achado = await db(`leads?id=eq.${body.lead_id}&select=*`);
+        L = achado?.[0] ?? {};
+      }
+
+      const dest = await db("notificacao_destinatarios?ativo=eq.true&select=numero,email,nome");
       if (!dest?.length) return json({ error: "Nenhum destinatário ativo" }, 400);
 
-      const L = body.record ?? {};
-      const texto = acao === "teste"
-        ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, as notificacoes de lead estao funcionando."
+      const ehTeste = acao === "teste";
+      const texto = ehTeste
+        ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
         : [
             "*Lead novo — A Nova Profissao*", "",
             `${L.nome ?? "?"} — ${L.cidade ?? "?"}/${L.uf ?? "?"}`,
@@ -150,9 +188,54 @@ Deno.serve(async (req) => {
             L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : "",
           ].filter(Boolean).join("\n");
 
-      const envios = await Promise.allSettled(dest.map((d: any) => enviar(inst, d.numero, texto)));
-      const okCount = envios.filter((e) => e.status === "fulfilled" && (e as any).value.ok).length;
-      return json({ ok: true, enviados: okCount, total: dest.length });
+      const assunto = ehTeste
+        ? "Teste de aviso — A Nova Profissao"
+        : `Lead novo: ${L.nome ?? "?"} — ${L.cidade ?? "?"}/${L.uf ?? "?"}`;
+
+      const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
+      const inst = cfg?.[0]?.instancia;
+
+      const log: any[] = [];
+      let zap = 0, mail = 0;
+
+      await Promise.allSettled(dest.flatMap((d: any) => {
+        const tarefas: Promise<void>[] = [];
+
+        if (d.numero) {
+          tarefas.push((async () => {
+            if (!inst) {
+              log.push({ lead_id: L.id ?? null, lead_nome: L.nome ?? null, canal: "whatsapp",
+                         destino: d.numero, ok: false, detalhe: "Nenhum WhatsApp conectado" });
+              return;
+            }
+            const r = await enviar(inst, d.numero, texto);
+            if (r.ok) zap++;
+            log.push({ lead_id: L.id ?? null, lead_nome: L.nome ?? null, canal: "whatsapp",
+                       destino: d.numero, ok: r.ok,
+                       detalhe: r.ok ? null : `HTTP ${r.status}: ${JSON.stringify(r.body).slice(0, 300)}` });
+          })());
+        }
+
+        if (d.email) {
+          tarefas.push((async () => {
+            const r = await enviarEmail(d.email, assunto, texto.replace(/\*/g, ""));
+            if (r.ok) mail++;
+            log.push({ lead_id: L.id ?? null, lead_nome: L.nome ?? null, canal: "email",
+                       destino: d.email, ok: r.ok,
+                       detalhe: r.ok ? null : `HTTP ${r.status}: ${r.body}` });
+          })());
+        }
+
+        return tarefas;
+      }));
+
+      await registrar(log);
+      const falhas = log.filter((l) => !l.ok);
+      return json({
+        ok: falhas.length === 0,
+        whatsapp: zap, email: mail, total: log.length,
+        falhas: falhas.map((l) => `${l.canal} ${l.destino}: ${l.detalhe}`),
+      });
     }
 
     return json({ error: "Ação desconhecida" }, 400);

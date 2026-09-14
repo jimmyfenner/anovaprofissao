@@ -98,6 +98,17 @@ textarea.inp{width:100%;min-height:88px;resize:vertical;font-family:var(--body);
 .empty{padding:3.5rem 1.5rem;text-align:center;color:var(--muted-dim)}
 .empty p:first-child{font-family:var(--display);font-weight:600;font-size:1.05rem;color:var(--muted);margin-bottom:.4rem}
 
+/* log de avisos */
+.logl{display:flex;gap:.7rem;align-items:baseline;padding:.55rem 0;border-bottom:1px solid var(--line-soft);font-size:.83rem}
+.logl:last-child{border-bottom:0}
+.logl__s{flex:none;width:7px;height:7px;border-radius:50%;background:var(--credit);transform:translateY(-1px)}
+.logl__s.falhou{background:var(--st-perdido)}
+.logl__c{flex:1;min-width:0}
+.logl__c strong{font-weight:600}
+.logl__c em{font-style:normal;font-family:var(--mono);font-size:.75rem;color:var(--muted-dim)}
+.logl__c p{color:var(--st-perdido);font-size:.78rem;margin-top:.2rem;word-break:break-word}
+.logl__t{flex:none;font-family:var(--mono);font-size:.72rem;color:var(--muted-dim)}
+
 /* conteúdo */
 .campo{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1rem}
 .campo label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim)}
@@ -290,16 +301,23 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         </div>
       </div>
 
+      <div class="box" style="grid-column:1/-1">
+        <h2>Últimos avisos</h2>
+        <p class="sub">Toda tentativa fica registrada aqui, com o erro quando falha.</p>
+        <div id="wa-log"><p class="sub">Carregando…</p></div>
+      </div>
+
       <div class="box">
         <h2>Quem recebe os avisos</h2>
         <p class="sub">Cada lead novo dispara uma mensagem para todos os números ativos.</p>
         <div id="wa-dest"></div>
         <div class="addrow">
           <input class="inp" id="d-nome" type="text" placeholder="Nome">
-          <input class="inp" id="d-num" type="tel" inputmode="numeric" placeholder="5548999999999">
+          <input class="inp" id="d-num" type="tel" inputmode="numeric" placeholder="WhatsApp: 5548999999999">
+          <input class="inp" id="d-mail" type="email" placeholder="E-mail (opcional)">
           <button class="btn btn--primary btn--sm" id="d-add">Adicionar</button>
         </div>
-        <p class="sub" style="margin:.9rem 0 0">Formato: código do país + DDD + número, só dígitos. Exemplo: 5548991067007.</p>
+        <p class="sub" style="margin:.9rem 0 0">Preencha WhatsApp, e-mail, ou os dois. O número vai com código do país e DDD, só dígitos: 5548991067007.</p>
       </div>
     </div>
     <p style="font-size:.78rem;color:var(--muted-dim);margin:1.5rem 0 3rem;max-width:70ch">
@@ -456,6 +474,19 @@ function render(){
   $$("[data-nota]").forEach(function(t){
     t.addEventListener("blur", function(){ salvarNota(t.getAttribute("data-nota"), t.value); });
   });
+  $$("[data-reenv]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var rot = b.textContent; b.disabled = true; b.textContent = "Enviando…";
+      fn("notify", {lead_id: b.getAttribute("data-reenv")}).then(function(r){
+        b.disabled = false;
+        b.textContent = r.error ? "Falhou" : (r.ok ? "Enviado" : "Parcial");
+        if(r.error || (r.falhas && r.falhas.length)){
+          alert("Não foi possível avisar:\n\n" + (r.error || r.falhas.join("\n")));
+        }
+        setTimeout(function(){ b.textContent = rot; }, 3000);
+      });
+    });
+  });
 }
 
 function detalhe(l){
@@ -484,6 +515,7 @@ function detalhe(l){
       '<div class="acts">'+
         '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent("Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
+        '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -532,7 +564,7 @@ function mostrar(v){
   $("#btn-wa").textContent   = v === "wa"   ? "Ver leads" : "Notificações";
   $("#btn-cont").textContent = v === "cont" ? "Ver leads" : "Conteúdo";
   if(v !== "wa" && pollQR){ clearInterval(pollQR); pollQR = null; }
-  if(v === "wa"){ waStatus(); carregarDest(); }
+  if(v === "wa"){ waStatus(); carregarDest(); carregarLog(); }
   if(v === "cont"){ carregarConfig(); carregarDepoimentos(); }
 }
 $("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
@@ -760,6 +792,25 @@ $("#wa-teste").addEventListener("click", function(){
   });
 });
 
+/* ---- registro de tentativas ---- */
+function carregarLog(){
+  if(DEMO){ $("#wa-log").innerHTML = '<p class="sub">Indisponível em modo demonstração.</p>'; return; }
+  sb.from("notificacoes_log").select("*").order("criado_em",{ascending:false}).limit(40).then(function(r){
+    if(r.error){ $("#wa-log").innerHTML = '<p class="aviso aviso--erro">'+esc(r.error.message)+'</p>'; return; }
+    var l = r.data || [];
+    $("#wa-log").innerHTML = l.length ? l.map(function(x){
+      return '<div class="logl">'+
+        '<span class="logl__s'+(x.ok?"":" falhou")+'"></span>'+
+        '<span class="logl__c"><strong>'+esc(x.lead_nome||"(teste)")+'</strong> '+
+          '<em>'+esc(x.canal)+' → '+esc(x.destino||"—")+'</em>'+
+          (x.ok ? "" : '<p>'+esc(x.detalhe||"falhou sem detalhe")+'</p>')+
+        '</span>'+
+        '<span class="logl__t">'+quando(x.criado_em)+'</span>'+
+      '</div>';
+    }).join("") : '<p class="sub">Nenhum aviso registrado ainda. Se um lead entrou e nada aparece aqui, o gatilho do banco não está disparando a função.</p>';
+  });
+}
+
 /* ---- destinatários ---- */
 function carregarDest(){
   if(DEMO){ $("#wa-dest").innerHTML = '<p class="sub">Indisponível em modo demonstração.</p>'; return; }
@@ -769,7 +820,7 @@ function carregarDest(){
     $("#wa-dest").innerHTML = l.length ? l.map(function(d){
       return '<div class="dest">'+
         '<label class="sw"><input type="checkbox" data-on="'+d.id+'"'+(d.ativo?" checked":"")+'><i></i></label>'+
-        '<span class="dest__n"><strong>'+esc(d.nome||"Sem nome")+'</strong><span>'+esc(d.numero)+'</span></span>'+
+        '<span class="dest__n"><strong>'+esc(d.nome||"Sem nome")+'</strong><span>'+esc([d.numero,d.email].filter(Boolean).join(" · "))+'</span></span>'+
         '<button class="btn btn--sm" data-del="'+d.id+'">Remover</button>'+
       '</div>';
     }).join("") : '<p class="sub">Nenhum destinatário ainda.</p>';
@@ -792,12 +843,15 @@ function carregarDest(){
 $("#d-add").addEventListener("click", function(){
   var nome = $("#d-nome").value.trim();
   var num  = $("#d-num").value.replace(/\D/g,"");
-  if(num.length < 12 || num.length > 13){
+  var mail = $("#d-mail").value.trim();
+  if(!num && !mail){ aviso("Preencha ao menos um WhatsApp ou um e-mail."); return; }
+  if(num && (num.length < 12 || num.length > 13)){
     aviso("O número precisa ter o código do país e o DDD. Exemplo: 5548991067007."); return;
   }
-  sb.from("notificacao_destinatarios").insert({numero:num, nome:nome||null}).then(function(r){
+  if(mail && mail.indexOf("@") < 1){ aviso("Esse e-mail não parece válido."); return; }
+  sb.from("notificacao_destinatarios").insert({numero:num||null, email:mail||null, nome:nome||null}).then(function(r){
     if(r.error){ aviso(r.error.message.indexOf("duplicate")>-1 ? "Esse número já está na lista." : r.error.message); return; }
-    $("#d-nome").value = ""; $("#d-num").value = ""; aviso("");
+    $("#d-nome").value = ""; $("#d-num").value = ""; $("#d-mail").value = ""; aviso("");
     carregarDest();
   });
 });
