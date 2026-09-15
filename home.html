@@ -155,6 +155,18 @@ p{margin:0}
 .vmodal__box{position:relative;width:min(100%,calc((100vh - 110px) * var(--ar,1.7778)));max-width:1100px}
 .vmodal__player{width:100%;aspect-ratio:var(--ar,1.7778);background:#000;border-radius:12px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.6)}
 .vmodal__player iframe{width:100%;height:100%;border:0;display:block}
+.vmodal__cta{
+  margin-top:1rem;opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .5s ease,transform .5s ease;text-align:center;
+}
+.vmodal__cta.ativo{opacity:1;transform:none;pointer-events:auto}
+.vmodal__cta a{
+  display:inline-flex;align-items:center;gap:.6em;padding:.95em 1.8em;border-radius:8px;
+  background:var(--credit);color:#04120B;font-weight:600;font-size:.98rem;text-decoration:none;
+  box-shadow:0 8px 30px rgba(52,219,139,.25);transition:background .18s,transform .18s;
+}
+.vmodal__cta a:hover{background:#4BEA9C;transform:translateY(-1px)}
+@media (prefers-reduced-motion:reduce){.vmodal__cta{transition:none}}
 .vmodal__x{position:absolute;top:-44px;right:0;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--text);display:grid;place-items:center;cursor:pointer;font-size:1.1rem;line-height:1;transition:border-color .16s,background .16s}
 .vmodal__x:hover{border-color:var(--muted-dim);background:var(--surface-2)}
 .vslot__thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
@@ -1049,6 +1061,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   <div class="vmodal__box">
     <button class="vmodal__x" type="button" aria-label="Fechar vídeo">&times;</button>
     <div class="vmodal__player"></div>
+    <div class="vmodal__cta" id="vmodal-cta"></div>
   </div>
 </div>
 
@@ -1146,20 +1159,90 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   }
 
   var RAZAO = {"16:9": 1.7778, "9:16": 0.5625, "1:1": 1};
+  var CTA_VIDEO = null;   // {texto, url, segundos} — vem do painel
 
-  function abrirVideo(src, ar){
+  var scripts = {};
+  function carregarScript(src, pronto){
+    if(scripts[src] === "ok") return pronto();
+    if(scripts[src]) return scripts[src].push(pronto);
+    scripts[src] = [pronto];
+    var s = document.createElement("script");
+    s.src = src; s.async = true;
+    s.onload = function(){ var f = scripts[src]; scripts[src] = "ok"; f.forEach(function(fn){ fn(); }); };
+    s.onerror = function(){ scripts[src] = null; };
+    document.head.appendChild(s);
+  }
+
+  // acompanha o tempo REAL de reprodução: se a pessoa pausa, o contador pausa
+  function noSegundo(iframe, tipo, segundos, aoChegar){
+    var feito = false;
+    function dispara(){ if(!feito){ feito = true; aoChegar(); } }
+    // rede de segurança: se a API do player não carregar, usa relógio comum
+    var reserva = setTimeout(dispara, (segundos + 4) * 1000);
+    function ok(){ clearTimeout(reserva); dispara(); }
+
+    if(tipo === "vimeo"){
+      carregarScript("https://player.vimeo.com/api/player.js", function(){
+        if(!window.Vimeo) return;
+        try{
+          var p = new window.Vimeo.Player(iframe);
+          p.on("timeupdate", function(d){ if(d.seconds >= segundos){ p.off("timeupdate"); ok(); } });
+        }catch(e){}
+      });
+    }else{
+      carregarScript("https://www.youtube.com/iframe_api", function(){
+        function monta(){
+          try{
+            var p = new window.YT.Player(iframe, {});
+            var t = setInterval(function(){
+              if(feito) return clearInterval(t);
+              if(p.getCurrentTime && p.getCurrentTime() >= segundos){ clearInterval(t); ok(); }
+            }, 1000);
+          }catch(e){}
+        }
+        if(window.YT && window.YT.Player) monta();
+        else {
+          var antes = window.onYouTubeIframeAPIReady;
+          window.onYouTubeIframeAPIReady = function(){ if(antes) antes(); monta(); };
+        }
+      });
+    }
+  }
+
+  function abrirVideo(src, ar, comCta){
     var m = document.getElementById("vmodal");
+    var ehVimeo = src.indexOf("vimeo.com") > -1;
+    if(!ehVimeo) src += "&enablejsapi=1";
     m.style.setProperty("--ar", ar);
     m.querySelector(".vmodal__player").innerHTML =
-      '<iframe src="' + src + '" title="Vídeo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+      '<iframe id="vplayer" src="' + src + '" title="Vídeo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
     m.hidden = false;
     document.body.style.overflow = "hidden";
     m.querySelector(".vmodal__x").focus();
+
+    var caixa = document.getElementById("vmodal-cta");
+    caixa.className = "vmodal__cta";
+    caixa.innerHTML = "";
+    if(comCta && CTA_VIDEO && CTA_VIDEO.url && CTA_VIDEO.texto){
+      caixa.innerHTML = '<a href="' + CTA_VIDEO.url + '" target="_blank" rel="noopener">' +
+        esc(CTA_VIDEO.texto) +
+        '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+        '<path d="M4 12L12 4M12 4H6M12 4v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+      caixa.querySelector("a").addEventListener("click", function(){
+        track("cadastro_click", {origem: "video_apresentacao"});
+      });
+      noSegundo(document.getElementById("vplayer"), ehVimeo ? "vimeo" : "youtube",
+        CTA_VIDEO.segundos, function(){
+          caixa.classList.add("ativo");
+          track("cta_video_exibido", {segundos: CTA_VIDEO.segundos});
+        });
+    }
   }
   function fecharVideo(){
     var m = document.getElementById("vmodal");
     if(m.hidden) return;
     m.querySelector(".vmodal__player").innerHTML = "";   // para o som
+    document.getElementById("vmodal-cta").className = "vmodal__cta";
     m.hidden = true;
     document.body.style.overflow = "";
   }
@@ -1180,7 +1263,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       '<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></button>';
     el.querySelector("button").addEventListener("click", function(){
       track("video_start", {slot: id});
-      abrirVideo(v.src, ar);
+      abrirVideo(v.src, ar, id === "v-apresentacao");
     });
   }
 
@@ -1217,6 +1300,13 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     montarVideo("v-piramide",     m.video_piramide,     m.video_piramide_formato);
     montarVideo("v-apresentacao", m.video_apresentacao, m.video_apresentacao_formato);
     if(m.link_cadastro) LINK_CADASTRO = m.link_cadastro;
+    if(m.cta_video_ativo === "1"){
+      CTA_VIDEO = {
+        texto: m.cta_video_texto || "Quero fazer meu cadastro",
+        url: m.cta_video_url || LINK_CADASTRO,
+        segundos: Math.max(0, parseInt(m.cta_video_segundos, 10) || 60)
+      };
+    }
     $$("[data-cadastro]").forEach(function(el){ el.href = LINK_CADASTRO; });
     if(m.whatsapp_destino && /^[0-9]{12,13}$/.test(m.whatsapp_destino)){
       WHATSAPP = m.whatsapp_destino;
