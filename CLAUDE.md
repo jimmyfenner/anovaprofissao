@@ -78,6 +78,14 @@ leigo e a função exigia passos demais. A segurança não mudou:
   log, diagnosticar isso vira adivinhação.
 - Cada lead no painel tem "Reenviar aviso", que chama a função com lead_id e
   refaz o envio. Serve para recuperar avisos perdidos.
+- O GATILHO NÃO É UM DATABASE WEBHOOK. A tela de Webhooks do Supabase falha
+  neste projeto com: schema "supabase_functions" does not exist — a
+  infraestrutura que ela assume não está instalada. O disparo é um trigger
+  próprio em public.leads chamando net.http_post (pg_net) para a Edge
+  Function, com a service_role key guardada na tabela `private_config`
+  (sem policy nenhuma: inalcançável pela API, só pelo banco por dentro).
+  O trigger captura exceção e devolve NEW mesmo em erro — um aviso que falha
+  jamais pode derrubar a gravação do lead.
 - ATENÇÃO ao diagnosticar "não recebi o aviso": o botão "Enviar teste" NÃO
   passa pelo Database Webhook. Testar por ele e concluir que o fluxo está bom
   é o erro clássico — confirme sempre que o webhook existe em Database >
