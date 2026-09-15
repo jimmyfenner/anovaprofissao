@@ -254,6 +254,9 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <div class="campo"><label for="c-wanum">WhatsApp que recebe os leads</label>
           <input class="inp" id="c-wanum" type="tel" inputmode="numeric" placeholder="5548991067007">
           <span class="dica">Código do país + DDD + número, só dígitos.</span></div>
+        <div class="campo"><label for="c-cad">Link de cadastro de licenciado</label>
+          <input class="inp" id="c-cad" type="url" placeholder="https://expansao.igreenenergy.com.br/?id=...">
+          <span class="dica">Para quem chega decidido. Confira se o seu ID está no link.</span></div>
         <button class="btn btn--primary btn--sm" id="c-salvar">Salvar</button>
         <div id="c-msg"></div>
       </div>
@@ -590,6 +593,7 @@ function carregarConfig(){
     $("#c-f2").value = m.video_piramide_formato || "16:9";
     $("#c-f3").value = m.video_apresentacao_formato || "16:9";
     $("#c-wanum").value = m.whatsapp_destino || "";
+    $("#c-cad").value = m.link_cadastro || "";
   });
 }
 
@@ -606,7 +610,8 @@ $("#c-salvar").addEventListener("click", function(){
     {chave:"whatsapp_destino",   valor:num},
     {chave:"video_hero_formato",         valor:$("#c-f1").value},
     {chave:"video_piramide_formato",     valor:$("#c-f2").value},
-    {chave:"video_apresentacao_formato", valor:$("#c-f3").value}
+    {chave:"video_apresentacao_formato", valor:$("#c-f3").value},
+    {chave:"link_cadastro",              valor:$("#c-cad").value.trim()}
   ];
   sb.from("site_config").upsert(vals, {onConflict:"chave"}).then(function(r){
     b.disabled = false; b.textContent = "Salvar";

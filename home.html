@@ -403,6 +403,16 @@ details>div{padding:0 2.5rem 1.35rem 0;color:var(--muted);font-size:.94rem;max-w
 .tslot__bar--s{width:45%}
 .tslot__note{font-family:var(--mono);font-size:.71rem;letter-spacing:.08em;color:var(--muted-dim);margin-top:auto;line-height:1.5}
 
+.ou{display:flex;align-items:center;gap:.9rem;color:var(--muted-dim);font-size:.8rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.ou::before,.ou::after{content:"";height:1px;background:var(--line);flex:1}
+.decidido{
+  margin-top:2.6rem;padding-top:2rem;border-top:1px solid var(--line-soft);
+  font-size:.95rem;color:var(--muted);text-align:center;
+}
+.decidido a{color:var(--credit);text-decoration:none;border-bottom:1px solid var(--credit-dim);padding-bottom:1px}
+.decidido a:hover{border-bottom-color:var(--credit)}
+.decidido small{display:block;font-size:.8rem;color:var(--muted-dim);margin-top:.5rem}
+
 /* ---------- closing ---------- */
 .closing{text-align:center}
 .closing h2{max-width:20ch;margin-inline:auto}
@@ -985,6 +995,12 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         <a class="btn btn--primary" href="#avaliacao" data-ev="final_cta">Quero conhecer</a>
         <a class="btn btn--ghost" href="#apresentacao" data-ev="final_presentation">Assistir à apresentação</a>
       </div>
+
+      <p class="decidido">
+        Já conhece o modelo e não precisa de apresentação?
+        <a data-cadastro href="https://expansao.igreenenergy.com.br/?id=1971&amp;checkout=true&amp;tipolicenca=CONNECT" target="_blank" rel="noopener" data-ev="cadastro_click">Faça seu cadastro direto.</a>
+        <small>Leva ao site oficial da iGreen Energy, com a minha indicação.</small>
+      </p>
     </div>
   </div>
 </section>
@@ -1051,6 +1067,8 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   var NOME     = "Jimmy";
   // Banco de leads (Supabase). A chave anon é pública por natureza: quem protege
   // os dados é a regra de acesso do banco, que só permite GRAVAR, nunca ler.
+  // Para quem já chega decidido. Editável pelo painel (chave link_cadastro).
+  var LINK_CADASTRO = "https://expansao.igreenenergy.com.br/?id=1971&checkout=true&tipolicenca=CONNECT";
   var SUPABASE_URL = "https://buapklmgdjcoyzrmhhcd.supabase.co";
   var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
   /* =================================== */
@@ -1198,6 +1216,8 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     montarVideo("v-hero",         m.video_hero,         m.video_hero_formato);
     montarVideo("v-piramide",     m.video_piramide,     m.video_piramide_formato);
     montarVideo("v-apresentacao", m.video_apresentacao, m.video_apresentacao_formato);
+    if(m.link_cadastro) LINK_CADASTRO = m.link_cadastro;
+    $$("[data-cadastro]").forEach(function(el){ el.href = LINK_CADASTRO; });
     if(m.whatsapp_destino && /^[0-9]{12,13}$/.test(m.whatsapp_destino)){
       WHATSAPP = m.whatsapp_destino;
       $("#float-wa").href = waLink("Olá " + NOME + "! Estou no site A Nova Profissão e gostaria de entender melhor a oportunidade.");
@@ -1420,8 +1440,12 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         '</dl>'+
         '<a class="btn btn--primary btn--block" id="go-wa" href="'+waLink(mensagem())+'" target="_blank" rel="noopener">Conversar com '+NOME+' no WhatsApp</a>'+
         '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Suas respostas vão junto na mensagem — você não precisa repetir nada.</p>'+
+        '<p class="ou">ou</p>'+
+        '<a class="btn btn--ghost btn--block" id="go-cad" data-cadastro href="'+LINK_CADASTRO+'" target="_blank" rel="noopener">Já entendi o modelo — quero fazer meu cadastro</a>'+
+        '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Leva ao cadastro oficial da iGreen Energy, já com a minha indicação.</p>'+
       '</div>';
     $("#go-wa").addEventListener("click", function(){ track("whatsapp_click", {origem_lead:"quiz"}); });
+    $("#go-cad").addEventListener("click", function(){ track("cadastro_click", {origem:"quiz"}); });
   }
 
   qback.addEventListener("click", function(){ if(passo > 0){ passo--; render(); } });
