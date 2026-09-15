@@ -23,6 +23,13 @@ Para alterar o site: edite `home.html`, rode `node build.js` para conferir,
 
 ## Regras de conteúdo — inegociáveis
 
+0. **O preço da licença está fixo no FAQ de `home.html`** (R$ 1.997 à vista
+   ou 12x R$ 197,41, licença Connect), autorizado pelo Jimmy em set/2026.
+   Fica no código e não no painel de propósito: "quanto custa ser licenciado
+   iGreen" é uma das buscas-alvo, e o número precisa estar no HTML servido
+   para ranquear — além de entrar no FAQPage schema. Quando mudar, editar ali.
+   Existe também uma licença de R$ 997 (telefone + seguros, sem energia) que
+   o Jimmy optou por NÃO exibir no site.
 1. **Nunca inventar dado comercial.** Valores de licença, percentuais de
    comissão, coberturas de seguro, nome de seguradora, regras do plano de
    carreira. Se não foi o Jimmy que forneceu, o texto diz que as condições
