@@ -149,6 +149,14 @@ p{margin:0}
   margin:1.7rem auto 0;padding-top:1.7rem;border-top:1px solid var(--line-soft);line-height:1.55;
 }
 
+.vslot--vertical{aspect-ratio:9/16;max-width:340px;margin-inline:auto}
+.vmodal{position:fixed;inset:0;z-index:200;background:rgba(5,8,7,.94);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:center;padding:clamp(14px,3vw,36px)}
+.vmodal[hidden]{display:none}
+.vmodal__box{position:relative;width:min(100%,calc((100vh - 110px) * var(--ar,1.7778)));max-width:1100px}
+.vmodal__player{width:100%;aspect-ratio:var(--ar,1.7778);background:#000;border-radius:12px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.vmodal__player iframe{width:100%;height:100%;border:0;display:block}
+.vmodal__x{position:absolute;top:-44px;right:0;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--text);display:grid;place-items:center;cursor:pointer;font-size:1.1rem;line-height:1;transition:border-color .16s,background .16s}
+.vmodal__x:hover{border-color:var(--muted-dim);background:var(--surface-2)}
 .vslot__thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
 .vslot iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .vslot__btn{cursor:pointer;position:relative;z-index:2;transition:transform .18s,background .18s}
@@ -1021,6 +1029,13 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   </div>
 </footer>
 
+<div class="vmodal" id="vmodal" hidden role="dialog" aria-modal="true" aria-label="Vídeo">
+  <div class="vmodal__box">
+    <button class="vmodal__x" type="button" aria-label="Fechar vídeo">&times;</button>
+    <div class="vmodal__player"></div>
+  </div>
+</div>
+
 <a class="float" id="float-wa" href="#" target="_blank" rel="noopener" data-ev="whatsapp_click">
   <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.85 9.85 0 0012.04 2zm0 18.15h-.01a8.2 8.2 0 01-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 01-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 012.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.16.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03s.87 2.35.99 2.51c.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.44-.59 1.64-1.16.2-.57.2-1.05.14-1.16-.06-.1-.22-.16-.47-.28z"/></svg>
   <span>Falar com Jimmy</span>
@@ -1102,22 +1117,52 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       capa: "https://i.ytimg.com/vi/" + yt[1] + "/maxresdefault.jpg",
       src:  "https://www.youtube-nocookie.com/embed/" + yt[1] + "?autoplay=1&rel=0&modestbranding=1"
     };
-    var vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    if(vm) return { capa: null, src: "https://player.vimeo.com/video/" + vm[1] + "?autoplay=1" };
+    // vídeos não listados do Vimeo trazem um código extra depois do número
+    var vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:[/?]([\w]+))?/);
+    if(vm) return {
+      capa: null,
+      src: "https://player.vimeo.com/video/" + vm[1] +
+           (vm[2] ? "?h=" + vm[2] + "&autoplay=1" : "?autoplay=1")
+    };
     return null;
   }
 
-  function montarVideo(id, url){
+  var RAZAO = {"16:9": 1.7778, "9:16": 0.5625, "1:1": 1};
+
+  function abrirVideo(src, ar){
+    var m = document.getElementById("vmodal");
+    m.style.setProperty("--ar", ar);
+    m.querySelector(".vmodal__player").innerHTML =
+      '<iframe src="' + src + '" title="Vídeo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    m.hidden = false;
+    document.body.style.overflow = "hidden";
+    m.querySelector(".vmodal__x").focus();
+  }
+  function fecharVideo(){
+    var m = document.getElementById("vmodal");
+    if(m.hidden) return;
+    m.querySelector(".vmodal__player").innerHTML = "";   // para o som
+    m.hidden = true;
+    document.body.style.overflow = "";
+  }
+  document.addEventListener("click", function(e){
+    if(e.target.id === "vmodal" || e.target.closest(".vmodal__x")) fecharVideo();
+  });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") fecharVideo(); });
+
+  function montarVideo(id, url, formato){
     var el = document.getElementById(id), v = embutir(url);
     if(!el || !v) return;   // sem link válido, o espaço reservado continua como está
+    var ar = RAZAO[formato] || RAZAO["16:9"];
     el.classList.add("vslot--pronto");
+    if(ar < 1) el.classList.add("vslot--vertical");
     el.innerHTML =
       (v.capa ? '<img class="vslot__thumb" src="' + v.capa + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
       '<button class="vslot__play vslot__btn" type="button" aria-label="Assistir ao vídeo">' +
       '<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></button>';
     el.querySelector("button").addEventListener("click", function(){
       track("video_start", {slot: id});
-      el.innerHTML = '<iframe src="' + v.src + '" title="Vídeo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+      abrirVideo(v.src, ar);
     });
   }
 
@@ -1150,9 +1195,9 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     if(!cfg) return;
     var m = {};
     cfg.forEach(function(c){ m[c.chave] = c.valor; });
-    montarVideo("v-hero",         m.video_hero);
-    montarVideo("v-piramide",     m.video_piramide);
-    montarVideo("v-apresentacao", m.video_apresentacao);
+    montarVideo("v-hero",         m.video_hero,         m.video_hero_formato);
+    montarVideo("v-piramide",     m.video_piramide,     m.video_piramide_formato);
+    montarVideo("v-apresentacao", m.video_apresentacao, m.video_apresentacao_formato);
     if(m.whatsapp_destino && /^[0-9]{12,13}$/.test(m.whatsapp_destino)){
       WHATSAPP = m.whatsapp_destino;
       $("#float-wa").href = waLink("Olá " + NOME + "! Estou no site A Nova Profissão e gostaria de entender melhor a oportunidade.");

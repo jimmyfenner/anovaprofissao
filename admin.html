@@ -241,13 +241,16 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <div class="wa hidden" id="tela-cont">
       <div class="box">
         <h2>Vídeos e contato</h2>
-        <p class="sub">Cole o link do YouTube ou do Vimeo. Deixando vazio, o espaço reservado continua aparecendo.</p>
+        <p class="sub">Cole o link do YouTube ou do Vimeo e escolha o formato. Ao clicar, o vídeo abre em tela cheia no formato certo. Deixando vazio, o espaço reservado continua aparecendo.</p>
         <div class="campo"><label for="c-v1">Vídeo de abertura — topo da página</label>
-          <input class="inp" id="c-v1" type="url" placeholder="https://youtu.be/..."></div>
+          <input class="inp" id="c-v1" type="url" placeholder="https://youtu.be/...">
+          <select class="inp" id="c-f1" style="margin-top:.4rem"><option value="16:9">Horizontal — 16:9</option><option value="9:16">Vertical — 9:16 (Reels, Shorts)</option><option value="1:1">Quadrado — 1:1</option></select></div>
         <div class="campo"><label for="c-v2">Vídeo da seção "isso é pirâmide?"</label>
-          <input class="inp" id="c-v2" type="url" placeholder="https://youtu.be/..."></div>
+          <input class="inp" id="c-v2" type="url" placeholder="https://youtu.be/...">
+          <select class="inp" id="c-f2" style="margin-top:.4rem"><option value="16:9">Horizontal — 16:9</option><option value="9:16">Vertical — 9:16 (Reels, Shorts)</option><option value="1:1">Quadrado — 1:1</option></select></div>
         <div class="campo"><label for="c-v3">Vídeo da apresentação completa</label>
-          <input class="inp" id="c-v3" type="url" placeholder="https://youtu.be/..."></div>
+          <input class="inp" id="c-v3" type="url" placeholder="https://youtu.be/...">
+          <select class="inp" id="c-f3" style="margin-top:.4rem"><option value="16:9">Horizontal — 16:9</option><option value="9:16">Vertical — 9:16 (Reels, Shorts)</option><option value="1:1">Quadrado — 1:1</option></select></div>
         <div class="campo"><label for="c-wanum">WhatsApp que recebe os leads</label>
           <input class="inp" id="c-wanum" type="tel" inputmode="numeric" placeholder="5548991067007">
           <span class="dica">Código do país + DDD + número, só dígitos.</span></div>
@@ -583,6 +586,9 @@ function carregarConfig(){
     $("#c-v1").value = m.video_hero || "";
     $("#c-v2").value = m.video_piramide || "";
     $("#c-v3").value = m.video_apresentacao || "";
+    $("#c-f1").value = m.video_hero_formato || "16:9";
+    $("#c-f2").value = m.video_piramide_formato || "16:9";
+    $("#c-f3").value = m.video_apresentacao_formato || "16:9";
     $("#c-wanum").value = m.whatsapp_destino || "";
   });
 }
@@ -597,7 +603,10 @@ $("#c-salvar").addEventListener("click", function(){
     {chave:"video_hero",         valor:$("#c-v1").value.trim()},
     {chave:"video_piramide",     valor:$("#c-v2").value.trim()},
     {chave:"video_apresentacao", valor:$("#c-v3").value.trim()},
-    {chave:"whatsapp_destino",   valor:num}
+    {chave:"whatsapp_destino",   valor:num},
+    {chave:"video_hero_formato",         valor:$("#c-f1").value},
+    {chave:"video_piramide_formato",     valor:$("#c-f2").value},
+    {chave:"video_apresentacao_formato", valor:$("#c-f3").value}
   ];
   sb.from("site_config").upsert(vals, {onConflict:"chave"}).then(function(r){
     b.disabled = false; b.textContent = "Salvar";
