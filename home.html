@@ -265,6 +265,20 @@ p{margin:0}
 .card__tag{font-family:var(--mono);font-size:.71rem;letter-spacing:.14em;text-transform:uppercase;color:var(--credit)}
 .card p{color:var(--muted);font-size:.96rem}
 
+/* ---------- prova documental ---------- */
+.prova{
+  margin-top:clamp(2rem,4vw,3rem);padding:clamp(1.3rem,3vw,1.8rem);
+  border:1px solid var(--line);border-left:2px solid var(--credit);
+  border-radius:10px;background:var(--surface);max-width:760px;margin-inline:auto;
+}
+.prova__t{font-family:var(--mono);font-size:.71rem;letter-spacing:.14em;text-transform:uppercase;color:var(--credit);margin-bottom:.9rem}
+.prova>p{font-size:.93rem;color:var(--muted);line-height:1.6}
+.prova ol{margin:1.2rem 0 0;padding:0 0 0 1.2rem;display:flex;flex-direction:column;gap:.9rem}
+.prova li{font-size:.9rem;color:var(--muted);line-height:1.55}
+.prova a{color:var(--credit);text-decoration:none;border-bottom:1px solid var(--credit-dim)}
+.prova a:hover{border-bottom-color:var(--credit)}
+.prova__nota{font-size:.82rem;color:var(--muted-dim);margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--line-soft);line-height:1.55}
+
 /* ---------- products ---------- */
 .prod{display:flex;align-items:center;gap:1.15rem;padding:1.4rem 0;border-bottom:1px solid var(--line-soft);text-align:left}
 .prod:last-of-type{border-bottom:0}
@@ -707,6 +721,16 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       </div>
     </div>
 
+    <div class="prova reveal">
+      <p class="prova__t">E você não precisa acreditar em mim</p>
+      <p>O argumento acima se sustenta sozinho: ou existe cliente pagando por um serviço que usa, ou não existe. Mas se você quiser conferir quem está por trás da empresa, isso é público — e está publicado pelas próprias companhias, em documentos auditados:</p>
+      <ol>
+        <li>A <strong style="color:var(--text);font-weight:600">Comerc Participações</strong> declarou a aquisição de 50% da iGreen Energy no seu release de resultados do 4º trimestre de 2022. <a href="https://ri.comerc.com.br/central-de-resultados-2/" target="_blank" rel="noopener" data-ev="prova_comerc">Ver os resultados da Comerc</a></li>
+        <li>Em janeiro de 2025, a <strong style="color:var(--text);font-weight:600">Vibra Energia</strong> concluiu a aquisição integral da Comerc. A Vibra é empresa de capital aberto, listada na B3 sob o código VBBR3, auditada e com obrigação de prestar contas ao mercado. <a href="https://ri.vibraenergia.com.br" target="_blank" rel="noopener" data-ev="prova_vibra">Ver relações com investidores da Vibra</a></li>
+      </ol>
+      <p class="prova__nota">Nenhum documento prova que uma oportunidade é boa para você — isso continua sendo a sua avaliação. Mas vale saber que a estrutura por trás dela é verificável, e não depende da palavra de quem está te convidando.</p>
+    </div>
+
     <div class="vslot reveal" id="v-piramide" style="max-width:760px;margin-inline:auto">
       <div class="vslot__play"><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></div>
       <p class="vslot__label">Vídeo — resposta direta</p>
@@ -999,7 +1023,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       <details><summary>Quem atende os clientes depois da contratação?</summary><div>A estrutura da empresa mantém os canais de atendimento e pós-venda. O licenciado segue como referência de relacionamento comercial do cliente.</div></details>
       <details><summary>O que é Conexão Seguros? O seguro é mensal?</summary><div>É a frente de seguro veicular do ecossistema, com contratação digital e mensalidade. Atende veículos elegíveis, incluindo carros e motos. Coberturas, assistências, franquias, limites e exclusões variam conforme o plano contratado e estão sujeitas a análise, aceitação e condições vigentes.</div></details>
       <details><summary>O iGreen Club dá comissão?</summary><div>O clube de benefícios não é a fonte de renda do licenciado. Ele é entregue como cortesia aos clientes de energia, telecom e seguros, para que o cliente se sinta valorizado e a aceitação dos demais serviços melhore. Existe a possibilidade de comercializá-lo avulso a um cliente final, por R$ 19,90 mensais conforme condições vigentes, mas essa é a exceção e não o caminho principal.</div></details>
-      <details><summary>A iGreen é marketing multinível? É pirâmide?</summary><div>A atividade envolve comercialização de produtos e serviços para clientes finais, que pagam porque usam esses serviços — energia, telefonia, seguros, energia solar. Além de atender clientes, um licenciado também pode desenvolver outros licenciados, dentro das regras do plano comercial. Nada disso precisa ser escondido, e a melhor forma de avaliar é entendendo o modelo inteiro: de onde vem o produto, quem é o cliente e como se é remunerado.</div></details>
+      <details><summary>A iGreen é marketing multinível? É pirâmide?</summary><div>A atividade envolve comercialização de produtos e serviços para clientes finais, que pagam porque usam esses serviços — energia, telefonia, seguros, energia solar. Além de atender clientes, um licenciado também pode desenvolver outros licenciados, dentro das regras do plano comercial. Nada disso precisa ser escondido, e a melhor forma de avaliar é entendendo o modelo inteiro: de onde vem o produto, quem é o cliente e como se é remunerado.<br><br>A estrutura societária também é pública e verificável: a Comerc Participações declarou a aquisição de 50% da iGreen Energy no seu release de resultados do 4º trimestre de 2022, e em janeiro de 2025 a Vibra Energia — empresa de capital aberto listada na B3 sob o código VBBR3 — concluiu a aquisição integral da Comerc. Os documentos estão nas páginas de relações com investidores das duas empresas.</div></details>
     </div>
     <p class="faq-note reveal">Condições comerciais, valores, percentuais e regras de produtos são definidos pela iGreen Energy e podem ser alterados a qualquer momento. As informações desta página têm caráter informativo e não substituem os materiais e contratos oficiais vigentes.</p>
   </div>
