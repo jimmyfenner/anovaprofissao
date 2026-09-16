@@ -232,17 +232,6 @@ p{margin:0}
 .flip-grid{display:grid;gap:clamp(2rem,4vw,3rem);align-items:start}
 @media(min-width:900px){.flip-grid{grid-template-columns:1fr 1fr}}
 
-/* ---------- flow ---------- */
-.flow{display:flex;flex-direction:column;gap:0;margin-top:1rem}
-.flow__step{display:flex;align-items:center;gap:1.1rem;padding:.92rem 0;border-bottom:1px solid var(--line-soft)}
-.flow__step:last-child{border-bottom:0}
-.flow__idx{
-  font-family:var(--mono);font-size:.72rem;color:var(--muted-dim);flex:none;width:2.2ch;
-  font-variant-numeric:tabular-nums;
-}
-.flow__txt{font-family:var(--display);font-weight:600;font-size:clamp(1rem,2.1vw,1.22rem);letter-spacing:-.012em}
-.flow__step--end .flow__txt{color:var(--credit)}
-
 /* ---------- portfolio build ---------- */
 .folio{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
 .folio__client{display:flex;align-items:center;gap:1rem;padding:1.25rem 1.35rem;border-bottom:1px solid var(--line);background:var(--surface-2)}
@@ -601,41 +590,13 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
 
 <hr class="rule">
 
-<!-- O QUE FAZ -->
+<!-- A ATIVIDADE -->
 <section id="atividade">
   <div class="wrap">
     <div class="head reveal">
       <p class="eyebrow">A atividade</p>
       <h2>O que um licenciado realmente faz?</h2>
-    </div>
-    <div class="flip-grid">
-      <div class="reveal">
-        <div class="flow">
-          <div class="flow__step"><span class="flow__idx">01</span><span class="flow__txt">Pessoas e empresas já possuem necessidades</span></div>
-          <div class="flow__step"><span class="flow__idx">02</span><span class="flow__txt">O licenciado identifica as oportunidades</span></div>
-          <div class="flow__step"><span class="flow__idx">03</span><span class="flow__txt">Apresenta a solução adequada</span></div>
-          <div class="flow__step"><span class="flow__idx">04</span><span class="flow__txt">O cliente contrata</span></div>
-          <div class="flow__step flow__step--end"><span class="flow__idx">05</span><span class="flow__txt">Nasce uma carteira comercial</span></div>
-        </div>
-      </div>
-      <div class="prose reveal">
-        <p>Seu trabalho não é convencer todo mundo a comprar tudo.</p>
-        <p><strong>Seu trabalho é aprender a reconhecer necessidades e conectar a solução certa ao cliente certo.</strong></p>
-        <p>É uma habilidade comercial — e como toda habilidade, ela se aprende. É por isso que treinamento e acompanhamento pesam tanto nessa decisão.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<hr class="rule">
-
-<!-- CARTEIRA -->
-<section id="carteira">
-  <div class="wrap">
-    <div class="head reveal">
-      <p class="eyebrow">A tese central</p>
-      <h2>Uma carteira. Várias oportunidades.</h2>
-      <p class="lede">Um cliente pode representar mais de uma oportunidade ao longo do relacionamento. É o que separa "fazer uma venda" de "construir uma carteira".</p>
+      <p class="lede">Reconhece uma necessidade que o cliente <strong>já tem</strong> e conecta a solução certa. E um mesmo cliente costuma ter mais de uma ao longo do tempo — é o que separa "fazer uma venda" de "construir uma carteira".</p>
     </div>
 
     <div class="flip-grid">
@@ -657,9 +618,10 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       </div>
 
       <div class="prose reveal">
-        <p>Imagine que você inicia um relacionamento comercial através de uma solução de energia. Meses depois, esse mesmo cliente precisa de seguro. Depois, telefonia. Depois, avalia energia solar.</p>
+        <p>Você inicia o relacionamento por uma conta de energia. Meses depois, esse mesmo cliente precisa de seguro. Depois, telefonia. Depois, avalia energia solar.</p>
         <p>Isso muda a pergunta que você se faz. Em vez de <strong>"quantas vendas eu fiz?"</strong>, passa a ser <strong>"quantos relacionamentos comerciais eu estou construindo?"</strong></p>
         <p style="color:var(--text);font-family:var(--display);font-weight:600;font-size:1.12rem;line-height:1.35;letter-spacing:-.015em;border-left:2px solid var(--credit);padding-left:1.1rem">Não é sobre vender tudo para todo mundo. É sobre identificar a solução certa para a necessidade certa.</p>
+        <p>E isso é uma habilidade comercial — como toda habilidade, ela se aprende. É por isso que treinamento e acompanhamento pesam tanto nessa decisão.</p>
         <p style="font-size:.85rem;color:var(--muted-dim)">Exemplo ilustrativo de sequência de relacionamento. Não representa resultado, prazo ou remuneração.</p>
       </div>
     </div>
