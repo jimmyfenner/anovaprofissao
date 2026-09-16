@@ -53,7 +53,10 @@ function schemas(html) {
     name: 'Jimmy Fenner',
     jobTitle: 'Licenciado iGreen Energy',
     url: SITE.url,
-    sameAs: ['https://youtube.com/@jimmyfenner'],
+    sameAs: [
+      'https://youtube.com/@jimmyfenner',
+      'https://instagram.com/minerandoosol',
+    ],
     address: { '@type': 'PostalAddress', addressLocality: 'Balneário Camboriú', addressRegion: 'SC', addressCountry: 'BR' },
   };
   const site = {
