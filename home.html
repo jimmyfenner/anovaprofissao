@@ -322,6 +322,13 @@ p{margin:0}
 }
 .creds{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.4rem}
 
+.verme{
+  margin-top:1.7rem;padding-top:1.5rem;border-top:1px solid var(--line-soft);
+  display:flex;flex-direction:column;gap:1rem;align-items:flex-start;
+}
+.verme p{font-size:.95rem;color:var(--muted);max-width:56ch}
+.verme .btn svg{flex:none}
+
 /* ---------- timeline ---------- */
 .tl{display:grid;gap:0}
 @media(min-width:780px){.tl{grid-template-columns:1fr 1fr;column-gap:2.5rem}}
@@ -834,6 +841,14 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
           <p>Atuo com desenvolvimento de licenciados, vendas, treinamentos e apresentações comerciais. Boa parte do meu trabalho hoje é ajudar quem está começando a dar os primeiros passos sem se perder.</p>
           <p>Quando alguém inicia uma nova atividade, a maior dúvida raramente é só <strong>"essa empresa funciona?"</strong>. É também: <strong>"quem vai me ajudar quando eu ainda não souber o que fazer?"</strong></p>
           <p>É exatamente para responder essa segunda pergunta que este site existe.</p>
+
+          <div class="verme">
+            <p>E você não precisa acreditar em nada disso pela minha palavra. Eu publico no YouTube há anos, com o meu nome e a minha cara, sobre a iGreen, sobre energia e sobre mobilidade elétrica. Assista, tire suas próprias conclusões, e só então decida se quer conversar comigo.</p>
+            <a class="btn btn--ghost" href="https://youtube.com/@jimmyfenner" target="_blank" rel="noopener" data-ev="youtube_click">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+              Ver meu canal no YouTube
+            </a>
+          </div>
         </div>
       </div>
     </div>
