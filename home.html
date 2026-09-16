@@ -1191,6 +1191,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     var vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:[/?]([\w]+))?/);
     if(vm) return {
       capa: null,
+      vimeo: url,   // o Vimeo não tem endereço previsível de capa: é preciso perguntar
       src: "https://player.vimeo.com/video/" + vm[1] +
            (vm[2] ? "?h=" + vm[2] + "&autoplay=1" : "?autoplay=1")
     };
@@ -1290,6 +1291,14 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape") fecharVideo(); });
 
+  // o Vimeo informa a capa pelo oEmbed; se falhar, fica o botão no fundo escuro
+  function capaDoVimeo(url, aplicar){
+    fetch("https://vimeo.com/api/oembed.json?width=1280&url=" + encodeURIComponent(url))
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ if(d && d.thumbnail_url) aplicar(d.thumbnail_url); })
+      .catch(function(){});
+  }
+
   function montarVideo(id, url, formato){
     var el = document.getElementById(id), v = embutir(url);
     if(!el || !v) return;   // sem link válido, o espaço reservado continua como está
@@ -1304,6 +1313,17 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       track("video_start", {slot: id});
       abrirVideo(v.src, ar, id === "v-apresentacao");
     });
+
+    if(v.vimeo){
+      capaDoVimeo(v.vimeo, function(src){
+        if(el.querySelector(".vslot__thumb")) return;
+        var img = document.createElement("img");
+        img.className = "vslot__thumb";
+        img.src = src; img.alt = ""; img.loading = "lazy";
+        img.onerror = function(){ img.remove(); };
+        el.insertBefore(img, el.firstChild);
+      });
+    }
   }
 
   function montarDepoimentos(lista){
