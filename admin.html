@@ -617,11 +617,19 @@ function mudarStatus(id, valor){
 }
 function excluirLead(id, botao){
   if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); aberto = null; render(); return; }
-  sb.from("leads").delete().eq("id", id).then(function(r){
+  /* .select() devolve as linhas realmente apagadas. Sem isso, quando a
+     permissão falta, o Supabase responde "ok" sem apagar nada — e o painel
+     mentiria para o operador até a próxima recarga. */
+  sb.from("leads").delete().eq("id", id).select().then(function(r){
+    botao.disabled = false; botao.textContent = "Excluir";
+    botao.classList.remove("is-armado");
     if(r.error){
       console.error(r.error);
-      botao.disabled = false; botao.textContent = "Excluir";
-      alert("Não consegui excluir: " + r.error.message + "\n\nSe a mensagem fala em permissão, falta rodar o SQL db/03-excluir-lead.sql no Supabase.");
+      alert("Não consegui excluir: " + r.error.message);
+      return;
+    }
+    if(!r.data || !r.data.length){
+      alert("O banco recusou a exclusão em silêncio — nada foi apagado.\n\nFalta aplicar a permissão: rode o arquivo db/03-excluir-lead.sql no SQL Editor do Supabase.");
       return;
     }
     leads = leads.filter(function(x){return x.id!==id});
