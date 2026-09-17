@@ -178,3 +178,15 @@ mesmo se a gravação falhar. Perder o lead é ruim; perder a pessoa decidida
 na porta do checkout é pior.
 
 Migração necessária: `db/02-cadastro-direto.sql` (colunas `email` e `tipo`).
+
+## Exclusão de lead
+
+O painel exclui lead de verdade (DELETE), em dois toques: o primeiro arma o
+botão, o segundo apaga, e ele desarma sozinho em 5s. Não é só limpeza de
+teste — é o que atende pedido de exclusão previsto na LGPD e prometido na
+Política de Privacidade. Exige `db/03-excluir-lead.sql` aplicado.
+
+Os campos de identificação (nome, whatsapp, email, cidade, uf) são
+editáveis no detalhe; ao mudar o whatsapp, o `whatsapp_e164` é recalculado
+junto. As respostas do quiz continuam somente leitura de propósito — são a
+declaração da pessoa, e é o que permite saber depois qual perfil converte.

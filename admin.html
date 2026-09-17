@@ -77,6 +77,10 @@ p{margin:0}
 .pill--novo{color:var(--credit);border-color:rgba(52,219,139,.35);background:rgba(52,219,139,.1)}
 .pill--contatado{color:var(--st-contatado);border-color:rgba(107,168,216,.32);background:rgba(107,168,216,.09)}
 .pill--em_conversa{color:var(--st-conversa);border-color:rgba(224,168,60,.32);background:rgba(224,168,60,.09)}
+.btn--perigo{color:var(--debit);border-color:rgba(196,120,90,.35)}
+.btn--perigo:hover{border-color:var(--debit)}
+.btn--perigo.is-armado{background:var(--debit);color:#1A0B06;border-color:var(--debit);font-weight:600}
+.apaga-nota{font-size:.78rem;color:var(--muted-dim);line-height:1.5;margin-top:.9rem}
 .dl__edit{
   width:100%;font:inherit;color:inherit;background:transparent;border:1px solid transparent;
   border-radius:5px;padding:.15rem .4rem;margin:-.15rem -.4rem;transition:border-color .15s,background .15s;
@@ -506,6 +510,21 @@ function render(){
   $$("[data-nota]").forEach(function(t){
     t.addEventListener("blur", function(){ salvarNota(t.getAttribute("data-nota"), t.value); });
   });
+  $$("[data-excluir]").forEach(function(b){
+    var armado = false, volta = null;
+    b.addEventListener("click", function(){
+      if(!armado){
+        armado = true;
+        b.classList.add("is-armado");
+        b.textContent = "Confirmar exclusão";
+        volta = setTimeout(function(){ armado = false; b.classList.remove("is-armado"); b.textContent = "Excluir"; }, 5000);
+        return;
+      }
+      clearTimeout(volta);
+      b.disabled = true; b.textContent = "Excluindo…";
+      excluirLead(b.getAttribute("data-excluir"), b);
+    });
+  });
   $$("[data-reenv]").forEach(function(b){
     b.addEventListener("click", function(){
       var rot = b.textContent; b.disabled = true; b.textContent = "Enviando…";
@@ -555,7 +574,9 @@ function detalhe(l){
           : "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
         '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
+        '<button class="btn btn--sm btn--perigo" type="button" data-excluir="'+l.id+'">Excluir</button>'+
       '</div>'+
+      '<p class="apaga-nota">Excluir apaga o contato e as respostas em definitivo, sem desfazer. Use para registro de teste ou quando a pessoa pedir para sair da base.</p>'+
     '</div>'+
   '</div>';
 }
@@ -593,6 +614,20 @@ function mudarStatus(id, valor){
     sb.from("leads").update(patch).eq("id",id).then(function(r){ if(r.error) console.error(r.error); });
   }
   render();
+}
+function excluirLead(id, botao){
+  if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); aberto = null; render(); return; }
+  sb.from("leads").delete().eq("id", id).then(function(r){
+    if(r.error){
+      console.error(r.error);
+      botao.disabled = false; botao.textContent = "Excluir";
+      alert("Não consegui excluir: " + r.error.message + "\n\nSe a mensagem fala em permissão, falta rodar o SQL db/03-excluir-lead.sql no Supabase.");
+      return;
+    }
+    leads = leads.filter(function(x){return x.id!==id});
+    aberto = null;
+    render();
+  });
 }
 function salvarNota(id, texto){
   var l = leads.find(function(x){return x.id===id}); if(!l || l.anotacoes===texto) return;
