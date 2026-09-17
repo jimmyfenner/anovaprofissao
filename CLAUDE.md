@@ -147,3 +147,17 @@ Próximo: /blog em Markdown para os artigos de SEO, sitemap dinâmico,
 dados estruturados de artigo. Depois: simulador (baixa prioridade, precisa
 de revisão jurídica — simulador de ganhos em modelo tipo iGreen é
 exatamente o que fiscalização olha primeiro).
+
+## Páginas jurídicas
+
+`legal/privacidade.html`, `legal/termos.html` e `legal/aviso-legal.html` trazem
+só o miolo do texto. O `build.js` envolve cada uma no shell visual (`CSS_LEGAL`
++ `paginaLegal`) e publica em `/privacidade`, `/termos` e `/aviso-legal`.
+A constante `ATUALIZADO` é a data de revisão dos textos e é **fixa de
+propósito** — atualize à mão sempre que o conteúdo de `legal/` mudar, nunca
+deixe ela seguir a data do build.
+
+Os textos são redação padrão de mercado, escritos pelo Claude, não por
+advogado. Se mudar a forma de coletar dados (novo campo no formulário, nova
+ferramenta de medição, novo destino dos dados), a Política de Privacidade tem
+que mudar junto — é ela que descreve o tratamento real.

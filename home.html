@@ -177,6 +177,8 @@ p{margin:0}
 .vslot__btn{cursor:pointer;position:relative;z-index:2;transition:transform .18s,background .18s}
 .vslot__btn:hover{transform:scale(1.07);background:#4BEA9C}
 .vslot--pronto{padding:0}
+.vslot--pronto .vslot__btn{position:absolute;right:clamp(12px,3.5%,20px);bottom:clamp(12px,3.5%,20px);margin:0}
+@media(max-width:520px){.vslot--pronto .vslot__btn{width:54px;height:54px}}
 .vslot--pronto::after{
   z-index:1;
   background:radial-gradient(75% 75% at 50% 50%,rgba(10,13,12,.06),rgba(10,13,12,.42));
@@ -1055,9 +1057,9 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
           <a href="https://youtube.com/@jimmyfenner" target="_blank" rel="noopener" data-ev="youtube_rodape">YouTube</a>
           <a href="https://instagram.com/minerandoosol" target="_blank" rel="noopener" data-ev="instagram_rodape">Instagram</a>
           <a href="#avaliacao">Avaliação de perfil</a>
-          <a href="#" data-ev="footer_privacy">Política de Privacidade</a>
-          <a href="#" data-ev="footer_terms">Termos de Uso</a>
-          <a href="#" data-ev="footer_legal">Aviso Legal</a>
+          <a href="/privacidade" data-ev="footer_privacy">Política de Privacidade</a>
+          <a href="/termos" data-ev="footer_terms">Termos de Uso</a>
+          <a href="/aviso-legal" data-ev="footer_legal">Aviso Legal</a>
         </div>
       </div>
     </div>
@@ -1457,7 +1459,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         '</div>'+
       '</div>'+
       '<label class="consent" for="f-ok"><input id="f-ok" type="checkbox">'+
-        '<span>Autorizo o contato por WhatsApp e o tratamento dos meus dados para esta finalidade, conforme a Política de Privacidade.</span></label>'+
+        '<span>Autorizo o contato por WhatsApp e o tratamento dos meus dados para esta finalidade, conforme a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label>'+
       '<div class="quiz__nav"><button class="btn btn--primary btn--block" id="f-go" type="button" disabled>Ver meu resultado</button></div>';
 
     var nome=$("#f-nome"), zap=$("#f-zap"), cid=$("#f-cidade"), uf=$("#f-uf"), ok=$("#f-ok"), go=$("#f-go");
