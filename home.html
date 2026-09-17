@@ -435,12 +435,26 @@ details>div{padding:0 2.5rem 1.35rem 0;color:var(--muted);font-size:.94rem;max-w
 
 .ou{display:flex;align-items:center;gap:.9rem;color:var(--muted-dim);font-size:.8rem;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase}
 .ou::before,.ou::after{content:"";height:1px;background:var(--line);flex:1}
+/* ---------- cadastro direto ---------- */
+.cdmodal{position:fixed;inset:0;z-index:210;background:rgba(5,8,7,.94);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:center;padding:clamp(16px,4vw,36px);overflow-y:auto}
+.cdmodal[hidden]{display:none}
+.cdbox{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(1.5rem,4vw,2.1rem);position:relative}
+.cdbox h3{font-size:clamp(1.25rem,3.4vw,1.5rem);margin-bottom:.7rem}
+.cdbox__sub{color:var(--muted);font-size:.93rem;line-height:1.5;margin:0 0 1.6rem}
+.cdbox__x{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1}
+.cdbox__x:hover{color:var(--text);border-color:var(--credit-dim)}
+.cdbox .field{margin-bottom:1rem}
+.cdbox__erro{color:var(--debit);font-size:.85rem;margin:.2rem 0 1rem;display:none}
+.cdbox__erro.on{display:block}
+.cdbox__nota{font-size:.78rem;color:var(--muted-dim);line-height:1.5;margin-top:1.1rem}
+.cdbox__nota a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
 .decidido{
   margin-top:2.6rem;padding-top:2rem;border-top:1px solid var(--line-soft);
   font-size:.95rem;color:var(--muted);text-align:center;
 }
-.decidido a{color:var(--credit);text-decoration:none;border-bottom:1px solid var(--credit-dim);padding-bottom:1px}
-.decidido a:hover{border-bottom-color:var(--credit)}
+.decidido button{font:inherit;background:none;border:0;padding:0;cursor:pointer}
+.decidido a,.decidido button{color:var(--credit);text-decoration:none;border-bottom:1px solid var(--credit-dim);padding-bottom:1px}
+.decidido a:hover,.decidido button:hover{border-bottom-color:var(--credit)}
 .decidido small{display:block;font-size:.8rem;color:var(--muted-dim);margin-top:.5rem}
 
 /* ---------- closing ---------- */
@@ -896,6 +910,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     </div>
     <div class="btn-row reveal" style="margin-top:2rem">
       <a class="btn btn--primary" href="#avaliacao" data-ev="apresentacao_cta">Faz sentido para mim — quero avaliar</a>
+      <button class="btn btn--ghost" type="button" data-cadastro-direto data-ev="cadastro_click_apresentacao">Já decidi — quero me cadastrar</button>
     </div>
   </div>
 </section>
@@ -1025,7 +1040,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
 
       <p class="decidido">
         Já conhece o modelo e não precisa de apresentação?
-        <a data-cadastro href="https://expansao.igreenenergy.com.br/?id=1971&amp;checkout=true&amp;tipolicenca=CONNECT" target="_blank" rel="noopener" data-ev="cadastro_click">Faça seu cadastro direto.</a>
+        <button type="button" data-cadastro-direto data-ev="cadastro_click">Quero fazer meu cadastro agora.</button>
         <small>Leva ao site oficial da iGreen Energy, com a minha indicação.</small>
       </p>
     </div>
@@ -1073,6 +1088,21 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     </div>
   </div>
 </footer>
+
+<!-- CADASTRO DIRETO -->
+<div class="cdmodal" id="cdmodal" hidden role="dialog" aria-modal="true" aria-labelledby="cd-titulo">
+  <div class="cdbox">
+    <button class="cdbox__x" type="button" id="cd-x" aria-label="Fechar">✕</button>
+    <h3 id="cd-titulo">Você já decidiu. Vamos direto.</h3>
+    <p class="cdbox__sub">Só preciso saber quem você é para te acompanhar de perto no processo. Em seguida você segue para o cadastro oficial da iGreen Energy.</p>
+    <div class="field"><label for="cd-nome">Nome completo</label><input id="cd-nome" type="text" autocomplete="name" placeholder="Seu nome"></div>
+    <div class="field"><label for="cd-email">E-mail</label><input id="cd-email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com"></div>
+    <div class="field"><label for="cd-zap">WhatsApp</label><input id="cd-zap" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000"></div>
+    <p class="cdbox__erro" id="cd-erro"></p>
+    <button class="btn btn--primary btn--block" type="button" id="cd-go">Continuar para o cadastro</button>
+    <p class="cdbox__nota">Ao continuar, você autoriza o contato e o tratamento dos seus dados para essa finalidade, conforme a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>. O cadastro é feito no site oficial da iGreen Energy, com a minha indicação.</p>
+  </div>
+</div>
 
 <div class="vmodal" id="vmodal" hidden role="dialog" aria-modal="true" aria-label="Vídeo">
   <div class="vmodal__box">
@@ -1345,6 +1375,113 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       };
     }
     $$("[data-cadastro]").forEach(function(el){ el.href = LINK_CADASTRO; });
+
+  /* ---- cadastro direto: quem já chegou decidido ----
+     Deixa nome, e-mail e WhatsApp, o lead entra marcado como "direto"
+     e a pessoa segue para o cadastro oficial. A ida para o cadastro nunca
+     depende da gravação dar certo: se o banco demorar, a pessoa vai assim mesmo. */
+  (function(){
+    var modal = $("#cdmodal");
+    if(!modal) return;
+    var fNome = $("#cd-nome"), fMail = $("#cd-email"), fZap = $("#cd-zap");
+    var erro = $("#cd-erro"), botao = $("#cd-go");
+    var focoAnterior = null, enviando = false;
+
+    function abrir(e){
+      focoAnterior = document.activeElement;
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      setTimeout(function(){ try{ fNome.focus(); }catch(x){} }, 40);
+      var de = e && e.currentTarget ? (e.currentTarget.getAttribute("data-ev") || "") : "";
+      track("cadastro_direto_abriu", { botao: de });
+    }
+    function fechar(){
+      modal.hidden = true;
+      document.body.style.overflow = "";
+      if(focoAnterior){ try{ focoAnterior.focus(); }catch(x){} }
+    }
+    function falha(msg, campo){
+      erro.textContent = msg;
+      erro.classList.add("on");
+      if(campo){ try{ campo.focus(); }catch(x){} }
+    }
+
+    $$("[data-cadastro-direto]").forEach(function(b){ b.addEventListener("click", abrir); });
+    $("#cd-x").addEventListener("click", fechar);
+    modal.addEventListener("click", function(e){ if(e.target === modal) fechar(); });
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !modal.hidden) fechar(); });
+    [fNome, fMail, fZap].forEach(function(c){
+      c.addEventListener("keydown", function(e){ if(e.key === "Enter") botao.click(); });
+    });
+
+    botao.addEventListener("click", function(){
+      if(enviando) return;
+      erro.classList.remove("on");
+
+      var nome = fNome.value.trim();
+      var email = fMail.value.trim();
+      var zap = fZap.value.trim();
+      var d = zap.replace(/[^0-9]/g, "");
+
+      if(nome.length < 2) return falha("Escreva seu nome.", fNome);
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) return falha("Confira o e-mail.", fMail);
+      if(d.length < 10) return falha("Confira o WhatsApp, com DDD.", fZap);
+
+      enviando = true;
+      botao.disabled = true;
+      botao.textContent = "Levando você ao cadastro…";
+
+      var lead = {
+        nome: nome,
+        email: email,
+        whatsapp: zap,
+        whatsapp_e164: d.indexOf("55") === 0 ? d : "55" + d,
+        tipo: "direto",
+        utm_source: origem.utm_source || null,
+        utm_medium: origem.utm_medium || null,
+        utm_campaign: origem.utm_campaign || null,
+        utm_content: origem.utm_content || null,
+        utm_term: origem.utm_term || null,
+        landing: origem.landing || null,
+        referrer: origem.referrer || null,
+        device: origem.device || null
+      };
+      try{ localStorage.setItem("anp_ultimo_lead", JSON.stringify(lead)); }catch(x){}
+      window.__anpLead = lead;
+      track("cadastro_direto_enviou");
+
+      var saiu = false;
+      function seguir(){
+        if(saiu) return;
+        saiu = true;
+        window.location.href = LINK_CADASTRO;
+      }
+
+      if(!SUPABASE_URL || !SUPABASE_KEY) return seguir();
+
+      var reserva = setTimeout(seguir, 2500);   // o cadastro não espera o banco
+      fetch(SUPABASE_URL + "/rest/v1/leads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + SUPABASE_KEY,
+          "Prefer": "return=minimal"
+        },
+        body: JSON.stringify(lead),
+        keepalive: true
+      }).then(function(r){
+        if(r.ok){ try{ localStorage.removeItem("anp_ultimo_lead"); }catch(x){} }
+        else { r.text().then(function(t){ console.error("cadastro direto nao gravado:", r.status, t); }); }
+      }).catch(function(e){
+        console.error("cadastro direto nao gravado:", e);
+      }).then(function(){
+        clearTimeout(reserva);
+        seguir();
+      });
+    });
+  })();
+
     if(m.whatsapp_destino && /^[0-9]{12,13}$/.test(m.whatsapp_destino)){
       WHATSAPP = m.whatsapp_destino;
       $("#float-wa").href = waLink("Olá " + NOME + "! Estou no site A Nova Profissão e gostaria de entender melhor a oportunidade.");

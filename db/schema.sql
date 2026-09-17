@@ -11,6 +11,7 @@ create table if not exists public.leads (
 
   nome           text not null,
   whatsapp       text not null,
+  email          text,
   whatsapp_e164  text,
   cidade         text,
   uf             text,
@@ -30,6 +31,9 @@ create table if not exists public.leads (
   referrer       text,
   device         text,
 
+  tipo           text not null default 'quiz'
+                 check (tipo in ('quiz','direto')),
+
   status         text not null default 'novo'
                  check (status in ('novo','contatado','em_conversa','ganho','sem_retorno','descartado')),
   anotacoes      text,
@@ -43,6 +47,7 @@ create table if not exists public.leads (
 create index if not exists leads_criado_em_idx on public.leads (criado_em desc);
 create index if not exists leads_status_idx    on public.leads (status);
 create index if not exists leads_origem_idx    on public.leads (utm_source);
+create index if not exists leads_tipo_idx      on public.leads (tipo);
 
 create or replace function public.touch_leads() returns trigger
 language plpgsql as $$
@@ -83,7 +88,7 @@ create policy "painel edita os leads"
 
 revoke all on public.leads from anon, authenticated;
 
-grant insert (nome, whatsapp, whatsapp_e164, cidade, uf,
+grant insert (nome, whatsapp, whatsapp_e164, email, tipo, cidade, uf,
               objetivo, tempo, experiencia, solucao, perfil,
               utm_source, utm_medium, utm_campaign, utm_content, utm_term,
               landing, referrer, device)

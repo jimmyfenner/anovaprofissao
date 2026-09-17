@@ -77,6 +77,7 @@ p{margin:0}
 .pill--novo{color:var(--credit);border-color:rgba(52,219,139,.35);background:rgba(52,219,139,.1)}
 .pill--contatado{color:var(--st-contatado);border-color:rgba(107,168,216,.32);background:rgba(107,168,216,.09)}
 .pill--em_conversa{color:var(--st-conversa);border-color:rgba(224,168,60,.32);background:rgba(224,168,60,.09)}
+.pill--direto{color:#04120B;border-color:#E0A83C;background:#E0A83C;font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
 .src{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.28em .55em;white-space:nowrap}
@@ -443,7 +444,7 @@ function filtrados(){
     if(or && (l.utm_source || "direto") !== or) return false;
     if(corte && new Date(l.criado_em).getTime() < corte) return false;
     if(q){
-      var alvo = [l.nome,l.cidade,l.uf,l.whatsapp].join(" ").toLowerCase();
+      var alvo = [l.nome,l.cidade,l.uf,l.whatsapp,l.email].join(" ").toLowerCase();
       if(alvo.indexOf(q) === -1) return false;
     }
     return true;
@@ -472,7 +473,8 @@ function render(){
     return '<div class="lead '+(l.status==="novo"?"is-novo ":"")+(aberta?"is-open":"")+'" data-id="'+l.id+'">'+
       '<button class="lead__head" type="button" aria-expanded="'+aberta+'">'+
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):"")+'</span></span>'+
+        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
+        (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
         '<span class="src">'+esc(l.utm_source||"direto")+'</span>'+
         '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
         '<span class="lead__when">'+quando(l.criado_em)+'</span>'+
@@ -512,6 +514,8 @@ function render(){
 function detalhe(l){
   return '<div class="detail">'+
     '<dl class="dl">'+
+      (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
+      (l.email ? linha("E-mail", l.email) : "")+
       linha("Objetivo", l.objetivo)+
       linha("Tempo", l.tempo)+
       linha("Experiência", l.experiencia)+
@@ -533,7 +537,9 @@ function detalhe(l){
       '<div><h3>Anotações</h3>'+
         '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
       '<div class="acts">'+
-        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent("Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
+        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent(l.tipo==="direto"
+          ? "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você foi para o cadastro — estou aqui para te ajudar em qualquer passo."
+          : "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
         '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
       '</div>'+

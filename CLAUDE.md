@@ -161,3 +161,20 @@ Os textos são redação padrão de mercado, escritos pelo Claude, não por
 advogado. Se mudar a forma de coletar dados (novo campo no formulário, nova
 ferramenta de medição, novo destino dos dados), a Política de Privacidade tem
 que mudar junto — é ela que descreve o tratamento real.
+
+## Cadastro direto
+
+Quem já chega decidido não passa pelo quiz: clica em "quero me cadastrar",
+deixa **nome, e-mail e WhatsApp** num modal (`#cdmodal`) e é redirecionado
+para `LINK_CADASTRO`. O lead entra com `tipo = 'direto'` e recebe aviso com
+cabeçalho próprio no WhatsApp e no e-mail, além de selo no painel.
+
+**CPF não é coletado, de propósito.** O link de cadastro não aceita CPF como
+parâmetro, a iGreen pede o dado no próprio checkout, e guardar CPF aqui só
+aumentaria a exposição sem nenhum ganho. Não reintroduza.
+
+A ida para o cadastro nunca espera o banco: há um timeout de 2,5s que segue
+mesmo se a gravação falhar. Perder o lead é ruim; perder a pessoa decidida
+na porta do checkout é pior.
+
+Migração necessária: `db/02-cadastro-direto.sql` (colunas `email` e `tipo`).

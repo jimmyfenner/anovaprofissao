@@ -173,24 +173,44 @@ Deno.serve(async (req) => {
       if (!dest?.length) return json({ error: "Nenhum destinatário ativo" }, 400);
 
       const ehTeste = acao === "teste";
+      // quem veio pelo botão de cadastro direto já decidiu: o aviso é outro
+      const ehDireto = L.tipo === "direto";
+      const onde = `${L.cidade ?? "?"}/${L.uf ?? "?"}`;
+
+      const corpoDireto = [
+        "🔴 *CADASTRO DIRETO — pessoa decidida*", "",
+        `*${L.nome ?? "?"}*`,
+        `WhatsApp: ${L.whatsapp ?? "?"}`,
+        `E-mail: ${L.email ?? "—"}`, "",
+        "Essa pessoa nao fez o quiz: clicou para se cadastrar agora e foi",
+        "levada ao cadastro oficial. Fale com ela hoje — provavelmente esta",
+        "com o formulario da iGreen aberto neste momento.", "",
+        `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
+        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : "",
+      ];
+
+      const corpoQuiz = [
+        "*Lead novo — A Nova Profissao*", "",
+        `${L.nome ?? "?"} — ${onde}`,
+        `WhatsApp: ${L.whatsapp ?? "?"}`, "",
+        `Objetivo: ${L.objetivo ?? "—"}`,
+        `Disponibilidade: ${L.tempo ?? "—"}`,
+        `Experiencia: ${L.experiencia ?? "—"}`,
+        `Interesse: ${L.solucao ?? "—"}`,
+        `Perfil: ${L.perfil ?? "—"}`, "",
+        `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
+        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : "",
+      ];
+
       const texto = ehTeste
         ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
-        : [
-            "*Lead novo — A Nova Profissao*", "",
-            `${L.nome ?? "?"} — ${L.cidade ?? "?"}/${L.uf ?? "?"}`,
-            `WhatsApp: ${L.whatsapp ?? "?"}`, "",
-            `Objetivo: ${L.objetivo ?? "—"}`,
-            `Disponibilidade: ${L.tempo ?? "—"}`,
-            `Experiencia: ${L.experiencia ?? "—"}`,
-            `Interesse: ${L.solucao ?? "—"}`,
-            `Perfil: ${L.perfil ?? "—"}`, "",
-            `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
-            L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : "",
-          ].filter(Boolean).join("\n");
+        : (ehDireto ? corpoDireto : corpoQuiz).filter(Boolean).join("\n");
 
       const assunto = ehTeste
         ? "Teste de aviso — A Nova Profissao"
-        : `Lead novo: ${L.nome ?? "?"} — ${L.cidade ?? "?"}/${L.uf ?? "?"}`;
+        : ehDireto
+          ? `🔴 CADASTRO DIRETO: ${L.nome ?? "?"} foi para o cadastro agora`
+          : `Lead novo: ${L.nome ?? "?"} — ${onde}`;
 
       const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
       const inst = cfg?.[0]?.instancia;
