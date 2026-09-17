@@ -849,7 +849,15 @@ $("#wa-teste").addEventListener("click", function(){
   fn("teste").then(function(r){
     b.disabled = false; b.textContent = "Enviar teste";
     if(r.error){ aviso(r.error); return; }
-    aviso("Teste enviado para " + r.enviados + " de " + r.total + " destinatário(s). Confira o seu WhatsApp.", r.enviados ? "ok" : "erro");
+    var partes = [];
+    if(r.whatsapp) partes.push(r.whatsapp + " no WhatsApp");
+    if(r.email)    partes.push(r.email + " por e-mail");
+    var falhas = r.falhas || [];
+    var txt = partes.length
+      ? "Teste enviado: " + partes.join(" e ") + "."
+      : "Nenhum aviso saiu.";
+    if(falhas.length) txt += " Falhou — " + falhas.join(" · ");
+    aviso(txt, partes.length && !falhas.length ? "ok" : "erro");
   });
 });
 
