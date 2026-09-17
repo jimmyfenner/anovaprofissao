@@ -77,6 +77,12 @@ p{margin:0}
 .pill--novo{color:var(--credit);border-color:rgba(52,219,139,.35);background:rgba(52,219,139,.1)}
 .pill--contatado{color:var(--st-contatado);border-color:rgba(107,168,216,.32);background:rgba(107,168,216,.09)}
 .pill--em_conversa{color:var(--st-conversa);border-color:rgba(224,168,60,.32);background:rgba(224,168,60,.09)}
+.dl__edit{
+  width:100%;font:inherit;color:inherit;background:transparent;border:1px solid transparent;
+  border-radius:5px;padding:.15rem .4rem;margin:-.15rem -.4rem;transition:border-color .15s,background .15s;
+}
+.dl__edit:hover{border-color:var(--line)}
+.dl__edit:focus{outline:0;border-color:var(--credit);background:var(--surface)}
 .pill--direto{color:#04120B;border-color:#E0A83C;background:#E0A83C;font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
@@ -493,6 +499,10 @@ function render(){
   $$("[data-status]").forEach(function(s){
     s.addEventListener("change", function(){ mudarStatus(s.getAttribute("data-status"), s.value); });
   });
+  $$("[data-campo]").forEach(function(i){
+    i.addEventListener("blur", function(){ salvarCampo(i.getAttribute("data-lead"), i.getAttribute("data-campo"), i.value); });
+    i.addEventListener("keydown", function(e){ if(e.key === "Enter") i.blur(); });
+  });
   $$("[data-nota]").forEach(function(t){
     t.addEventListener("blur", function(){ salvarNota(t.getAttribute("data-nota"), t.value); });
   });
@@ -515,13 +525,16 @@ function detalhe(l){
   return '<div class="detail">'+
     '<dl class="dl">'+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
-      (l.email ? linha("E-mail", l.email) : "")+
+      campo(l.id, "nome", "Nome", l.nome)+
+      campo(l.id, "whatsapp", "WhatsApp", l.whatsapp)+
+      campo(l.id, "email", "E-mail", l.email)+
+      campo(l.id, "cidade", "Cidade", l.cidade)+
+      campo(l.id, "uf", "Estado", l.uf)+
       linha("Objetivo", l.objetivo)+
       linha("Tempo", l.tempo)+
       linha("Experiência", l.experiencia)+
       linha("Interesse", l.solucao)+
       linha("Perfil", l.perfil)+
-      linha("WhatsApp", l.whatsapp)+
       linha("Recebido", new Date(l.criado_em).toLocaleString("pt-BR"))+
       linha("Origem", [l.utm_source,l.utm_medium,l.utm_campaign].filter(Boolean).join(" / ") || "direto")+
       linha("Veio de", l.referrer || "—")+
@@ -547,6 +560,29 @@ function detalhe(l){
   '</div>';
 }
 function linha(k,v){ return '<div class="dl__r"><dt>'+k+'</dt><dd>'+esc(v||"—")+'</dd></div>'; }
+
+/* Identificação é corrigível — nome trocado pelo corretor, DDD faltando, e-mail
+   com typo. As respostas do quiz não: são a declaração da pessoa, não sua. */
+function campo(id, col, rotulo, valor){
+  return '<div class="dl__r"><dt>'+rotulo+'</dt>'+
+    '<dd><input class="dl__edit" data-campo="'+col+'" data-lead="'+id+'" value="'+esc(valor||"")+'" placeholder="—" spellcheck="false"></dd></div>';
+}
+function salvarCampo(id, col, valor){
+  var l = leads.find(function(x){return x.id===id}); if(!l) return;
+  valor = valor.trim();
+  if(col === "nome" && valor.length < 2) return;            // nome é obrigatório no banco
+  if(col === "whatsapp" && valor.replace(/[^0-9]/g,"").length < 8) return;
+  if((l[col]||"") === valor) return;
+  l[col] = valor;
+  var patch = {}; patch[col] = valor || null;
+  if(col === "whatsapp"){
+    var d = valor.replace(/[^0-9]/g,"");
+    patch.whatsapp_e164 = d ? (d.indexOf("55") === 0 ? d : "55" + d) : null;
+    l.whatsapp_e164 = patch.whatsapp_e164;
+  }
+  if(!DEMO){ sb.from("leads").update(patch).eq("id",id).then(function(r){ if(r.error){ console.error(r.error); alert("Não consegui salvar: " + r.error.message); } }); }
+  render();
+}
 
 function mudarStatus(id, valor){
   var l = leads.find(function(x){return x.id===id}); if(!l) return;
