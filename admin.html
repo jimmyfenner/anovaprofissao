@@ -511,18 +511,24 @@ function render(){
     t.addEventListener("blur", function(){ salvarNota(t.getAttribute("data-nota"), t.value); });
   });
   $$("[data-excluir]").forEach(function(b){
-    var armado = false, volta = null;
-    b.addEventListener("click", function(){
-      if(!armado){
-        armado = true;
-        b.classList.add("is-armado");
-        b.textContent = "Confirmar exclusão";
-        volta = setTimeout(function(){ armado = false; b.classList.remove("is-armado"); b.textContent = "Excluir"; }, 5000);
-        return;
-      }
-      clearTimeout(volta);
+    b.addEventListener("click", function(e){
+      e.stopPropagation();
+      confirmandoExclusao = b.getAttribute("data-excluir");
+      render();
+    });
+  });
+  $$("[data-excluir-nao]").forEach(function(b){
+    b.addEventListener("click", function(e){
+      e.stopPropagation();
+      confirmandoExclusao = null;
+      render();
+    });
+  });
+  $$("[data-excluir-ok]").forEach(function(b){
+    b.addEventListener("click", function(e){
+      e.stopPropagation();
       b.disabled = true; b.textContent = "Excluindo…";
-      excluirLead(b.getAttribute("data-excluir"), b);
+      excluirLead(b.getAttribute("data-excluir-ok"), b);
     });
   });
   $$("[data-reenv]").forEach(function(b){
@@ -539,6 +545,10 @@ function render(){
     });
   });
 }
+
+/* Qual lead está aguardando confirmação de exclusão. Fica FORA do DOM de
+   propósito: guardado no botão, qualquer redesenho da lista desarmava. */
+var confirmandoExclusao = null;
 
 function detalhe(l){
   return '<div class="detail">'+
@@ -574,9 +584,14 @@ function detalhe(l){
           : "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
         '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
-        '<button class="btn btn--sm btn--perigo" type="button" data-excluir="'+l.id+'">Excluir</button>'+
+        (confirmandoExclusao === l.id
+          ? '<button class="btn btn--sm btn--perigo is-armado" type="button" data-excluir-ok="'+l.id+'">Confirmar exclusão</button>'+
+            '<button class="btn btn--sm" type="button" data-excluir-nao="1">Cancelar</button>'
+          : '<button class="btn btn--sm btn--perigo" type="button" data-excluir="'+l.id+'">Excluir</button>')+
       '</div>'+
-      '<p class="apaga-nota">Excluir apaga o contato e as respostas em definitivo, sem desfazer. Use para registro de teste ou quando a pessoa pedir para sair da base.</p>'+
+      '<p class="apaga-nota">'+(confirmandoExclusao === l.id
+        ? 'Tem certeza? Isso apaga o contato e as respostas em definitivo, sem desfazer.'
+        : 'Excluir apaga o contato e as respostas em definitivo, sem desfazer. Use para registro de teste ou quando a pessoa pedir para sair da base.')+'</p>'+
     '</div>'+
   '</div>';
 }
@@ -616,7 +631,7 @@ function mudarStatus(id, valor){
   render();
 }
 function excluirLead(id, botao){
-  if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); aberto = null; render(); return; }
+  if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); confirmandoExclusao = null; aberto = null; render(); return; }
   /* .select() devolve as linhas realmente apagadas. Sem isso, quando a
      permissão falta, o Supabase responde "ok" sem apagar nada — e o painel
      mentiria para o operador até a próxima recarga. */
@@ -625,14 +640,17 @@ function excluirLead(id, botao){
     botao.classList.remove("is-armado");
     if(r.error){
       console.error(r.error);
+      confirmandoExclusao = null; render();
       alert("Não consegui excluir: " + r.error.message);
       return;
     }
     if(!r.data || !r.data.length){
+      confirmandoExclusao = null; render();
       alert("O banco recusou a exclusão em silêncio — nada foi apagado.\n\nFalta aplicar a permissão: rode o arquivo db/03-excluir-lead.sql no SQL Editor do Supabase.");
       return;
     }
     leads = leads.filter(function(x){return x.id!==id});
+    confirmandoExclusao = null;
     aberto = null;
     render();
   });
