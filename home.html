@@ -186,7 +186,22 @@ p{margin:0}
 
 /* depoimentos reais */
 .depo{border:1px solid var(--line);border-radius:10px;padding:1.5rem;background:var(--surface);display:flex;flex-direction:column;gap:1rem}
-.depo__txt{font-size:.95rem;color:var(--muted);line-height:1.6;flex:1}
+.depo__txt{
+  margin:0;                      /* blockquote traz 40px de margem por padrão */
+  font-size:.95rem;color:var(--muted);line-height:1.62;flex:1;
+  overflow-wrap:break-word;hyphens:auto;
+}
+.depo__txt p{margin:0 0 .8em}
+.depo__txt p:last-child{margin-bottom:0}
+.depo__txt--corta{
+  display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;
+  overflow:hidden;position:relative;
+}
+.depo__mais{
+  align-self:flex-start;font:inherit;font-size:.85rem;background:none;border:0;padding:0;
+  color:var(--credit);cursor:pointer;border-bottom:1px solid var(--credit-dim);margin-top:-.3rem;
+}
+.depo__mais:hover{border-bottom-color:var(--credit)}
 .depo__quem{display:flex;align-items:center;gap:.8rem;padding-top:.9rem;border-top:1px solid var(--line-soft)}
 .depo__foto{width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none;background:var(--surface-2)}
 .depo__ini{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:rgba(52,219,139,.1);border:1px solid var(--credit-dim);color:var(--credit);font-family:var(--mono);font-size:.8rem}
@@ -1343,8 +1358,11 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     wrap.innerHTML = lista.map(function(d){
       var ini = String(d.nome || "?").trim().split(/\s+/).slice(0,2).map(function(p){ return p[0]; }).join("").toUpperCase();
       var sob = [d.cidade, d.tempo].filter(Boolean).join(" · ");
+      var paras = String(d.texto || "").split(/\n{2,}|\n/).map(function(t){ return t.trim(); })
+                    .filter(Boolean).map(function(t){ return '<p>' + esc(t) + '</p>'; }).join("");
       return '<figure class="depo">' +
-        '<blockquote class="depo__txt">' + esc(d.texto) + '</blockquote>' +
+        '<blockquote class="depo__txt depo__txt--corta">' + paras + '</blockquote>' +
+        '<button class="depo__mais hidden" type="button">Ler tudo</button>' +
         '<figcaption class="depo__quem">' +
           (d.foto_url
             ? '<img class="depo__foto" src="' + esc(d.foto_url) + '" alt="" loading="lazy">'
@@ -1354,6 +1372,18 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         '</figcaption></figure>';
     }).join("");
     document.getElementById("depoimentos").hidden = false;
+
+    // o botão só aparece onde o texto realmente não coube
+    $$(".depo", wrap).forEach(function(fig){
+      var txt = $(".depo__txt", fig), btn = $(".depo__mais", fig);
+      if(txt.scrollHeight - txt.clientHeight > 4){
+        btn.classList.remove("hidden");
+        btn.addEventListener("click", function(){
+          var aberto = txt.classList.toggle("depo__txt--corta");
+          btn.textContent = aberto ? "Ler tudo" : "Mostrar menos";
+        });
+      }
+    });
   }
 
   function esc(s){
