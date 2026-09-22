@@ -190,3 +190,11 @@ Os campos de identificação (nome, whatsapp, email, cidade, uf) são
 editáveis no detalhe; ao mudar o whatsapp, o `whatsapp_e164` é recalculado
 junto. As respostas do quiz continuam somente leitura de propósito — são a
 declaração da pessoa, e é o que permite saber depois qual perfil converte.
+
+## Foto do depoimento
+
+O painel recorta antes de subir: canvas 320 de prévia com máscara circular,
+arraste + zoom (slider e roda do mouse), e o que vai para o Storage é um
+JPEG 480x480 já enquadrado (`cropBlob()` → `subirFoto(blob)`). O site exibe
+a foto em círculo, então enquadrar no painel evita cabeça cortada e evita
+guardar arquivo grande de celular. `subirFoto` recebe Blob, não File.

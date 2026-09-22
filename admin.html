@@ -77,6 +77,19 @@ p{margin:0}
 .pill--novo{color:var(--credit);border-color:rgba(52,219,139,.35);background:rgba(52,219,139,.1)}
 .pill--contatado{color:var(--st-contatado);border-color:rgba(107,168,216,.32);background:rgba(107,168,216,.09)}
 .pill--em_conversa{color:var(--st-conversa);border-color:rgba(224,168,60,.32);background:rgba(224,168,60,.09)}
+.crop{margin-top:.7rem;display:flex;flex-direction:column;gap:.7rem;align-items:flex-start}
+.crop__palco{position:relative;width:320px;max-width:100%;line-height:0;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.crop__palco canvas{display:block;width:100%;height:auto;cursor:grab;touch-action:none}
+.crop__palco canvas:active{cursor:grabbing}
+.crop__palco::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:10px;
+  box-shadow:0 0 0 999px rgba(10,13,12,.62) inset;
+  -webkit-mask:radial-gradient(circle at 50% 50%, transparent 49.5%, #000 50%);
+  mask:radial-gradient(circle at 50% 50%, transparent 49.5%, #000 50%);
+}
+.crop__zoom{display:flex;align-items:center;gap:.7rem;width:320px;max-width:100%;font-size:.78rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.crop__zoom input{flex:1;accent-color:var(--credit)}
+.crop__dica{font-size:.78rem;color:var(--muted-dim);line-height:1.5;max-width:320px}
 .btn--perigo{background:#C4785A;color:#FFF3EE;border:1px solid #C4785A;font-weight:600}
 .btn--perigo:hover{background:#D4886A;border-color:#D4886A;color:#fff}
 .btn--perigo:disabled{opacity:.6}
@@ -302,6 +315,13 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
             <textarea class="inp" id="p-texto" placeholder="O que essa pessoa conta sobre o começo dela…"></textarea></div>
           <div class="campo"><label for="p-foto">Foto</label>
             <input class="inp" id="p-foto" type="file" accept="image/*">
+            <div class="crop hidden" id="p-crop">
+              <div class="crop__palco"><canvas id="crop-cv" width="320" height="320"></canvas></div>
+              <label class="crop__zoom">Zoom
+                <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1">
+              </label>
+              <p class="crop__dica">Arraste a foto para enquadrar e use o zoom. O círculo é o que vai aparecer no site.</p>
+            </div>
             <img class="previa hidden" id="p-previa" alt=""></div>
           <div class="acts">
             <button class="btn btn--primary btn--sm" id="p-salvar">Adicionar</button>
@@ -740,13 +760,100 @@ $("#c-salvar").addEventListener("click", function(){
 /* ---- depoimentos ---- */
 var editando = null, fotoNova = null;
 
+/* ---- recorte da foto do depoimento ----
+   A foto entra no site sempre em círculo. Sem enquadrar, a cabeça da pessoa
+   acaba cortada — então o corte é feito aqui, antes de subir, e o que vai
+   para o Storage já é o pedaço escolhido. */
+var CROP = 320, CROP_SAIDA = 480;
+var cropImg = null, cropEsc = 1, cropMin = 1, cropOff = {x:0, y:0}, cropArrasta = null;
+
+function cropDesenha(){
+  var cv = $("#crop-cv"); if(!cv || !cropImg) return;
+  var ctx = cv.getContext("2d");
+  ctx.clearRect(0, 0, CROP, CROP);
+  ctx.fillStyle = "#0A0D0C"; ctx.fillRect(0, 0, CROP, CROP);
+  ctx.drawImage(cropImg, cropOff.x, cropOff.y, cropImg.width * cropEsc, cropImg.height * cropEsc);
+}
+function cropLimita(){
+  var dw = cropImg.width * cropEsc, dh = cropImg.height * cropEsc;
+  cropOff.x = Math.min(0, Math.max(CROP - dw, cropOff.x));
+  cropOff.y = Math.min(0, Math.max(CROP - dh, cropOff.y));
+}
+function cropZoom(mult){
+  var antes = cropEsc;
+  cropEsc = cropMin * mult;
+  // mantém o centro do enquadramento ao aproximar ou afastar
+  var k = cropEsc / antes;
+  cropOff.x = CROP/2 - (CROP/2 - cropOff.x) * k;
+  cropOff.y = CROP/2 - (CROP/2 - cropOff.y) * k;
+  cropLimita(); cropDesenha();
+}
+function cropAbre(file){
+  var img = new Image();
+  img.onload = function(){
+    cropImg = img;
+    cropMin = Math.max(CROP / img.width, CROP / img.height);
+    cropEsc = cropMin;
+    cropOff.x = (CROP - img.width * cropEsc) / 2;
+    cropOff.y = (CROP - img.height * cropEsc) / 2;
+    $("#crop-zoom").value = 1;
+    $("#p-crop").classList.remove("hidden");
+    $("#p-previa").classList.add("hidden");
+    cropDesenha();
+  };
+  img.onerror = function(){ cmsg("#p-msg", "Não consegui abrir essa imagem."); };
+  img.src = URL.createObjectURL(file);
+}
+function cropFecha(){
+  cropImg = null;
+  var c = $("#p-crop"); if(c) c.classList.add("hidden");
+}
+function cropBlob(){
+  if(!cropImg) return Promise.resolve(null);
+  var k = CROP_SAIDA / CROP;
+  var cv = document.createElement("canvas");
+  cv.width = CROP_SAIDA; cv.height = CROP_SAIDA;
+  var ctx = cv.getContext("2d");
+  ctx.fillStyle = "#111614"; ctx.fillRect(0, 0, CROP_SAIDA, CROP_SAIDA);
+  ctx.drawImage(cropImg, cropOff.x * k, cropOff.y * k, cropImg.width * cropEsc * k, cropImg.height * cropEsc * k);
+  return new Promise(function(ok){ cv.toBlob(function(b){ ok(b); }, "image/jpeg", 0.9); });
+}
+
 $("#p-foto").addEventListener("change", function(){
   var f = this.files && this.files[0];
-  fotoNova = f || null;
-  var img = $("#p-previa");
-  if(f){ img.src = URL.createObjectURL(f); img.classList.remove("hidden"); }
-  else { img.classList.add("hidden"); }
+  if(f){ cropAbre(f); }
+  else { cropFecha(); $("#p-previa").classList.add("hidden"); }
 });
+$("#crop-zoom").addEventListener("input", function(){ if(cropImg) cropZoom(parseFloat(this.value)); });
+
+(function(){
+  var cv = $("#crop-cv"); if(!cv) return;
+  // o canvas encolhe em tela estreita: o arrasto precisa ser convertido
+  // para o sistema de coordenadas interno, senão a foto anda mais devagar
+  function fator(){ return CROP / (cv.getBoundingClientRect().width || CROP); }
+  cv.addEventListener("pointerdown", function(e){
+    if(!cropImg) return;
+    var f = fator();
+    cropArrasta = {x: e.clientX * f - cropOff.x, y: e.clientY * f - cropOff.y, f: f};
+    cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener("pointermove", function(e){
+    if(!cropArrasta || !cropImg) return;
+    cropOff.x = e.clientX * cropArrasta.f - cropArrasta.x;
+    cropOff.y = e.clientY * cropArrasta.f - cropArrasta.y;
+    cropLimita(); cropDesenha();
+  });
+  ["pointerup","pointercancel"].forEach(function(ev){
+    cv.addEventListener(ev, function(){ cropArrasta = null; });
+  });
+  cv.addEventListener("wheel", function(e){
+    if(!cropImg) return;
+    e.preventDefault();
+    var z = $("#crop-zoom");
+    z.value = Math.min(4, Math.max(1, parseFloat(z.value) - e.deltaY * 0.002));
+    cropZoom(parseFloat(z.value));
+  }, {passive:false});
+})();
 
 function carregarDepoimentos(){
   if(DEMO){ $("#c-lista").innerHTML = '<p class="sub">Indisponível em modo demonstração.</p>'; return; }
@@ -771,7 +878,7 @@ function carregarDepoimentos(){
       b.addEventListener("click", function(){
         var d = l.filter(function(x){ return x.id === b.getAttribute("data-edit"); })[0];
         if(!d) return;
-        editando = d.id; fotoNova = null;
+        editando = d.id; fotoNova = null; cropFecha();
         $("#p-nome").value = d.nome || ""; $("#p-cidade").value = d.cidade || "";
         $("#p-tempo").value = d.tempo || ""; $("#p-texto").value = d.texto || "";
         $("#p-foto").value = "";
@@ -794,7 +901,7 @@ function carregarDepoimentos(){
 }
 
 function limparForm(){
-  editando = null; fotoNova = null;
+  editando = null; fotoNova = null; cropFecha();
   ["p-nome","p-cidade","p-tempo","p-texto","p-foto"].forEach(function(i){ $("#"+i).value = ""; });
   $("#p-previa").classList.add("hidden");
   $("#c-form-t").textContent = "Novo depoimento";
@@ -804,10 +911,10 @@ function limparForm(){
 }
 $("#p-cancelar").addEventListener("click", limparForm);
 
-function subirFoto(f){
-  var ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"");
-  var caminho = "depoimentos/" + Date.now() + "-" + Math.random().toString(36).slice(2,8) + "." + ext;
-  return sb.storage.from("publico").upload(caminho, f, {cacheControl:"31536000"}).then(function(u){
+function subirFoto(blob){
+  // sempre jpg: o recorte já normalizou tamanho e formato
+  var caminho = "depoimentos/" + Date.now() + "-" + Math.random().toString(36).slice(2,8) + ".jpg";
+  return sb.storage.from("publico").upload(caminho, blob, {cacheControl:"31536000", contentType:"image/jpeg"}).then(function(u){
     if(u.error) throw u.error;
     return sb.storage.from("publico").getPublicUrl(caminho).data.publicUrl;
   });
@@ -821,7 +928,7 @@ $("#p-salvar").addEventListener("click", function(){
   var b = $("#p-salvar"), rotulo = b.textContent;
   b.disabled = true; b.textContent = "Salvando…"; cmsg("#p-msg","");
 
-  (fotoNova ? subirFoto(fotoNova) : Promise.resolve(null)).then(function(url){
+  cropBlob().then(function(b){ return b ? subirFoto(b) : null; }).then(function(url){
     var dados = {
       nome: nome,
       cidade: $("#p-cidade").value.trim() || null,
