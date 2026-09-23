@@ -337,6 +337,15 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
             <input class="inp" id="p-tempo" type="text" placeholder="2 anos"></div>
           <div class="campo"><label for="p-texto">Depoimento</label>
             <textarea class="inp" id="p-texto" placeholder="O que essa pessoa conta sobre o começo dela…"></textarea></div>
+          <div class="fields fields--2" style="margin-bottom:1rem">
+            <div class="campo" style="margin:0"><label for="p-video">Vídeo do depoimento (opcional)</label>
+              <input class="inp" id="p-video" type="url" placeholder="Link do Vimeo ou YouTube"></div>
+            <div class="campo" style="margin:0"><label for="p-vformato">Formato do vídeo</label>
+              <select class="inp" id="p-vformato">
+                <option value="16:9">16:9 — horizontal</option>
+                <option value="9:16">9:16 — vertical (celular)</option>
+              </select></div>
+          </div>
           <div class="campo"><label for="p-foto">Foto</label>
             <input class="inp" id="p-foto" type="file" accept="image/*">
             <div class="crop hidden" id="p-crop">
@@ -914,7 +923,7 @@ function carregarDepoimentos(){
         (d.foto_url ? '<img class="dep__f" src="'+esc(d.foto_url)+'" alt="">'
                     : '<span class="dep__i">'+esc(ini)+'</span>')+
         '<span class="dep__c"><strong>'+esc(d.nome)+'</strong>'+
-          '<span>'+esc([d.cidade,d.tempo].filter(Boolean).join(" · ")||"—")+(d.ativo?"":" · oculto")+'</span>'+
+          '<span>'+esc([d.cidade,d.tempo].filter(Boolean).join(" · ")||"—")+(d.video_url?" · com vídeo":"")+(d.ativo?"":" · oculto")+'</span>'+
           '<p>'+esc(d.texto)+'</p></span>'+
         '<span class="dep__a">'+
           '<span class="dep__ord">'+
@@ -935,6 +944,7 @@ function carregarDepoimentos(){
         editando = d.id; fotoNova = null; cropFecha();
         $("#p-nome").value = d.nome || ""; $("#p-cidade").value = d.cidade || "";
         $("#p-tempo").value = d.tempo || ""; $("#p-texto").value = d.texto || "";
+        $("#p-video").value = d.video_url || ""; $("#p-vformato").value = d.video_formato || "16:9";
         $("#p-foto").value = "";
         var img = $("#p-previa");
         if(d.foto_url){ img.src = d.foto_url; img.classList.remove("hidden"); } else { img.classList.add("hidden"); }
@@ -1004,7 +1014,8 @@ function carregarDepoimentos(){
 
 function limparForm(){
   editando = null; fotoNova = null; cropFecha();
-  ["p-nome","p-cidade","p-tempo","p-texto","p-foto"].forEach(function(i){ $("#"+i).value = ""; });
+  ["p-nome","p-cidade","p-tempo","p-texto","p-foto","p-video"].forEach(function(i){ $("#"+i).value = ""; });
+  $("#p-vformato").value = "16:9";
   $("#p-previa").classList.add("hidden");
   $("#c-form-t").textContent = "Novo depoimento";
   $("#p-salvar").textContent = "Adicionar";
@@ -1035,7 +1046,9 @@ $("#p-salvar").addEventListener("click", function(){
       nome: nome,
       cidade: $("#p-cidade").value.trim() || null,
       tempo:  $("#p-tempo").value.trim() || null,
-      texto:  texto
+      texto:  texto,
+      video_url:     $("#p-video").value.trim() || null,
+      video_formato: $("#p-vformato").value
     };
     if(url) dados.foto_url = url;
     return editando

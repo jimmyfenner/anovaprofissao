@@ -186,6 +186,8 @@ p{margin:0}
 
 /* depoimentos reais */
 .depo{border:1px solid var(--line);border-radius:10px;padding:1.5rem;background:var(--surface);display:flex;flex-direction:column;gap:1rem}
+.depo__video{margin-top:0;margin-bottom:.2rem}
+.depo__video.vslot--vertical{max-width:200px;margin-inline:0}
 .depo__txt{
   margin:0;                      /* blockquote traz 40px de margem por padrão */
   font-size:.95rem;color:var(--muted);line-height:1.62;flex:1;
@@ -1370,12 +1372,15 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     }
 
     var wrap = document.getElementById("depo-lista");
-    wrap.innerHTML = lista.map(function(d){
+    wrap.innerHTML = lista.map(function(d, i){
       var ini = String(d.nome || "?").trim().split(/\s+/).slice(0,2).map(function(p){ return p[0]; }).join("").toUpperCase();
       var sob = [d.cidade, d.tempo].filter(Boolean).join(" · ");
       var paras = String(d.texto || "").split(/\n{2,}|\n/).map(function(t){ return t.trim(); })
                     .filter(Boolean).map(function(t){ return '<p>' + esc(t) + '</p>'; }).join("");
+      var vid = d.video_url ? ('depo-v-' + i) : null;
       return '<figure class="depo">' +
+        (vid ? '<div class="vslot depo__video" id="' + vid + '" data-url="' + esc(d.video_url) +
+               '" data-formato="' + esc(d.video_formato || "16:9") + '"></div>' : '') +
         '<blockquote class="depo__txt depo__txt--corta">' + paras + '</blockquote>' +
         '<button class="depo__mais hidden" type="button">Ler tudo</button>' +
         '<figcaption class="depo__quem">' +
@@ -1387,6 +1392,11 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         '</figcaption></figure>';
     }).join("");
     document.getElementById("depoimentos").hidden = false;
+
+    // o player é o mesmo dos outros vídeos da página
+    $$(".depo__video", wrap).forEach(function(slot){
+      montarVideo(slot.id, slot.getAttribute("data-url"), slot.getAttribute("data-formato"));
+    });
 
     // o botão só aparece onde o texto realmente não coube
     $$(".depo", wrap).forEach(function(fig){

@@ -228,3 +228,11 @@ Coluna `fixo` em `depoimentos` (migração `db/04-depoimento-fixo.sql`). No modo
 aleatório os fixos entram sempre, na ordem, e o sorteio preenche as vagas que
 sobram até `depo_qtd`. Se os fixos já ocupam todas as vagas, não sobra sorteio
 — é comportamento esperado, não bug.
+
+## Depoimento em vídeo
+
+Colunas `video_url` e `video_formato` em `depoimentos` (migração
+`db/05-depoimento-video.sql`). Quando há vídeo, o card monta um `.vslot` e
+chama o mesmo `montarVideo()` dos vídeos da página — miniatura automática,
+9:16 quando vertical e player em tela cheia. O texto continua embaixo: vídeo
+não substitui o depoimento escrito, porque nem todo visitante dá play.
