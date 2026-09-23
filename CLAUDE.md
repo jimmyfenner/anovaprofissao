@@ -198,3 +198,15 @@ arraste + zoom (slider e roda do mouse), e o que vai para o Storage é um
 JPEG 480x480 já enquadrado (`cropBlob()` → `subirFoto(blob)`). O site exibe
 a foto em círculo, então enquadrar no painel evita cabeça cortada e evita
 guardar arquivo grande de celular. `subirFoto` recebe Blob, não File.
+
+## Royalties x multinível (fato fornecido pelo Jimmy)
+
+No multinível tradicional o plano limita até qual nível de profundidade se
+recebe. Na iGreen a remuneração de estrutura é paga como **royalties sobre o
+consumo dos clientes** e, enquanto houver royalties disponíveis, o licenciado
+tem direito **independentemente do nível de profundidade** do cliente.
+
+Isso está na FAQ como pergunta própria — não misture com a resposta sobre
+pirâmide, que ganha força por responder uma coisa só (de onde vem o dinheiro).
+E não escreva que é "melhor que multinível": o fato dito seco convence mais e
+não convida à discussão. Percentuais e critérios nunca vão para o site.
