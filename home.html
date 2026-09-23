@@ -1359,13 +1359,14 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     if(!lista || !lista.length) return;   // sem depoimento real, a seção fica oculta
 
     if(DEPO_MODO === "aleatorio" && lista.length > DEPO_QTD){
-      // sorteio a cada abertura: quem volta ao site vê histórias diferentes
-      lista = lista.slice();
-      for(var i = lista.length - 1; i > 0; i--){
+      // os marcados como fixos aparecem sempre; o sorteio preenche o resto
+      var fixos = lista.filter(function(d){ return d.fixo; });
+      var resto = lista.filter(function(d){ return !d.fixo; });
+      for(var i = resto.length - 1; i > 0; i--){
         var j = Math.floor(Math.random() * (i + 1));
-        var t = lista[i]; lista[i] = lista[j]; lista[j] = t;
+        var t = resto[i]; resto[i] = resto[j]; resto[j] = t;
       }
-      lista = lista.slice(0, DEPO_QTD);
+      lista = fixos.concat(resto).slice(0, DEPO_QTD);
     }
 
     var wrap = document.getElementById("depo-lista");

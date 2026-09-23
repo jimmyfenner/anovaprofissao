@@ -97,6 +97,7 @@ p{margin:0}
 .dep__ord{display:flex;flex-direction:column;gap:.2rem;flex:none}
 .dep__ord button{width:26px;height:22px;line-height:1;padding:0;font-size:.7rem}
 .dep--off{opacity:.55}
+.btn--sm.is-fixo{color:#E0A83C;border-color:rgba(224,168,60,.45)}
 .btn--perigo{background:#C4785A;color:#FFF3EE;border:1px solid #C4785A;font-weight:600}
 .btn--perigo:hover{background:#D4886A;border-color:#D4886A;color:#fff}
 .btn--perigo:disabled{opacity:.6}
@@ -788,7 +789,7 @@ function explicaRodizio(){
   var modo = $("#d-modo").value, n = Math.max(1, parseInt($("#d-qtd").value, 10) || 3);
   $("#d-qtd-campo").style.display = modo === "aleatorio" ? "" : "none";
   $("#d-expl").textContent = modo === "aleatorio"
-    ? "A cada visita o site sorteia " + n + " depoimento(s) entre os que estão visíveis. Quem volta ao site vê histórias diferentes."
+    ? "A cada visita o site mostra " + n + " depoimento(s): primeiro os marcados como fixos, e o restante sorteado entre os visíveis."
     : "O site mostra todos os depoimentos visíveis, na ordem definida abaixo.";
 }
 $("#d-modo").addEventListener("change", explicaRodizio);
@@ -920,6 +921,7 @@ function carregarDepoimentos(){
             '<button class="btn btn--sm" data-sobe="'+d.id+'"'+(i===0?" disabled":"")+' title="Subir">↑</button>'+
             '<button class="btn btn--sm" data-desce="'+d.id+'"'+(i===l.length-1?" disabled":"")+' title="Descer">↓</button>'+
           '</span>'+
+          '<button class="btn btn--sm'+(d.fixo?" is-fixo":"")+'" data-fixo="'+d.id+'" title="Aparece sempre, mesmo no sorteio">'+(d.fixo?"★ Fixo":"☆ Fixar")+'</button>'+
           '<button class="btn btn--sm" data-ver="'+d.id+'">'+(d.ativo?"Ocultar":"Mostrar")+'</button>'+
           '<button class="btn btn--sm" data-edit="'+d.id+'">Editar</button>'+
           '<button class="btn btn--sm" data-rm="'+d.id+'">Remover</button>'+
@@ -940,6 +942,21 @@ function carregarDepoimentos(){
         $("#p-salvar").textContent = "Salvar alterações";
         $("#p-cancelar").classList.remove("hidden");
         $("#p-nome").focus();
+      });
+    });
+    $$("[data-fixo]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var d = l.filter(function(x){ return x.id === b.getAttribute("data-fixo"); })[0];
+        if(!d) return;
+        b.disabled = true;
+        sb.from("depoimentos").update({fixo: !d.fixo}).eq("id", d.id).then(function(x){
+          if(x.error){
+            cmsg("#p-msg", /fixo/.test(x.error.message||"")
+              ? "Falta rodar o SQL db/04-depoimento-fixo.sql no Supabase."
+              : x.error.message);
+            b.disabled = false;
+          } else carregarDepoimentos();
+        });
       });
     });
     $$("[data-ver]").forEach(function(b){

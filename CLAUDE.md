@@ -221,3 +221,10 @@ Ocultar alterna `ativo` — depoimento oculto continua cadastrado.
 
 A home só busca os depoimentos **depois** de ler a config, senão o modo
 chegaria tarde demais e o sorteio nunca aconteceria.
+
+## Depoimento fixo
+
+Coluna `fixo` em `depoimentos` (migração `db/04-depoimento-fixo.sql`). No modo
+aleatório os fixos entram sempre, na ordem, e o sorteio preenche as vagas que
+sobram até `depo_qtd`. Se os fixos já ocupam todas as vagas, não sobra sorteio
+— é comportamento esperado, não bug.
