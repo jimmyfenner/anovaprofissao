@@ -90,6 +90,13 @@ p{margin:0}
 .crop__zoom{display:flex;align-items:center;gap:.7rem;width:320px;max-width:100%;font-size:.78rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
 .crop__zoom input{flex:1;accent-color:var(--credit)}
 .crop__dica{font-size:.78rem;color:var(--muted-dim);line-height:1.5;max-width:320px}
+.rodizio{display:flex;flex-wrap:wrap;gap:.8rem;align-items:flex-end;margin-bottom:1rem}
+.rodizio .campo{display:flex;flex-direction:column;gap:.35rem;font-size:.78rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.rodizio .inp{min-width:210px}
+.rodizio #d-qtd{min-width:110px}
+.dep__ord{display:flex;flex-direction:column;gap:.2rem;flex:none}
+.dep__ord button{width:26px;height:22px;line-height:1;padding:0;font-size:.7rem}
+.dep--off{opacity:.55}
 .btn--perigo{background:#C4785A;color:#FFF3EE;border:1px solid #C4785A;font-weight:600}
 .btn--perigo:hover{background:#D4886A;border-color:#D4886A;color:#fff}
 .btn--perigo:disabled{opacity:.6}
@@ -301,7 +308,23 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
 
       <div class="box">
         <h2>Depoimentos</h2>
-        <p class="sub">A seção só aparece no site depois do primeiro depoimento. Clique em um para editar.</p>
+        <p class="sub">A seção só aparece no site depois do primeiro depoimento ativo. Use as setas para ordenar e "Ocultar" para tirar do ar sem apagar.</p>
+
+        <div class="rodizio">
+          <label class="campo" style="margin:0">Como exibir no site
+            <select class="inp" id="d-modo">
+              <option value="fixo">Na ordem definida aqui</option>
+              <option value="aleatorio">Sorteados a cada visita</option>
+            </select>
+          </label>
+          <label class="campo" style="margin:0" id="d-qtd-campo">Quantos aparecem
+            <input class="inp" id="d-qtd" type="number" min="1" max="24" step="1" value="3">
+          </label>
+          <button class="btn btn--sm" id="d-salvar" type="button">Salvar exibição</button>
+        </div>
+        <p class="sub" id="d-expl" style="margin-top:.5rem"></p>
+        <div id="d-msg"></div>
+
         <div id="c-lista"></div>
         <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--line-soft)">
           <h3 style="font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.9rem" id="c-form-t">Novo depoimento</h3>
@@ -709,6 +732,9 @@ function carregarConfig(){
     $("#c-cta-txt").value = m.cta_video_texto || "";
     $("#c-cta-url").value = m.cta_video_url || "";
     $("#c-cta-seg").value = paraRelogio(m.cta_video_segundos);
+    $("#d-modo").value = m.depo_modo === "aleatorio" ? "aleatorio" : "fixo";
+    $("#d-qtd").value  = Math.max(1, parseInt(m.depo_qtd, 10) || 3);
+    explicaRodizio();
   });
 }
 
@@ -754,6 +780,27 @@ $("#c-salvar").addEventListener("click", function(){
   sb.from("site_config").upsert(vals, {onConflict:"chave"}).then(function(r){
     b.disabled = false; b.textContent = "Salvar";
     cmsg("#c-msg", r.error ? r.error.message : "Salvo. Atualize o site para ver.", r.error ? "erro" : "ok");
+  });
+});
+
+/* ---- exibição dos depoimentos ---- */
+function explicaRodizio(){
+  var modo = $("#d-modo").value, n = Math.max(1, parseInt($("#d-qtd").value, 10) || 3);
+  $("#d-qtd-campo").style.display = modo === "aleatorio" ? "" : "none";
+  $("#d-expl").textContent = modo === "aleatorio"
+    ? "A cada visita o site sorteia " + n + " depoimento(s) entre os que estão visíveis. Quem volta ao site vê histórias diferentes."
+    : "O site mostra todos os depoimentos visíveis, na ordem definida abaixo.";
+}
+$("#d-modo").addEventListener("change", explicaRodizio);
+$("#d-qtd").addEventListener("input", explicaRodizio);
+$("#d-salvar").addEventListener("click", function(){
+  var b = $("#d-salvar"); b.disabled = true; b.textContent = "Salvando…";
+  sb.from("site_config").upsert([
+    {chave:"depo_modo", valor:$("#d-modo").value},
+    {chave:"depo_qtd",  valor:String(Math.max(1, parseInt($("#d-qtd").value, 10) || 3))}
+  ], {onConflict:"chave"}).then(function(r){
+    b.disabled = false; b.textContent = "Salvar exibição";
+    cmsg("#d-msg", r.error ? r.error.message : "Salvo. Atualize o site para ver.", r.error ? "erro" : "ok");
   });
 });
 
@@ -860,15 +907,20 @@ function carregarDepoimentos(){
   sb.from("depoimentos").select("*").order("ordem").order("criado_em").then(function(r){
     if(r.error){ cmsg("#p-msg", r.error.message); return; }
     var l = r.data || [];
-    $("#c-lista").innerHTML = l.length ? l.map(function(d){
+    $("#c-lista").innerHTML = l.length ? l.map(function(d, i){
       var ini = String(d.nome||"?").trim().split(/\s+/).slice(0,2).map(function(p){return p[0];}).join("").toUpperCase();
-      return '<div class="dep">'+
+      return '<div class="dep'+(d.ativo?"":" dep--off")+'">'+
         (d.foto_url ? '<img class="dep__f" src="'+esc(d.foto_url)+'" alt="">'
                     : '<span class="dep__i">'+esc(ini)+'</span>')+
         '<span class="dep__c"><strong>'+esc(d.nome)+'</strong>'+
           '<span>'+esc([d.cidade,d.tempo].filter(Boolean).join(" · ")||"—")+(d.ativo?"":" · oculto")+'</span>'+
           '<p>'+esc(d.texto)+'</p></span>'+
         '<span class="dep__a">'+
+          '<span class="dep__ord">'+
+            '<button class="btn btn--sm" data-sobe="'+d.id+'"'+(i===0?" disabled":"")+' title="Subir">↑</button>'+
+            '<button class="btn btn--sm" data-desce="'+d.id+'"'+(i===l.length-1?" disabled":"")+' title="Descer">↓</button>'+
+          '</span>'+
+          '<button class="btn btn--sm" data-ver="'+d.id+'">'+(d.ativo?"Ocultar":"Mostrar")+'</button>'+
           '<button class="btn btn--sm" data-edit="'+d.id+'">Editar</button>'+
           '<button class="btn btn--sm" data-rm="'+d.id+'">Remover</button>'+
         '</span></div>';
@@ -889,6 +941,39 @@ function carregarDepoimentos(){
         $("#p-cancelar").classList.remove("hidden");
         $("#p-nome").focus();
       });
+    });
+    $$("[data-ver]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var d = l.filter(function(x){ return x.id === b.getAttribute("data-ver"); })[0];
+        if(!d) return;
+        b.disabled = true;
+        sb.from("depoimentos").update({ativo: !d.ativo}).eq("id", d.id).then(function(x){
+          if(x.error){ cmsg("#p-msg", x.error.message); b.disabled = false; }
+          else carregarDepoimentos();
+        });
+      });
+    });
+    // a ordem é gravada como posição na lista: troca com o vizinho e regrava as duas
+    function mover(id, passo){
+      var i = -1;
+      l.forEach(function(x, k){ if(x.id === id) i = k; });
+      var j = i + passo;
+      if(i < 0 || j < 0 || j >= l.length) return;
+      var a = l[i], b2 = l[j];
+      Promise.all([
+        sb.from("depoimentos").update({ordem: j}).eq("id", a.id),
+        sb.from("depoimentos").update({ordem: i}).eq("id", b2.id)
+      ]).then(function(rs){
+        var err = rs.filter(function(r){ return r && r.error; })[0];
+        if(err){ cmsg("#p-msg", err.error.message); return; }
+        carregarDepoimentos();
+      });
+    }
+    $$("[data-sobe]").forEach(function(b){
+      b.addEventListener("click", function(){ mover(b.getAttribute("data-sobe"), -1); });
+    });
+    $$("[data-desce]").forEach(function(b){
+      b.addEventListener("click", function(){ mover(b.getAttribute("data-desce"), 1); });
     });
     $$("[data-rm]").forEach(function(b){
       b.addEventListener("click", function(){

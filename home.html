@@ -1353,8 +1353,21 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     }
   }
 
+  var DEPO_MODO = "fixo", DEPO_QTD = 3;
+
   function montarDepoimentos(lista){
     if(!lista || !lista.length) return;   // sem depoimento real, a seção fica oculta
+
+    if(DEPO_MODO === "aleatorio" && lista.length > DEPO_QTD){
+      // sorteio a cada abertura: quem volta ao site vê histórias diferentes
+      lista = lista.slice();
+      for(var i = lista.length - 1; i > 0; i--){
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = lista[i]; lista[i] = lista[j]; lista[j] = t;
+      }
+      lista = lista.slice(0, DEPO_QTD);
+    }
+
     var wrap = document.getElementById("depo-lista");
     wrap.innerHTML = lista.map(function(d){
       var ini = String(d.nome || "?").trim().split(/\s+/).slice(0,2).map(function(p){ return p[0]; }).join("").toUpperCase();
@@ -1522,7 +1535,14 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     }
   });
 
-  api("depoimentos?select=*&ativo=eq.true&order=ordem.asc,criado_em.asc").then(montarDepoimentos);
+  api("site_config?select=chave,valor").then(function(cfg){
+    (cfg || []).forEach(function(c){
+      if(c.chave === "depo_modo") DEPO_MODO = c.valor === "aleatorio" ? "aleatorio" : "fixo";
+      if(c.chave === "depo_qtd")  DEPO_QTD  = Math.max(1, parseInt(c.valor, 10) || 3);
+    });
+  }).catch(function(){}).then(function(){
+    return api("depoimentos?select=*&ativo=eq.true&order=ordem.asc,criado_em.asc").then(montarDepoimentos);
+  });
 
   /* ---- extrato: virar o lado ---- */
   var stmt = $("#stmt"), flip = $("#flip");

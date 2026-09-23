@@ -210,3 +210,14 @@ Isso está na FAQ como pergunta própria — não misture com a resposta sobre
 pirâmide, que ganha força por responder uma coisa só (de onde vem o dinheiro).
 E não escreva que é "melhor que multinível": o fato dito seco convence mais e
 não convida à discussão. Percentuais e critérios nunca vão para o site.
+
+## Exibição dos depoimentos
+
+Duas chaves em `site_config`: `depo_modo` (`fixo` | `aleatorio`) e `depo_qtd`.
+No modo fixo o site mostra todos os ativos na ordem da coluna `ordem`; no
+aleatório sorteia `depo_qtd` entre os ativos a cada carregamento da página.
+O painel ordena gravando a posição na lista (troca com o vizinho) e o botão
+Ocultar alterna `ativo` — depoimento oculto continua cadastrado.
+
+A home só busca os depoimentos **depois** de ler a config, senão o modo
+chegaria tarde demais e o sorteio nunca aconteceria.
