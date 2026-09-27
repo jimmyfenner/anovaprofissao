@@ -207,6 +207,8 @@ p{margin:0}
 .depo__quem{display:flex;align-items:center;gap:.8rem;padding-top:.9rem;border-top:1px solid var(--line-soft)}
 .depo__foto{width:42px;height:42px;border-radius:50%;object-fit:cover;flex:none;background:var(--surface-2)}
 .depo__ini{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;background:rgba(52,219,139,.1);border:1px solid var(--credit-dim);color:var(--credit);font-family:var(--mono);font-size:.8rem}
+.depo__ig{margin-left:auto;flex:none;color:var(--muted-dim);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);transition:color .16s,border-color .16s}
+.depo__ig:hover{color:var(--credit);border-color:var(--credit-dim)}
 .depo__nome strong{display:block;font-size:.92rem;font-weight:600}
 .depo__nome span{font-size:.8rem;color:var(--muted-dim)}
 
@@ -1408,6 +1410,12 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       var paras = String(d.texto || "").split(/\n{2,}|\n/).map(function(t){ return t.trim(); })
                     .filter(Boolean).map(function(t){ return '<p>' + esc(t) + '</p>'; }).join("");
       var vid = d.video_url ? ('depo-v-' + i) : null;
+      // aceita "@fulano", "fulano" ou a URL inteira
+      var perfil = "";
+      if(d.instagram && d.instagram_mostrar !== false){
+        var u = String(d.instagram).trim().replace(/^@/, "");
+        perfil = /^https?:\/\//i.test(u) ? u : "https://instagram.com/" + u.replace(/^instagram\.com\//i, "");
+      }
       return '<figure class="depo">' +
         (vid ? '<div class="vslot depo__video" id="' + vid + '" data-url="' + esc(d.video_url) +
                '" data-formato="' + esc(d.video_formato || "16:9") + '"></div>' : '') +
@@ -1419,6 +1427,10 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
             : '<span class="depo__ini" aria-hidden="true">' + esc(ini) + '</span>') +
           '<span class="depo__nome"><strong>' + esc(d.nome) + '</strong>' +
           (sob ? '<span>' + esc(sob) + '</span>' : '') + '</span>' +
+          (perfil ? '<a class="depo__ig" href="' + esc(perfil) + '" target="_blank" rel="noopener nofollow"' +
+                    ' data-ev="depoimento_instagram" aria-label="Instagram de ' + esc(d.nome) + '" title="Ver o perfil no Instagram">' +
+                    '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c0 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2 0-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c0-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.2A6.6 6.6 0 1 0 18.6 12 6.6 6.6 0 0 0 12 5.4zm0 10.9A4.3 4.3 0 1 1 16.3 12 4.3 4.3 0 0 1 12 16.3zm6.9-11.1a1.5 1.5 0 1 1-1.5-1.5 1.5 1.5 0 0 1 1.5 1.5z"/></svg>' +
+                    '</a>' : '') +
         '</figcaption></figure>';
     }).join("");
     document.getElementById("depoimentos").hidden = false;

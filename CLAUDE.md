@@ -249,3 +249,11 @@ Sem ID configurado, nenhum script da Meta é carregado — o site não sai
 chamando a Meta à toa. **A Política de Privacidade descreve esse tratamento
 (item 8)**: se mudar o que é rastreado, ela muda junto, e a data de revisão
 (`ATUALIZADO` no build.js) é atualizada à mão.
+
+## Instagram no depoimento
+
+Colunas `instagram` e `instagram_mostrar` (migração `db/06-depoimento-instagram.sql`).
+O painel aceita `@usuario`, `usuario` ou a URL inteira; a home normaliza. O
+ícone só aparece com o campo preenchido E a chave ligada — desligar guarda o
+perfil sem exibir. O link sai com `rel="noopener nofollow"` e evento
+`depoimento_instagram`, para dar para medir quanta gente sai por ali.
