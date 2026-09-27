@@ -1180,12 +1180,38 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   })();
 
   /* ---- tracking (dataLayer-ready) ---- */
+  /* ---- Meta Pixel ----
+     Um pixel só. As audiências saem dos eventos: PageView pega quem visitou,
+     Lead pega quem terminou a avaliação de perfil. O pixel só existe se o ID
+     estiver configurado no painel — sem ID, nenhum script da Meta é carregado. */
+  var EVENTO_META = {
+    quiz_complete: "Lead",                      // terminou as 6 perguntas
+    cadastro_direto_enviou: "CompleteRegistration", // foi para o cadastro oficial
+    quiz_start: "ViewContent"
+  };
+
+  function carregarPixel(id){
+    if(!id || window.fbq) return;
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    window.fbq("init", id);
+    window.fbq("track", "PageView");
+  }
+
   function track(name, params){
     var payload = Object.assign({event:name}, origem, params||{});
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(payload);
     if(typeof window.gtag === "function"){ window.gtag("event", name, payload); }
-    if(typeof window.fbq === "function"){ window.fbq("trackCustom", name, payload); }
+    if(typeof window.fbq === "function"){
+      window.fbq("trackCustom", name, payload);
+      if(EVENTO_META[name]) window.fbq("track", EVENTO_META[name]);
+    }
   }
   document.addEventListener("click", function(e){
     var el = e.target.closest("[data-ev]");
@@ -1429,6 +1455,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     montarVideo("v-piramide",     m.video_piramide,     m.video_piramide_formato);
     montarVideo("v-apresentacao", m.video_apresentacao, m.video_apresentacao_formato);
     if(m.link_cadastro) LINK_CADASTRO = m.link_cadastro;
+    if(m.meta_pixel) carregarPixel(String(m.meta_pixel).replace(/\D/g, ""));
     if(m.cta_video_ativo === "1"){
       CTA_VIDEO = {
         texto: m.cta_video_texto || "Quero fazer meu cadastro",

@@ -236,3 +236,16 @@ Colunas `video_url` e `video_formato` em `depoimentos` (migração
 chama o mesmo `montarVideo()` dos vídeos da página — miniatura automática,
 9:16 quando vertical e player em tela cheia. O texto continua embaixo: vídeo
 não substitui o depoimento escrito, porque nem todo visitante dá play.
+
+## Meta Pixel
+
+Chave `meta_pixel` em `site_config` (só números). Um pixel para o site todo —
+duas audiências saem de dois eventos, não de dois pixels. Eventos padrão
+disparados: `PageView` (toda visita), `Lead` (quiz_complete), `ViewContent`
+(quiz_start) e `CompleteRegistration` (cadastro direto). Todo evento interno
+continua indo como `trackCustom` também.
+
+Sem ID configurado, nenhum script da Meta é carregado — o site não sai
+chamando a Meta à toa. **A Política de Privacidade descreve esse tratamento
+(item 8)**: se mudar o que é rastreado, ela muda junto, e a data de revisão
+(`ATUALIZADO` no build.js) é atualizada à mão.

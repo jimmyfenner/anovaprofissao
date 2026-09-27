@@ -300,7 +300,10 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
             <span class="dica">Minutos e segundos do vídeo, como 2:30. O contador acompanha a reprodução de verdade — se a pessoa pausar, ele pausa junto.</span></div>
         </div>
 
-        <div class="campo"><label for="c-cad">Link de cadastro de licenciado</label>
+        <div class="campo"><label for="c-pixel">ID do Pixel da Meta</label>
+            <input class="inp" id="c-pixel" type="text" inputmode="numeric" placeholder="Só os números, ex: 1234567890123456">
+            <p class="sub" style="margin-top:.4rem">Um pixel só para o site todo. Vazio = nenhum script da Meta é carregado. Eventos enviados: <b>PageView</b> em toda visita, <b>Lead</b> quando alguém termina a avaliação de perfil e <b>CompleteRegistration</b> quando vai para o cadastro direto.</p></div>
+          <div class="campo"><label for="c-cad">Link de cadastro de licenciado</label>
           <input class="inp" id="c-cad" type="url" placeholder="https://expansao.igreenenergy.com.br/?id=...">
           <span class="dica">Para quem chega decidido. Confira se o seu ID está no link.</span></div>
         <button class="btn btn--primary btn--sm" id="c-salvar">Salvar</button>
@@ -738,6 +741,7 @@ function carregarConfig(){
     $("#c-f3").value = m.video_apresentacao_formato || "16:9";
     $("#c-wanum").value = m.whatsapp_destino || "";
     $("#c-cad").value = m.link_cadastro || "";
+    $("#c-pixel").value = m.meta_pixel || "";
     $("#c-cta-on").checked = m.cta_video_ativo === "1";
     $("#c-cta-txt").value = m.cta_video_texto || "";
     $("#c-cta-url").value = m.cta_video_url || "";
@@ -782,6 +786,7 @@ $("#c-salvar").addEventListener("click", function(){
     {chave:"video_piramide_formato",     valor:$("#c-f2").value},
     {chave:"video_apresentacao_formato", valor:$("#c-f3").value},
     {chave:"link_cadastro",       valor:$("#c-cad").value.trim()},
+    {chave:"meta_pixel",          valor:$("#c-pixel").value.replace(/\D/g,"")},
     {chave:"cta_video_ativo",     valor:$("#c-cta-on").checked ? "1" : "0"},
     {chave:"cta_video_texto",     valor:$("#c-cta-txt").value.trim()},
     {chave:"cta_video_url",       valor:$("#c-cta-url").value.trim()},

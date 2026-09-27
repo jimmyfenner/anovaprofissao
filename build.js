@@ -20,7 +20,7 @@ const SITE = {
 
 /* Data de revisão dos textos jurídicos. É fixa de propósito: ela diz quando o
    texto mudou, não quando o site foi publicado. Atualize ao alterar legal/*. */
-const ATUALIZADO = '17 de setembro de 2026';
+const ATUALIZADO = '27 de setembro de 2026';
 
 const out = (...p) => path.join(__dirname, 'dist', ...p);
 const mkdir = d => fs.mkdirSync(d, { recursive: true });
