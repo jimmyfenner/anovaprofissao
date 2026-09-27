@@ -356,7 +356,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
               <label class="crop__zoom">Zoom
                 <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1">
               </label>
-              <p class="crop__dica">A foto começa inteira. Use o zoom para aproximar e arraste para enquadrar — o círculo é o que vai aparecer no site. O que sobrar fora da foto fica com o fundo do card.</p>
+              <p class="crop__dica">A foto começa inteira dentro do círculo. Use o zoom para aproximar e arraste para enquadrar — só o círculo aparece no site, e o que sobrar dele fica com o fundo do card.</p>
             </div>
             <img class="previa hidden" id="p-previa" alt=""></div>
           <div class="acts">
@@ -864,9 +864,11 @@ function cropAbre(file){
   var img = new Image();
   img.onload = function(){
     cropImg = img;
-    // zoom mínimo mostra a FOTO INTEIRA (contain). Antes era "cover", que já
-    // entrava cortando e não deixava ver o que estava fora do quadro.
-    cropMin = Math.min(CROP / img.width, CROP / img.height);
+    // O que vai para o site é o CÍRCULO, não o quadrado — então o zoom mínimo
+    // cabe a foto inteira dentro do círculo. Caber no quadrado não bastava:
+    // os cantos ficam fora do círculo e continuavam sendo cortados.
+    var LADO = CROP / Math.SQRT2;   // maior quadrado que cabe dentro do círculo
+    cropMin = Math.min(LADO / img.width, LADO / img.height);
     cropEsc = cropMin;
     cropOff.x = (CROP - img.width * cropEsc) / 2;
     cropOff.y = (CROP - img.height * cropEsc) / 2;
