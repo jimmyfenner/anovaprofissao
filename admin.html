@@ -356,7 +356,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
               <label class="crop__zoom">Zoom
                 <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1">
               </label>
-              <p class="crop__dica">Arraste a foto para enquadrar e use o zoom. O círculo é o que vai aparecer no site.</p>
+              <p class="crop__dica">A foto começa inteira. Use o zoom para aproximar e arraste para enquadrar — o círculo é o que vai aparecer no site. O que sobrar fora da foto fica com o fundo do card.</p>
             </div>
             <img class="previa hidden" id="p-previa" alt=""></div>
           <div class="acts">
@@ -837,9 +837,19 @@ function cropDesenha(){
   ctx.drawImage(cropImg, cropOff.x, cropOff.y, cropImg.width * cropEsc, cropImg.height * cropEsc);
 }
 function cropLimita(){
+  // com a foto inteira visível ela pode ser menor que o quadro, então o
+  // intervalo permitido inverte de sinal — daí o min/max nos dois lados
   var dw = cropImg.width * cropEsc, dh = cropImg.height * cropEsc;
-  cropOff.x = Math.min(0, Math.max(CROP - dw, cropOff.x));
-  cropOff.y = Math.min(0, Math.max(CROP - dh, cropOff.y));
+  var loX = Math.min(0, CROP - dw), hiX = Math.max(0, CROP - dw);
+  var loY = Math.min(0, CROP - dh), hiY = Math.max(0, CROP - dh);
+  cropOff.x = Math.min(hiX, Math.max(loX, cropOff.x));
+  cropOff.y = Math.min(hiY, Math.max(loY, cropOff.y));
+}
+function cropMultCobrir(){
+  // quanto de zoom é preciso para a foto preencher o quadro inteiro
+  if(!cropImg) return 1;
+  var cobrir = Math.max(CROP / cropImg.width, CROP / cropImg.height);
+  return cobrir / cropMin;
 }
 function cropZoom(mult){
   var antes = cropEsc;
@@ -854,11 +864,16 @@ function cropAbre(file){
   var img = new Image();
   img.onload = function(){
     cropImg = img;
-    cropMin = Math.max(CROP / img.width, CROP / img.height);
+    // zoom mínimo mostra a FOTO INTEIRA (contain). Antes era "cover", que já
+    // entrava cortando e não deixava ver o que estava fora do quadro.
+    cropMin = Math.min(CROP / img.width, CROP / img.height);
     cropEsc = cropMin;
     cropOff.x = (CROP - img.width * cropEsc) / 2;
     cropOff.y = (CROP - img.height * cropEsc) / 2;
-    $("#crop-zoom").value = 1;
+    var z = $("#crop-zoom");
+    z.min = 1;
+    z.max = Math.max(4, Math.round(cropMultCobrir() * 3 * 100) / 100);
+    z.value = 1;
     $("#p-crop").classList.remove("hidden");
     $("#p-previa").classList.add("hidden");
     cropDesenha();
@@ -912,7 +927,7 @@ $("#crop-zoom").addEventListener("input", function(){ if(cropImg) cropZoom(parse
     if(!cropImg) return;
     e.preventDefault();
     var z = $("#crop-zoom");
-    z.value = Math.min(4, Math.max(1, parseFloat(z.value) - e.deltaY * 0.002));
+    z.value = Math.min(parseFloat(z.max), Math.max(1, parseFloat(z.value) - e.deltaY * 0.002));
     cropZoom(parseFloat(z.value));
   }, {passive:false});
 })();
