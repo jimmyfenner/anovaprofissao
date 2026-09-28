@@ -435,6 +435,11 @@ p{margin:0}
 .consent a{color:var(--muted)}
 
 .result{display:flex;flex-direction:column;gap:1.3rem}
+.result__sim{font-family:var(--display);font-weight:700;letter-spacing:-.02em;line-height:1.08;font-size:clamp(1.7rem,4.4vw,2.5rem);color:var(--credit);margin:0}
+.result__sim small{display:block;font-family:var(--mono);font-size:.74rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.7rem}
+.result__porque{font-size:.97rem;color:var(--muted);line-height:1.6;max-width:58ch;margin:0}
+.result__porque b{color:var(--text);font-weight:600}
+.result__porta{border:1px solid var(--line);border-left:2px solid var(--credit-dim);border-radius:8px;padding:1rem 1.1rem;font-size:.9rem;color:var(--muted);line-height:1.55}
 .result__sum{border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .sumrow{display:flex;gap:1rem;padding:.72rem 1rem;border-bottom:1px solid var(--line-soft);font-size:.88rem}
 .sumrow:last-child{border-bottom:0}
@@ -1212,7 +1217,8 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
      Lead pega quem terminou a avaliação de perfil. O pixel só existe se o ID
      estiver configurado no painel — sem ID, nenhum script da Meta é carregado. */
   var EVENTO_META = {
-    quiz_complete: "Lead",                      // terminou as 6 perguntas
+    quiz_complete: "Lead",                      // terminou a avaliação E tem como investir
+    quiz_complete_sem_investimento: null,       // terminou, mas hoje não investe — NÃO vira Lead
     cadastro_direto_enviou: "CompleteRegistration", // foi para o cadastro oficial
     quiz_start: "ViewContent"
   };
@@ -1679,6 +1685,9 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     { key:"perfil", label:"Perfil",
       q:"Você se imagina mais:",
       opts:["Atendendo consumidores","Atendendo empresas","Construindo equipe","Um pouco de tudo","Ainda não sei"] },
+    { key:"investimento", label:"Investimento",
+      q:"Ser licenciado não é emprego: é uma licença, como abrir o seu próprio negócio. O investimento é único, de R$ 1.997 \u2014 ou 12x de R$ 197,41 no cartão. Como isso se encaixa no seu momento?",
+      opts:["Consigo à vista","Consigo parcelado no cartão","Quero entender melhor antes de decidir","Hoje não consigo investir"] },
     { key:"contato", label:"Contato", form:true,
       q:"Por último: como eu falo com você?" }
   ];
@@ -1754,7 +1763,8 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       respostas.cidade = cid.value.trim();
       respostas.uf = uf.value;
       salvarLead();
-      track("quiz_complete", {cidade: respostas.cidade, uf: respostas.uf});
+      track(apto() ? "quiz_complete" : "quiz_complete_sem_investimento",
+            {cidade: respostas.cidade, uf: respostas.uf, investimento: respostas.investimento});
       passo++; resultado();
     });
   }
@@ -1773,6 +1783,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       experiencia: respostas.experiencia,
       solucao: respostas.solucao,
       perfil: respostas.perfil,
+      investimento: respostas.investimento,
       utm_source: origem.utm_source || null,
       utm_medium: origem.utm_medium || null,
       utm_campaign: origem.utm_campaign || null,
@@ -1812,8 +1823,32 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       "Experiência comercial: "+respostas.experiencia+"\n"+
       "Solução que mais me interessou: "+respostas.solucao+"\n"+
       "Perfil de atuação: "+respostas.perfil+"\n"+
+      "Investimento: "+respostas.investimento+"\n"+
       "Cidade: "+respostas.cidade+" / "+respostas.uf+"\n\n"+
       "Gostaria de entender melhor como funciona.";
+  }
+
+  /* Quem respondeu que hoje não consegue investir não recebe a proposta de
+     licença: recebe a solução gratuita de economia na conta de luz. */
+  function apto(){ return respostas.investimento !== "Hoje não consigo investir"; }
+
+  function mensagemEconomia(){
+    return "Olá "+NOME+"! Vim pelo site A Nova Profissão.\n\n"+
+      "Nome: "+respostas.nome+"\n"+
+      "Cidade: "+respostas.cidade+" / "+respostas.uf+"\n\n"+
+      "A licença não cabe no meu momento agora, mas quero economizar na minha conta de luz.";
+  }
+
+  function resultadoSemInvestimento(primeiro){
+    qbody.innerHTML =
+      '<div class="result">'+
+        '<p class="result__sim"><small>Avaliação concluída</small>Então vamos começar pelo outro lado, '+primeiro+'.</p>'+
+        '<p class="result__porque">A licença tem um custo, e você foi honesto ao dizer que hoje ela não cabe. Respeito isso — e não vou te empurrar nada.<br><br>Mas tem uma coisa que <b>não custa nada</b> e você pode fazer agora: colocar a sua conta de luz no desconto. É exatamente a mesma solução que os licenciados oferecem aos clientes deles. Você economiza todo mês, sem pagar nada por isso.</p>'+
+        '<a class="btn btn--primary btn--block" id="go-eco" href="'+waLink(mensagemEconomia())+'" target="_blank" rel="noopener">Quero economizar na minha conta de luz</a>'+
+        '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Gratuito. Eu te explico como funciona na sua distribuidora.</p>'+
+        '<p class="result__porta"><b style="color:var(--text)">E sobre a licença:</b> "hoje não consigo" não é "nunca". Quando fizer sentido, me chama — a vaga continua aberta e eu te explico tudo de novo, sem pressa.</p>'+
+      '</div>';
+    $("#go-eco").addEventListener("click", function(){ track("whatsapp_click", {origem_lead:"quiz_economia"}); });
   }
 
   function resultado(){
@@ -1823,16 +1858,19 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     qback.classList.add("hidden");
 
     var primeiro = respostas.nome.split(" ")[0];
+    if(!apto()){ resultadoSemInvestimento(primeiro); return; }
+
     qbody.innerHTML =
       '<div class="result">'+
-        '<p class="quiz__q" style="margin-bottom:0">Obrigado, '+primeiro+'. Agora eu já entendo o seu perfil.</p>'+
-        '<p style="color:var(--muted);font-size:.97rem;max-width:56ch">Quando a gente conversar, eu não vou te dar uma apresentação genérica — vou direto ao que faz sentido para o que você respondeu.</p>'+
+        '<p class="result__sim"><small>Avaliação concluída</small>Sim, '+primeiro+'. É para você.</p>'+
+        '<p class="result__porque">Pelo que você respondeu, o seu perfil se encaixa: você quer <b>'+String(respostas.objetivo).toLowerCase()+'</b>, tem <b>'+String(respostas.tempo).toLowerCase()+'</b> para dedicar e se imagina <b>'+String(respostas.perfil).toLowerCase()+'</b>. Isso é exatamente o que essa atividade pede.<br><br>Quando a gente conversar, eu não vou te dar uma apresentação genérica — vou direto ao que faz sentido para o que você respondeu.</p>'+
         '<dl class="result__sum">'+
           '<div class="sumrow"><dt>Objetivo</dt><dd>'+respostas.objetivo+'</dd></div>'+
           '<div class="sumrow"><dt>Tempo</dt><dd>'+respostas.tempo+'</dd></div>'+
           '<div class="sumrow"><dt>Experiência</dt><dd>'+respostas.experiencia+'</dd></div>'+
           '<div class="sumrow"><dt>Interesse</dt><dd>'+respostas.solucao+'</dd></div>'+
           '<div class="sumrow"><dt>Perfil</dt><dd>'+respostas.perfil+'</dd></div>'+
+          '<div class="sumrow"><dt>Investimento</dt><dd>'+respostas.investimento+'</dd></div>'+
           '<div class="sumrow"><dt>Local</dt><dd>'+respostas.cidade+' / '+respostas.uf+'</dd></div>'+
         '</dl>'+
         '<a class="btn btn--primary btn--block" id="go-wa" href="'+waLink(mensagem())+'" target="_blank" rel="noopener">Conversar com '+NOME+' no WhatsApp</a>'+

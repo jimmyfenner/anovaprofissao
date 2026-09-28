@@ -278,3 +278,33 @@ Regras:
 - Manter separados os dois papeis: o **desconto** e do cliente, a **comissao**
   e do licenciado. Nao escrever de forma que pareca que a mesma pessoa recebe
   os dois.
+
+## Filtro de investimento no quiz
+
+A penúltima pergunta do quiz (`investimento`) declara o custo da licença
+— R$ 1.997 à vista ou 12x de R$ 197,41 no cartão — antes de pedir o
+contato. Motivo: evitar que alguém chegue ao WhatsApp achando que é
+emprego e só ali descubra que há investimento.
+
+Opções e o que cada uma faz:
+
+| Resposta | Desfecho |
+|---|---|
+| Consigo à vista | resultado "Sim, é para você" + CTAs de licença |
+| Consigo parcelado no cartão | idem |
+| Quero entender melhor antes de decidir | idem |
+| Hoje não consigo investir | resultado alternativo: oferta GRATUITA de economia na conta de luz, porta aberta para voltar |
+
+Regras:
+
+- A pergunta fica **no fim**, nunca no começo. Antes de saber o preço a
+  pessoa precisa entender o que estaria comprando.
+- Quem responde "Hoje não consigo investir" **não** dispara o evento
+  `Lead` da Meta — dispara `quiz_complete_sem_investimento`. Misturar os
+  dois contamina o público de conversão e piora a otimização dos anúncios.
+- O desfecho de quem não pode investir é uma **oferta real** (desconto na
+  conta de luz, sem custo), não um agradecimento educado. E diz
+  explicitamente que a licença continua disponível quando fizer sentido.
+- Os valores da licença vêm do plano da iGreen. Se mudarem, mudam aqui,
+  no CLAUDE.md e na pergunta do quiz.
+- Migração: `db/07-investimento.sql` (coluna `investimento` + grants).

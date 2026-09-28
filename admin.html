@@ -607,6 +607,7 @@ function detalhe(l){
       linha("Experiência", l.experiencia)+
       linha("Interesse", l.solucao)+
       linha("Perfil", l.perfil)+
+      linha("Investimento", l.investimento)+
       linha("Recebido", new Date(l.criado_em).toLocaleString("pt-BR"))+
       linha("Origem", [l.utm_source,l.utm_medium,l.utm_campaign].filter(Boolean).join(" / ") || "direto")+
       linha("Veio de", l.referrer || "—")+
