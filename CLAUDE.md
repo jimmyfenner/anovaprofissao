@@ -260,18 +260,21 @@ perfil sem exibir. O link sai com `rel="noopener nofollow"` e evento
 
 ## Prova social no hero
 
-Logo abaixo do H1 existe uma linha de prova (`.hero__prova`) com um número
-duro. O número atual é **6.900 licenciados que cadastraram pelo menos um
-cliente novo em julho de 2026** — informado pelo Jimmy, é medida de
-atividade no mês, não de cadastrados totais e não de quem recebeu comissão.
+Logo abaixo do H1 existe uma linha de prova (`.hero__prova`) seguida do selo
+`.hero__vaga` ("Tem vaga"). Texto atual, informado pelo Jimmy:
 
-Regras para essa linha:
+> **6.900** pessoas no Brasil conectaram pelo menos uma conta de energia a um
+> DESCONTO em julho de 2026 — e recebem ate 7% toda vez que essa conta e paga.
+> Todos os meses. E energia e so uma das varias solucoes recorrentes que temos.
 
-- O mês fica **explícito** no texto. Número sem data não é verificável e
-  envelhece escondido.
-- Nunca trocar o verbo para "recebendo comissões", "ganhando" ou equivalente.
-  O dado mede cadastro de cliente, não pagamento. Afirmar renda de terceiros
-  é exatamente o que alimenta a comparação com pirâmide.
-- Para atualizar, é preciso um número novo com a mesma definição e o mês
-  correspondente, vindo do Jimmy. Não estimar, não extrapolar, não arredondar
-  para cima.
+Regras:
+
+- O **6.900** mede licenciados que cadastraram pelo menos um cliente novo em
+  julho de 2026. O mes fica explicito no texto. Para atualizar, e preciso um
+  numero novo com a mesma definicao e o mes correspondente, vindo do Jimmy.
+  Nao estimar, nao extrapolar, nao arredondar para cima.
+- **Ate 7%** e percentual de remuneracao informado pelo Jimmy. Se o plano da
+  iGreen mudar, esta linha fica errada e precisa ser corrigida junto.
+- Manter separados os dois papeis: o **desconto** e do cliente, a **comissao**
+  e do licenciado. Nao escrever de forma que pareca que a mesma pessoa recebe
+  os dois.

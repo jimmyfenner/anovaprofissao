@@ -106,15 +106,28 @@ p{margin:0}
 .hero h1{max-width:17ch}
 .hero__sub{margin-top:1.6rem}
 .hero__prova{
-  margin-top:1.5rem;display:flex;align-items:baseline;gap:.85rem;
-  border-left:2px solid var(--credit-dim);padding-left:1rem;max-width:54ch;
+  margin-top:1.5rem;display:flex;align-items:baseline;gap:.9rem;
+  border-left:2px solid var(--credit);padding-left:1.05rem;max-width:56ch;
 }
 .hero__prova b{
-  font-family:var(--mono);font-size:clamp(1.5rem,3.4vw,2rem);font-weight:600;
+  font-family:var(--mono);font-size:clamp(1.6rem,3.6vw,2.15rem);font-weight:600;
   color:var(--credit);letter-spacing:-.02em;font-variant-numeric:tabular-nums;flex:none;
 }
-.hero__prova span{font-size:.95rem;color:var(--muted);line-height:1.5}
-.hero__prova em{font-style:normal;color:var(--text)}
+.hero__prova span{font-size:.97rem;color:var(--muted);line-height:1.55}
+.hero__prova em{font-style:normal;color:var(--text);font-weight:600}
+.hero__prova u{text-decoration:none;color:var(--credit);font-weight:600}
+.hero__vaga{
+  display:inline-flex;align-items:center;gap:.55em;margin-top:1.15rem;
+  font-family:var(--mono);font-size:.82rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:#04120B;background:var(--credit);
+  padding:.5em 1em;border-radius:5px;
+}
+.hero__vaga::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#04120B;
+  animation:vagaPulso 1.9s ease-in-out infinite;
+}
+@keyframes vagaPulso{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.hero__vaga::before{animation:none}}
 .hero__ctx{
   margin-top:1.5rem;font-family:var(--mono);font-size:.83rem;color:var(--muted-dim);
   border-left:2px solid var(--line);padding-left:1rem;max-width:52ch;line-height:1.5;
@@ -560,7 +573,8 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       <div>
         <p class="eyebrow">Uma atividade comercial baseada em serviços recorrentes</p>
         <h1>A venda acontece uma vez. A conta do cliente chega todo mês.</h1>
-        <p class="hero__prova"><b>6.900</b><span>licenciados cadastraram <em>pelo menos um cliente novo</em> em julho de 2026. Cada um desses clientes passou a pagar menos na conta de luz — e continua pagando todo mês.</span></p>
+        <p class="hero__prova"><b>6.900</b><span>pessoas no Brasil conectaram pelo menos uma conta de energia a um <em>DESCONTO</em> em julho de 2026 — e recebem <u>até 7%</u> toda vez que essa conta é paga. <em>Todos os meses.</em> E energia é só uma das várias soluções recorrentes que temos.</span></p>
+        <p class="hero__vaga">Tem vaga</p>
         <p class="lede hero__sub">E se a sua próxima profissão não dependesse de salário, estoque ou ponto comercial? Existe uma forma de atuar conectando pessoas e empresas a energia, telecom, seguros e outras soluções que elas já contratam todos os meses.</p>
         <p class="hero__ctx">Uma oportunidade profissional desenvolvida através do modelo de licenciamento da <b>iGreen Energy</b>.<br>Este site é de <a href="#jimmy" style="color:var(--muted);font-weight:500;text-decoration:none;border-bottom:1px solid var(--line)">Jimmy Fenner</a>, licenciado independente — <b style="color:var(--text);font-weight:600">primeiro Acionista do Brasil a chegar à qualificação atuando 100% online</b>.</p>
 
