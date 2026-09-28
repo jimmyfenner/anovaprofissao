@@ -257,3 +257,21 @@ O painel aceita `@usuario`, `usuario` ou a URL inteira; a home normaliza. O
 ícone só aparece com o campo preenchido E a chave ligada — desligar guarda o
 perfil sem exibir. O link sai com `rel="noopener nofollow"` e evento
 `depoimento_instagram`, para dar para medir quanta gente sai por ali.
+
+## Prova social no hero
+
+Logo abaixo do H1 existe uma linha de prova (`.hero__prova`) com um número
+duro. O número atual é **6.900 licenciados que cadastraram pelo menos um
+cliente novo em julho de 2026** — informado pelo Jimmy, é medida de
+atividade no mês, não de cadastrados totais e não de quem recebeu comissão.
+
+Regras para essa linha:
+
+- O mês fica **explícito** no texto. Número sem data não é verificável e
+  envelhece escondido.
+- Nunca trocar o verbo para "recebendo comissões", "ganhando" ou equivalente.
+  O dado mede cadastro de cliente, não pagamento. Afirmar renda de terceiros
+  é exatamente o que alimenta a comparação com pirâmide.
+- Para atualizar, é preciso um número novo com a mesma definição e o mês
+  correspondente, vindo do Jimmy. Não estimar, não extrapolar, não arredondar
+  para cima.
