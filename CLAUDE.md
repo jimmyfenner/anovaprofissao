@@ -308,3 +308,25 @@ Regras:
 - Os valores da licença vêm do plano da iGreen. Se mudarem, mudam aqui,
   no CLAUDE.md e na pergunta do quiz.
 - Migração: `db/07-investimento.sql` (coluna `investimento` + grants).
+
+### Pergunta condicional "momento"
+
+Quem responde "Hoje não consigo investir" recebe **uma pergunta a mais**:
+o "não" é de agora ou é definitivo? É a única pergunta condicional do quiz
+— `so_se` no objeto da pergunta e `fluxo()` (PERGUNTAS filtrado) é o que o
+`passo` indexa. Qualquer pergunta condicional nova segue esse padrão; nunca
+indexar PERGUNTAS direto.
+
+Desfechos:
+
+- **"É só agora"** → economia gratuita + convite para o canal/grupo de
+  espera (chave `link_grupo` no site_config, editável no painel) + a frase
+  de porta aberta.
+- **"Não é para mim"** → só a economia gratuita, sem convite e sem insistir.
+
+Recomendação registrada: usar **canal** do WhatsApp, não grupo. Em grupo
+todos os leads veem o número uns dos outros — exposição dos dados deles e
+porta aberta para concorrente. O campo aceita os dois; o texto do site fala
+em canal.
+
+Migração: `db/08-momento.sql` (coluna `momento` + grants).

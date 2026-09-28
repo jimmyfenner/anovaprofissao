@@ -1186,6 +1186,8 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   // os dados é a regra de acesso do banco, que só permite GRAVAR, nunca ler.
   // Para quem já chega decidido. Editável pelo painel (chave link_cadastro).
   var LINK_CADASTRO = "https://expansao.igreenenergy.com.br/?id=1971&checkout=true&tipolicenca=CONNECT";
+  // Canal/grupo de espera para quem ainda não pode investir (chave link_grupo).
+  var LINK_GRUPO = "";
   var SUPABASE_URL = "https://buapklmgdjcoyzrmhhcd.supabase.co";
   var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
   /* =================================== */
@@ -1498,6 +1500,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     montarVideo("v-piramide",     m.video_piramide,     m.video_piramide_formato);
     montarVideo("v-apresentacao", m.video_apresentacao, m.video_apresentacao_formato);
     if(m.link_cadastro) LINK_CADASTRO = m.link_cadastro;
+    if(m.link_grupo) LINK_GRUPO = m.link_grupo;
     if(m.meta_pixel) carregarPixel(String(m.meta_pixel).replace(/\D/g, ""));
     if(m.cta_video_ativo === "1"){
       CTA_VIDEO = {
@@ -1688,17 +1691,27 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     { key:"investimento", label:"Investimento",
       q:"Ser licenciado não é emprego: é uma licença, como abrir o seu próprio negócio. O investimento é único, de R$ 1.997 \u2014 ou 12x de R$ 197,41 no cartão. Como isso se encaixa no seu momento?",
       opts:["Consigo à vista","Consigo parcelado no cartão","Quero entender melhor antes de decidir","Hoje não consigo investir"] },
+    { key:"momento", label:"Momento",
+      so_se: function(){ return respostas.investimento === "Hoje não consigo investir"; },
+      q:"Entendi. E esse \u201cnão\u201d é de agora ou é definitivo?",
+      opts:["É só agora — quero me organizar e entrar mais pra frente","Não é por dinheiro: acho que não é para mim"] },
     { key:"contato", label:"Contato", form:true,
       q:"Por último: como eu falo com você?" }
   ];
 
   var respostas = {}, passo = 0;
+  /* O quiz tem uma pergunta condicional: "momento" só aparece para quem diz
+     que hoje não consegue investir. fluxo() é a lista de perguntas válidas
+     para as respostas que já existem — é ela que o passo indexa. */
+  function fluxo(){
+    return PERGUNTAS.filter(function(p){ return !p.so_se || p.so_se(); });
+  }
   var qbody=$("#qbody"), qfill=$("#qfill"), qstep=$("#qstep"), qlabel=$("#qlabel"), qback=$("#qback");
 
   function render(){
-    var p = PERGUNTAS[passo];
-    qfill.style.width = (passo / PERGUNTAS.length * 100) + "%";
-    qstep.textContent = "Pergunta " + (passo+1) + " de " + PERGUNTAS.length;
+    var fx = fluxo(), p = fx[passo];
+    qfill.style.width = (passo / fx.length * 100) + "%";
+    qstep.textContent = "Pergunta " + (passo+1) + " de " + fx.length;
     qlabel.textContent = p.label;
     qback.classList.toggle("hidden", passo === 0);
 
@@ -1784,6 +1797,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       solucao: respostas.solucao,
       perfil: respostas.perfil,
       investimento: respostas.investimento,
+      momento: respostas.momento || null,
       utm_source: origem.utm_source || null,
       utm_medium: origem.utm_medium || null,
       utm_campaign: origem.utm_campaign || null,
@@ -1836,19 +1850,42 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     return "Olá "+NOME+"! Vim pelo site A Nova Profissão.\n\n"+
       "Nome: "+respostas.nome+"\n"+
       "Cidade: "+respostas.cidade+" / "+respostas.uf+"\n\n"+
-      "A licença não cabe no meu momento agora, mas quero economizar na minha conta de luz.";
+      (respostas.momento === "Não é por dinheiro: acho que não é para mim"
+        ? "A licença não é para mim, mas quero economizar na minha conta de luz."
+        : "A licença não cabe no meu momento agora, mas pretendo entrar mais pra frente. Por ora, quero economizar na minha conta de luz.");
   }
 
   function resultadoSemInvestimento(primeiro){
+    var volta = respostas.momento !== "Não é por dinheiro: acho que não é para mim";
+
+    var titulo = volta
+      ? "Então é questão de tempo, "+primeiro+"."
+      : "Tudo bem, "+primeiro+". Obrigado pela franqueza.";
+
+    var texto = volta
+      ? 'Você não disse que não quer — disse que hoje não dá. São coisas diferentes, e a segunda tem prazo de validade.<br><br>Enquanto isso, tem uma coisa que <b>não custa nada</b> e você pode fazer agora: colocar a sua conta de luz no desconto. É exatamente a mesma solução que os licenciados oferecem aos clientes deles.'
+      : 'Não vou insistir. Mas já que você chegou até aqui, fica o que <b>não custa nada</b>: colocar a sua conta de luz no desconto. É a mesma solução que os licenciados oferecem aos clientes deles — e ela vale por si só, sem você trabalhar com nada disso.';
+
+    var convite = (volta && LINK_GRUPO)
+      ? '<p class="ou">e também</p>'+
+        '<a class="btn btn--ghost btn--block" id="go-grupo" href="'+LINK_GRUPO+'" target="_blank" rel="noopener">Quero acompanhar até chegar a minha hora</a>'+
+        '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Canal no WhatsApp. Eu aviso quando abrir condição, e você entra quando quiser — ninguém vê o seu número.</p>'
+      : '';
+
+    var porta = volta
+      ? '<p class="result__porta"><b style="color:var(--text)">E sobre a licença:</b> a vaga continua aberta. Quando você estiver pronto, me chama — eu explico tudo de novo, sem pressa e sem cobrança.</p>'
+      : '';
+
     qbody.innerHTML =
       '<div class="result">'+
-        '<p class="result__sim"><small>Avaliação concluída</small>Então vamos começar pelo outro lado, '+primeiro+'.</p>'+
-        '<p class="result__porque">A licença tem um custo, e você foi honesto ao dizer que hoje ela não cabe. Respeito isso — e não vou te empurrar nada.<br><br>Mas tem uma coisa que <b>não custa nada</b> e você pode fazer agora: colocar a sua conta de luz no desconto. É exatamente a mesma solução que os licenciados oferecem aos clientes deles. Você economiza todo mês, sem pagar nada por isso.</p>'+
+        '<p class="result__sim"><small>Avaliação concluída</small>'+titulo+'</p>'+
+        '<p class="result__porque">'+texto+'</p>'+
         '<a class="btn btn--primary btn--block" id="go-eco" href="'+waLink(mensagemEconomia())+'" target="_blank" rel="noopener">Quero economizar na minha conta de luz</a>'+
         '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Gratuito. Eu te explico como funciona na sua distribuidora.</p>'+
-        '<p class="result__porta"><b style="color:var(--text)">E sobre a licença:</b> "hoje não consigo" não é "nunca". Quando fizer sentido, me chama — a vaga continua aberta e eu te explico tudo de novo, sem pressa.</p>'+
+        convite + porta +
       '</div>';
     $("#go-eco").addEventListener("click", function(){ track("whatsapp_click", {origem_lead:"quiz_economia"}); });
+    if($("#go-grupo")) $("#go-grupo").addEventListener("click", function(){ track("grupo_espera_click", {}); });
   }
 
   function resultado(){

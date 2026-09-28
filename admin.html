@@ -306,6 +306,9 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
           <div class="campo"><label for="c-cad">Link de cadastro de licenciado</label>
           <input class="inp" id="c-cad" type="url" placeholder="https://expansao.igreenenergy.com.br/?id=...">
           <span class="dica">Para quem chega decidido. Confira se o seu ID está no link.</span></div>
+          <div class="campo"><label for="c-grupo">Link do canal ou grupo de espera</label>
+          <input class="inp" id="c-grupo" type="url" placeholder="https://whatsapp.com/channel/... ou https://chat.whatsapp.com/...">
+          <span class="dica">Aparece só para quem diz que hoje não consegue investir <b>mas pretende entrar mais pra frente</b>. Prefira um <b>canal</b>: em grupo, todos os seus leads veem o número uns dos outros. Vazio = o convite não aparece.</span></div>
         <button class="btn btn--primary btn--sm" id="c-salvar">Salvar</button>
         <div id="c-msg"></div>
       </div>
@@ -608,6 +611,7 @@ function detalhe(l){
       linha("Interesse", l.solucao)+
       linha("Perfil", l.perfil)+
       linha("Investimento", l.investimento)+
+      linha("Momento", l.momento)+
       linha("Recebido", new Date(l.criado_em).toLocaleString("pt-BR"))+
       linha("Origem", [l.utm_source,l.utm_medium,l.utm_campaign].filter(Boolean).join(" / ") || "direto")+
       linha("Veio de", l.referrer || "—")+
@@ -747,6 +751,7 @@ function carregarConfig(){
     $("#c-f3").value = m.video_apresentacao_formato || "16:9";
     $("#c-wanum").value = m.whatsapp_destino || "";
     $("#c-cad").value = m.link_cadastro || "";
+    $("#c-grupo").value = m.link_grupo || "";
     $("#c-pixel").value = m.meta_pixel || "";
     $("#c-cta-on").checked = m.cta_video_ativo === "1";
     $("#c-cta-txt").value = m.cta_video_texto || "";
@@ -792,6 +797,7 @@ $("#c-salvar").addEventListener("click", function(){
     {chave:"video_piramide_formato",     valor:$("#c-f2").value},
     {chave:"video_apresentacao_formato", valor:$("#c-f3").value},
     {chave:"link_cadastro",       valor:$("#c-cad").value.trim()},
+    {chave:"link_grupo",          valor:$("#c-grupo").value.trim()},
     {chave:"meta_pixel",          valor:$("#c-pixel").value.replace(/\D/g,"")},
     {chave:"cta_video_ativo",     valor:$("#c-cta-on").checked ? "1" : "0"},
     {chave:"cta_video_texto",     valor:$("#c-cta-txt").value.trim()},
