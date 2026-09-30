@@ -330,3 +330,97 @@ porta aberta para concorrente. O campo aceita os dois; o texto do site fala
 em canal.
 
 Migração: `db/08-momento.sql` (coluna `momento` + grants).
+
+
+---
+
+# Estado atual e pendências (atualizado em 30/set/2026)
+
+Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
+— inclusive no Claude Code, na máquina do Jimmy — começa por aqui.
+
+## Onde as coisas moram
+
+| O quê | Onde |
+|---|---|
+| Código | GitHub `jimmyfenner/anovaprofissao` (privado), branch `main` |
+| Deploy | Vercel, automático a cada push em `main` (`node build.js` → `dist/`) |
+| DNS | Cloudflare, CNAME para a Vercel |
+| Banco / auth / storage | Supabase (projeto `buapklmgdjcoyzrmhhcd`) |
+| Notificações | Supabase Edge Function `whatsapp` → Evolution API + Resend |
+| Painel de leads | `anovaprofissao.com.br/admin` (login Supabase do Jimmy) |
+| Pixel da Meta | ID `1752542589367351`, chave `meta_pixel` no `site_config` |
+
+## Segredos — o que nunca circula
+
+- `service_role` do Supabase, API key da Evolution e API key do Resend
+  vivem **só** nos Secrets do Supabase. Nunca no repositório, nunca no
+  chat, nem para o Jimmy.
+- A `anon key` do Supabase é pública por projeto — está no código do site
+  de propósito e isso é seguro; quem protege os dados é a RLS + os grants
+  por coluna.
+- O PAT do GitHub usado nesta máquina está em `~/.git-credentials`. Numa
+  máquina nova é preciso autenticar de novo (`gh auth login` ou PAT novo).
+  Convém rotacionar o antigo.
+
+## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
+
+Sem elas o lead do quiz **falha inteiro** ao gravar:
+
+- `db/07-investimento.sql` — coluna `investimento`
+- `db/08-momento.sql` — coluna `momento`
+
+Verificar antes de qualquer coisa:
+`select column_name from information_schema.columns where table_name='leads';`
+
+## Outras pendências
+
+- **Leads de teste a apagar** no painel: Jonas, "Teste Claude (ignorar)",
+  "Teste 2 (pode apagar)", "Teste Pixel Claude". Exclusão exige login
+  (anon não tem DELETE — está correto assim).
+- **`link_grupo` vazio** — o convite para o canal de espera só aparece
+  quando o Jimmy colar o link no painel. Recomendação registrada: canal,
+  não grupo.
+- **Edge Function desatualizada**: a notificação que chega no WhatsApp do
+  Jimmy ainda não traz `investimento` nem `momento`. Editar
+  `supabase/functions/whatsapp/index.ts` e **redeploy** (código e secrets
+  só valem a partir do deploy).
+- **Depoimentos reais** ainda não subiram — a seção segue vazia por regra.
+- **Proteção anti-spam** no endpoint público de escrita: adiada de
+  propósito pelo Jimmy.
+- **`/blog`** em Markdown para o cluster de SEO: não começado.
+- **Públicos da Meta** criados na conta `1403817359857284`: "Visitantes do
+  site" e "Lead - completou o quiz", ambos 180 dias. Uso correto:
+  incluir Visitantes e **excluir** Lead no conjunto de anúncios. Ainda sem
+  volume — só faz sentido depois de rodar tráfego frio por algumas semanas.
+- **Posse da conta de anúncios**: a `1403817359857284` ainda é "propriedade
+  individual"; a transferência para a Fennergy esbarrou no limite de contas.
+
+## Armadilhas já pagas (não repetir)
+
+- **Clone do repositório**: manter fora de pastas sincronizadas/montadas.
+  Dentro de mount o git falha em lock/unlink.
+- **DELETE bloqueado por RLS volta 204**, não erro. Sempre usar `.select()`
+  para confirmar que apagou de verdade.
+- **Database Webhooks não existem neste projeto** (sem schema
+  `supabase_functions`). A notificação sai por trigger com `pg_net`.
+- **Secrets da Edge Function só valem no próximo deploy.** Mudou secret ou
+  código, faz deploy — senão a versão antiga continua rodando.
+- **O navegador do Jimmy bloqueia `fbevents.js`.** Testar pixel ali dá
+  falso negativo; usar outro navegador/dispositivo.
+- **"Recebido pela última vez" no Gerenciador de Eventos ignora o filtro de
+  data.** Já gerou diagnóstico errado uma vez.
+- **Perguntas condicionais no quiz**: indexar sempre `fluxo()`, nunca
+  `PERGUNTAS` direto.
+
+## Como retomar no Claude Code
+
+```
+git clone https://github.com/jimmyfenner/anovaprofissao.git
+cd anovaprofissao && npm i -g @anthropic-ai/claude-code   # se ainda não tiver
+claude
+```
+
+O `CLAUDE.md` é lido automaticamente. Primeira mensagem útil: pedir para
+ler este arquivo inteiro e listar as pendências acima antes de propor
+qualquer coisa.
