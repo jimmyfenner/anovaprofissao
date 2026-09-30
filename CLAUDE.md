@@ -381,10 +381,10 @@ Verificar antes de qualquer coisa:
 - **`link_grupo` vazio** — o convite para o canal de espera só aparece
   quando o Jimmy colar o link no painel. Recomendação registrada: canal,
   não grupo.
-- **Edge Function desatualizada**: a notificação que chega no WhatsApp do
-  Jimmy ainda não traz `investimento` nem `momento`. Editar
-  `supabase/functions/whatsapp/index.ts` e **redeploy** (código e secrets
-  só valem a partir do deploy).
+- **Redeploy da Edge Function `whatsapp`**: o código já traz `investimento`
+  e `momento` no aviso (e cabeçalho/assunto próprios para quem não pode
+  investir agora), mas só vale depois do deploy no Supabase. Até lá o
+  aviso segue no formato antigo. Pré-requisito: migrações 07 e 08.
 - **Depoimentos reais** ainda não subiram — a seção segue vazia por regra.
 - **Proteção anti-spam** no endpoint público de escrita: adiada de
   propósito pelo Jimmy.
@@ -410,6 +410,9 @@ Verificar antes de qualquer coisa:
   falso negativo; usar outro navegador/dispositivo.
 - **"Recebido pela última vez" no Gerenciador de Eventos ignora o filtro de
   data.** Já gerou diagnóstico errado uma vez.
+- **Montagem das mensagens de aviso**: linha opcional ausente é `null`,
+  linha em branco é `""`. Filtrar com `Boolean` apaga as duas — foi assim
+  que os avisos perderam o espaçamento sem ninguém notar.
 - **Perguntas condicionais no quiz**: indexar sempre `fluxo()`, nunca
   `PERGUNTAS` direto.
 

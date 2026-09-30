@@ -186,31 +186,45 @@ Deno.serve(async (req) => {
         "levada ao cadastro oficial. Fale com ela hoje — provavelmente esta",
         "com o formulario da iGreen aberto neste momento.", "",
         `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
-        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : "",
+        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];
 
+      // quem respondeu "Hoje não consigo investir" recebeu a oferta de economia
+      // gratuita, não a de licença — o aviso precisa deixar isso claro de cara
+      const semInvestir = L.investimento === "Hoje não consigo investir";
+      const soAgora = typeof L.momento === "string" && L.momento.startsWith("É só agora");
+
       const corpoQuiz = [
-        "*Lead novo — A Nova Profissao*", "",
+        semInvestir
+          ? `*Lead novo — sem investimento agora${soAgora ? " (quer voltar depois)" : ""}*`
+          : "*Lead novo — A Nova Profissao*",
+        semInvestir ? "Recebeu a oferta gratuita de economia na conta de luz." : null, "",
         `${L.nome ?? "?"} — ${onde}`,
         `WhatsApp: ${L.whatsapp ?? "?"}`, "",
         `Objetivo: ${L.objetivo ?? "—"}`,
         `Disponibilidade: ${L.tempo ?? "—"}`,
         `Experiencia: ${L.experiencia ?? "—"}`,
         `Interesse: ${L.solucao ?? "—"}`,
-        `Perfil: ${L.perfil ?? "—"}`, "",
+        `Perfil: ${L.perfil ?? "—"}`,
+        // leads anteriores à migração 07 não têm a coluna: some a linha em vez de "—"
+        L.investimento ? `Investimento: ${L.investimento}` : null,
+        L.momento ? `Momento: ${L.momento}` : null, "",
         `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
-        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : "",
+        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];
 
+      // null = linha opcional ausente; "" = linha em branco proposital (Boolean apagaria as duas)
       const texto = ehTeste
         ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
-        : (ehDireto ? corpoDireto : corpoQuiz).filter(Boolean).join("\n");
+        : (ehDireto ? corpoDireto : corpoQuiz).filter((l) => l !== null).join("\n");
 
       const assunto = ehTeste
         ? "Teste de aviso — A Nova Profissao"
         : ehDireto
           ? `🔴 CADASTRO DIRETO: ${L.nome ?? "?"} foi para o cadastro agora`
-          : `Lead novo: ${L.nome ?? "?"} — ${onde}`;
+          : semInvestir
+            ? `Lead novo (sem investimento agora): ${L.nome ?? "?"} — ${onde}`
+            : `Lead novo: ${L.nome ?? "?"} — ${onde}`;
 
       const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
       const inst = cfg?.[0]?.instancia;
