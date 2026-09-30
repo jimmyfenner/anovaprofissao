@@ -365,10 +365,8 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Sem elas o lead do quiz **falha inteiro** ao gravar:
-
-- `db/07-investimento.sql` — coluna `investimento`
-- `db/08-momento.sql` — coluna `momento`
+Nenhuma. 07 e 08 foram aplicadas em 30/set/2026, e a Edge Function
+`whatsapp` foi publicada no mesmo dia já com `investimento` e `momento`.
 
 Verificar antes de qualquer coisa:
 `select column_name from information_schema.columns where table_name='leads';`
@@ -381,10 +379,10 @@ Verificar antes de qualquer coisa:
 - **`link_grupo` vazio** — o convite para o canal de espera só aparece
   quando o Jimmy colar o link no painel. Recomendação registrada: canal,
   não grupo.
-- **Redeploy da Edge Function `whatsapp`**: o código já traz `investimento`
-  e `momento` no aviso (e cabeçalho/assunto próprios para quem não pode
-  investir agora), mas só vale depois do deploy no Supabase. Até lá o
-  aviso segue no formato antigo. Pré-requisito: migrações 07 e 08.
+- **E-mail de aviso não chegou** no teste de 30/set (o WhatsApp sim).
+  Diagnóstico pendente: ver a linha de canal `email` na aba Notificações
+  do painel. Suspeita principal: Resend em modo de teste (remetente
+  `onboarding@resend.dev` só entrega para o dono da conta Resend).
 - **Depoimentos reais** ainda não subiram — a seção segue vazia por regra.
 - **Proteção anti-spam** no endpoint público de escrita: adiada de
   propósito pelo Jimmy.
@@ -410,6 +408,11 @@ Verificar antes de qualquer coisa:
   falso negativo; usar outro navegador/dispositivo.
 - **"Recebido pela última vez" no Gerenciador de Eventos ignora o filtro de
   data.** Já gerou diagnóstico errado uma vez.
+- **Colar código no editor do Supabase**: `pbcopy` sem `LANG=en_US.UTF-8`
+  grava o texto como Mac Roman e os acentos viram "√ß√£o". Isso quebra
+  comparações como `"Hoje não consigo investir"` sem dar erro nenhum.
+  Antes de clicar em "Deploy updates", conferir se não há "√" no código.
+  O botão fica embaixo do editor e só aparece depois que o código muda.
 - **Montagem das mensagens de aviso**: linha opcional ausente é `null`,
   linha em branco é `""`. Filtrar com `Boolean` apaga as duas — foi assim
   que os avisos perderam o espaçamento sem ninguém notar.
