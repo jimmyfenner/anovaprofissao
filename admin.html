@@ -29,7 +29,7 @@ p{margin:0}
 .brand{font-family:var(--display);font-weight:700;font-size:.98rem;letter-spacing:-.02em}
 .brand em{font-style:normal;color:var(--credit)}
 .brand small{display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-dim);font-weight:400;margin-top:.15rem}
-.top__act{display:flex;gap:.6rem;align-items:center}
+.top__act{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
 
 /* buttons */
 .btn{font-family:var(--body);font-size:.88rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:.5em;padding:.62em 1.05em;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;text-decoration:none;transition:border-color .16s,background .16s}
@@ -160,6 +160,24 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
 /* whatsapp */
 .wa{display:grid;gap:1.2rem;margin-block:clamp(1.5rem,3vw,2.2rem)}
 @media(min-width:900px){.wa{grid-template-columns:1fr 1fr;align-items:start}}
+/* visitas */
+.vis{margin-block:clamp(1.5rem,3vw,2.2rem)}
+.vis .stats{margin-top:0}
+.graf{display:flex;align-items:flex-end;gap:3px;height:180px;padding-top:1.4rem;border-bottom:1px solid var(--line)}
+.graf__b{flex:1;min-width:0;position:relative;height:100%;display:flex;align-items:flex-end;cursor:default}
+.graf__b i{display:block;width:100%;background:var(--credit-dim);border-radius:2px 2px 0 0;min-height:1px}
+.graf__b:hover i,.graf__b:focus i{background:var(--credit)}
+.graf__b.hoje i{background:var(--credit)}
+.graf__b em{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);display:none;white-space:nowrap;font-style:normal;font-family:var(--mono);font-size:.7rem;color:var(--text);background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:.25em .5em;z-index:2;pointer-events:none}
+.graf__b:hover em,.graf__b:focus em{display:block}
+.graf__b:first-child em{left:0;transform:none}
+.graf__b:last-child em{left:auto;right:0;transform:none}
+.graf__eixo{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.7rem;color:var(--muted-dim);margin-top:.45rem}
+.ext{display:flex;align-items:baseline;gap:.8rem;padding:.5rem 0;border-bottom:1px solid var(--line-soft);font-size:.88rem}
+.ext:last-child{border-bottom:0}
+.ext span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ext b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums}
+.ext small{font-family:var(--mono);font-size:.72rem;color:var(--muted-dim);width:3.2em;text-align:right}
 .box{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:1.35rem}
 .box h2{font-size:1.05rem;margin-bottom:.3rem}
 .box .sub{font-size:.86rem;color:var(--muted-dim);margin-bottom:1.1rem}
@@ -231,6 +249,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <div class="wrap top__in">
       <div class="brand">A Nova <em>Profissão</em><small>Painel de leads</small></div>
       <div class="top__act">
+        <button class="btn btn--sm" id="btn-vis">Visitas</button>
         <button class="btn btn--sm" id="btn-cont">Conteúdo</button>
         <button class="btn btn--sm" id="btn-wa">Notificações</button>
         <button class="btn btn--sm" id="btn-csv">Exportar CSV</button>
@@ -269,6 +288,35 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     </div>
 
     <div class="list" id="lista"></div>
+
+    <div class="vis hidden" id="tela-vis">
+      <dl class="stats">
+        <div class="stat stat--hi"><dt>Visitantes hoje</dt><dd id="v-hoje">—</dd></div>
+        <div class="stat"><dt>Últimos 7 dias</dt><dd id="v-d7">—</dd></div>
+        <div class="stat"><dt>Últimos 30 dias</dt><dd id="v-d30">—</dd></div>
+        <div class="stat"><dt>Viraram lead (30 dias)</dt><dd id="v-conv">—</dd></div>
+      </dl>
+      <div id="v-msg"></div>
+      <div class="box">
+        <h2>Visitantes por dia</h2>
+        <p class="sub" id="v-sub">Últimos 30 dias, no horário de Brasília. Passe o dedo ou o mouse numa barra para ver o dia.</p>
+        <div class="graf" id="v-graf"></div>
+        <div class="graf__eixo"><span id="v-ini"></span><span>hoje</span></div>
+      </div>
+      <div class="wa" style="margin-top:1.2rem">
+        <div class="box">
+          <h2>De onde vieram</h2>
+          <p class="sub">Visitas dos últimos 30 dias. Campanha marcada com utm_source aparece pelo nome; o resto, pelo site que mandou a pessoa.</p>
+          <div id="v-origens"></div>
+        </div>
+        <div class="box">
+          <h2>Aparelho</h2>
+          <p class="sub">Visitas dos últimos 30 dias.</p>
+          <div id="v-disp"></div>
+          <p class="sub" style="margin:1.2rem 0 0">Suas próprias visitas não entram na conta: este navegador ficou marcado ao entrar no painel. No celular, abra o site uma vez com <span class="mono">?naocontar=1</span> no fim do endereço.</p>
+        </div>
+      </div>
+    </div>
 
     <div class="wa hidden" id="tela-cont">
       <div class="box">
@@ -481,6 +529,7 @@ $("#btn-sair").addEventListener("click", function(){
 });
 
 function carregar(){
+  try{ localStorage.setItem("anp_admin","1"); }catch(e){}  // o site não conta as visitas deste navegador
   sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000)
     .then(function(r){
       if(r.error){ console.error(r.error); return; }
@@ -721,17 +770,72 @@ function mostrar(v){
   vista = v;
   $("#tela-wa").classList.toggle("hidden",   v !== "wa");
   $("#tela-cont").classList.toggle("hidden", v !== "cont");
+  $("#tela-vis").classList.toggle("hidden",  v !== "vis");
   $("#lista").classList.toggle("hidden",     v !== "leads");
   $(".stats").classList.toggle("hidden",     v !== "leads");
   $(".filters").classList.toggle("hidden",   v !== "leads");
   $("#btn-wa").textContent   = v === "wa"   ? "Ver leads" : "Notificações";
   $("#btn-cont").textContent = v === "cont" ? "Ver leads" : "Conteúdo";
+  $("#btn-vis").textContent  = v === "vis"  ? "Ver leads" : "Visitas";
   if(v !== "wa" && pollQR){ clearInterval(pollQR); pollQR = null; }
   if(v === "wa"){ waStatus(); carregarDest(); carregarLog(); }
   if(v === "cont"){ carregarConfig(); carregarDepoimentos(); }
+  if(v === "vis"){ carregarVisitas(); }
 }
 $("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
 $("#btn-cont").addEventListener("click", function(){ mostrar(vista === "cont" ? "leads" : "cont"); });
+$("#btn-vis").addEventListener("click",  function(){ mostrar(vista === "vis"  ? "leads" : "vis"); });
+
+/* ================= VISITAS ================= */
+// a soma é feita no banco (função resumo_visitas, db/09-visitas.sql): o painel
+// recebe só os totais, não as linhas — não importa quantas visitas existam
+function carregarVisitas(){
+  var msg = function(t){ $("#v-msg").innerHTML = t ? '<p class="aviso aviso--erro" style="margin-bottom:1.2rem">'+esc(t)+'</p>' : ""; };
+  if(DEMO){ msg("Indisponível em modo demonstração."); return; }
+  msg("");
+  sb.rpc("resumo_visitas").then(function(r){
+    if(r.error){
+      msg(/resumo_visitas|function|schema cache/i.test(r.error.message)
+        ? "Falta rodar o SQL db/09-visitas.sql no Supabase."
+        : r.error.message);
+      return;
+    }
+    var d = r.data || {}, n = function(x){ return (x||0).toLocaleString("pt-BR"); };
+    var vis = function(o){ return o ? o.visitantes : 0; };
+    $("#v-hoje").textContent = n(vis(d.hoje));
+    $("#v-d7").textContent   = n(vis(d.d7));
+    $("#v-d30").textContent  = n(vis(d.d30));
+    $("#v-conv").textContent = vis(d.d30)
+      ? (100 * (d.leads_d30||0) / vis(d.d30)).toLocaleString("pt-BR",{maximumFractionDigits:1}) + "%"
+      : "—";
+    $("#v-conv").title = n(d.leads_d30) + " leads de " + n(vis(d.d30)) + " visitantes";
+
+    var serie = d.serie || [], max = Math.max.apply(null, serie.map(function(x){ return x.visitantes; }).concat([1]));
+    var dia = function(s){ var p = String(s).split("-"); return p[2]+"/"+p[1]; };
+    $("#v-graf").innerHTML = serie.map(function(x, i){
+      var dica = dia(x.dia)+" · "+n(x.visitantes)+" visitante"+(x.visitantes===1?"":"s")+
+                 " · "+n(x.visitas)+" visita"+(x.visitas===1?"":"s")+
+                 (x.leads ? " · "+n(x.leads)+" lead"+(x.leads===1?"":"s") : "");
+      return '<span class="graf__b'+(i===serie.length-1?" hoje":"")+'" tabindex="0" aria-label="'+esc(dica)+'">'+
+        '<i style="height:'+(100*x.visitantes/max)+'%"></i><em>'+esc(dica)+'</em></span>';
+    }).join("");
+    $("#v-ini").textContent = serie.length ? dia(serie[0].dia) : "";
+    if(d.total && d.total.desde){
+      $("#v-sub").textContent = "Últimos 30 dias, no horário de Brasília. Desde o início da contagem ("+
+        new Date(d.total.desde).toLocaleDateString("pt-BR")+"): "+n(d.total.visitantes)+" visitantes, "+n(d.total.visitas)+" visitas.";
+    }
+
+    var lista = function(arr, chave, rotulo){
+      var tot = arr.reduce(function(a,x){ return a + x.visitas; }, 0);
+      return arr.length ? arr.map(function(x){
+        return '<div class="ext"><span>'+esc(rotulo(x[chave]))+'</span><b>'+n(x.visitas)+'</b>'+
+               '<small>'+Math.round(100*x.visitas/tot)+'%</small></div>';
+      }).join("") : '<p class="sub">Nenhuma visita registrada ainda.</p>';
+    };
+    $("#v-origens").innerHTML = lista(d.origens || [], "origem", function(o){ return o === "direto" ? "Acesso direto ou link sem origem" : o; });
+    $("#v-disp").innerHTML    = lista(d.dispositivos || [], "device", function(o){ return o === "mobile" ? "Celular" : o === "desktop" ? "Computador" : "Não identificado"; });
+  });
+}
 
 /* ================= CONTEÚDO DO SITE ================= */
 function cmsg(el, txt, tipo){

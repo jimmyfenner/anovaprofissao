@@ -331,6 +331,25 @@ em canal.
 
 Migração: `db/08-momento.sql` (coluna `momento` + grants).
 
+## Contador de visitas
+
+Tabela `visitas` (migração `db/09-visitas.sql`), aba **Visitas** do painel.
+Uma linha por sessão do navegador, gravada pela home com a chave anon (só
+INSERT, por coluna). Sem IP e sem user agent: `vid` é um código aleatório no
+`localStorage` (`anp_vid`) que só separa visita de visitante. `referrer` guarda
+apenas o domínio, e a navegação interna não conta como origem.
+
+O painel não lê as linhas: chama a função `resumo_visitas()`, que devolve tudo
+somado (hoje, 7 e 30 dias, série diária, origens, aparelhos, leads em 30 dias
+para a taxa de conversão), com os dias no horário de Brasília. `security
+invoker`, então a RLS vale — e a carga do painel não cresce com o volume.
+
+Não contam: robôs (`navigator.webdriver` e user agent), e o navegador do
+Jimmy. Entrar no `/admin` grava `anp_admin` no `localStorage` do mesmo domínio,
+e abrir o site com `?naocontar=1` faz o mesmo (serve para o celular dele).
+
+A Política de Privacidade (item 8) descreve essa contagem. Se mudar o que é
+gravado, ela muda junto, e `ATUALIZADO` no build.js também.
 
 ---
 
@@ -365,8 +384,11 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 07 e 08 foram aplicadas em 30/set/2026, e a Edge Function
-`whatsapp` foi publicada no mesmo dia já com `investimento` e `momento`.
+- `db/09-visitas.sql` — contador de visitas (out/2026). Sem ela o site tenta
+  gravar e recebe 404 em silêncio, e a aba Visitas avisa que falta o SQL.
+
+07 e 08 foram aplicadas em 30/set/2026, e a Edge Function `whatsapp` foi
+publicada no mesmo dia já com `investimento` e `momento`.
 
 Verificar antes de qualquer coisa:
 `select column_name from information_schema.columns where table_name='leads';`

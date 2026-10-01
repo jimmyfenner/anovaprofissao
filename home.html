@@ -1213,6 +1213,49 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     if(got){ try{ sessionStorage.setItem("anp_origem", JSON.stringify(origem)); }catch(e){} }
   })();
 
+  /* ---- contador de visitas (aba Visitas do painel) ----
+     Uma linha por sessão. "vid" é um código aleatório do navegador, sem IP e sem
+     dado pessoal — só separa visitas de visitantes. Não conta robôs nem o próprio
+     Jimmy: o navegador que entra no /admin, ou que abre o site com ?naocontar=1,
+     fica marcado e para de contar. A Política de Privacidade (item 8) descreve
+     isto; se mudar o que é gravado, ela muda junto. */
+  (function(){
+    try{
+      if(/[?&]naocontar=1/.test(location.search)) localStorage.setItem("anp_admin","1");
+      if(localStorage.getItem("anp_admin")) return;
+      if(navigator.webdriver || /bot|crawl|spider|slurp|preview|lighthouse|headless/i.test(navigator.userAgent)) return;
+      if(sessionStorage.getItem("anp_visita")) return;
+      sessionStorage.setItem("anp_visita","1");
+
+      var vid = localStorage.getItem("anp_vid");
+      if(!vid){
+        vid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+            : Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+        localStorage.setItem("anp_vid", vid);
+      }
+      // só o domínio de quem mandou, sem o endereço completo; navegação interna não conta como origem
+      var ref = null;
+      if(document.referrer){
+        var h = new URL(document.referrer).hostname.replace(/^(www|m|l|lm|web)\./, "");
+        if(h && h !== location.hostname.replace(/^www\./, "")) ref = h.slice(0, 200);
+      }
+      fetch(SUPABASE_URL + "/rest/v1/visitas", {
+        method: "POST", keepalive: true,
+        headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY,
+                  "Content-Type": "application/json", "Prefer": "return=minimal"},
+        body: JSON.stringify({
+          vid: vid,
+          landing: (location.pathname || "/").slice(0, 300),
+          referrer: ref,
+          utm_source: origem.utm_source || null,
+          utm_medium: origem.utm_medium || null,
+          utm_campaign: origem.utm_campaign || null,
+          device: origem.device || null
+        })
+      }).catch(function(){});
+    }catch(e){}
+  })();
+
   /* ---- tracking (dataLayer-ready) ---- */
   /* ---- Meta Pixel ----
      Um pixel só. As audiências saem dos eventos: PageView pega quem visitou,
