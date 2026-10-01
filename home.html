@@ -1262,7 +1262,19 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
 
   /* ---- whatsapp base ---- */
   function waLink(msg){ return "https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(msg); }
-  $("#float-wa").href = waLink("Olá "+NOME+"! Estou no site A Nova Profissão e gostaria de entender melhor a oportunidade.");
+
+  /* O botão flutuante não passa por formulário: não existe lead no painel para
+     ele. Para a conversa não chegar anônima, a origem viaja no próprio texto. */
+  function rastro(){
+    var campanha = [origem.utm_source, origem.utm_medium, origem.utm_campaign]
+      .filter(Boolean).join(" / ");
+    var de = campanha || (origem.referrer && origem.referrer !== "direto" ? origem.referrer : "acesso direto");
+    return "\n\n— vim de: " + de + " · " + (origem.landing || "/") + " · " + (origem.device || "");
+  }
+  function msgFlutuante(){
+    return "Olá "+NOME+"! Estou no site A Nova Profissão e gostaria de entender melhor a oportunidade." + rastro();
+  }
+  $("#float-wa").href = waLink(msgFlutuante());
 
   /* ================= CONTEÚDO VINDO DO PAINEL ================= */
   function api(tabela){
@@ -1619,7 +1631,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
 
     if(m.whatsapp_destino && /^[0-9]{12,13}$/.test(m.whatsapp_destino)){
       WHATSAPP = m.whatsapp_destino;
-      $("#float-wa").href = waLink("Olá " + NOME + "! Estou no site A Nova Profissão e gostaria de entender melhor a oportunidade.");
+      $("#float-wa").href = waLink(msgFlutuante());
     }
   });
 

@@ -419,6 +419,24 @@ Verificar antes de qualquer coisa:
 - **Perguntas condicionais no quiz**: indexar sempre `fluxo()`, nunca
   `PERGUNTAS` direto.
 
+## As três portas de contato (e qual grava lead)
+
+| Caminho | Grava em `leads`? | Mensagem que chega no WhatsApp |
+|---|---|---|
+| Quiz completo | sim | com nome, objetivo, tempo, experiência, investimento, momento |
+| Cadastro direto | sim | com nome, e-mail e WhatsApp |
+| Botão flutuante `#float-wa` | **não** | genérica + rastro de origem |
+
+O botão flutuante é um link `wa.me` puro: não passa por formulário e por
+isso **nunca** aparece no painel. Isso é esperado, não é bug — já gerou
+confusão uma vez. Como compensação, `msgFlutuante()` acrescenta ao texto
+uma linha `— vim de: <utm ou referrer> · <página> · <device>`, lida de
+`origem` (sessionStorage `anp_origem`). Assim a conversa não chega anônima.
+
+Se algum dia o botão precisar virar lead de verdade, aí sim entra
+formulário antes — e aí ele deixa de ser o atalho de baixo atrito que é
+hoje. Decisão consciente: mantido sem formulário.
+
 ## Como retomar no Claude Code
 
 ```
