@@ -384,11 +384,10 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-- `db/09-visitas.sql` — contador de visitas (out/2026). Sem ela o site tenta
-  gravar e recebe 404 em silêncio, e a aba Visitas avisa que falta o SQL.
-
-07 e 08 foram aplicadas em 30/set/2026, e a Edge Function `whatsapp` foi
-publicada no mesmo dia já com `investimento` e `momento`.
+Nenhuma. 07 e 08 foram aplicadas em 30/set/2026 (e a Edge Function
+`whatsapp` publicada no mesmo dia já com `investimento` e `momento`); 09
+(visitas) em 02/out/2026, testada de ponta a ponta: o site grava (201), anon
+é barrado na tabela e no resumo (401), e a visita de teste foi apagada.
 
 Verificar antes de qualquer coisa:
 `select column_name from information_schema.columns where table_name='leads';`
@@ -430,6 +429,9 @@ Verificar antes de qualquer coisa:
   falso negativo; usar outro navegador/dispositivo.
 - **"Recebido pela última vez" no Gerenciador de Eventos ignora o filtro de
   data.** Já gerou diagnóstico errado uma vez.
+- **SQL Editor do Supabase pede confirmação** ("Potential issue detected")
+  para qualquer `drop`, `revoke` ou `delete`, mesmo `drop policy if exists`
+  numa tabela nova. É aviso genérico, não erro: ler o SQL e confirmar.
 - **Colar código no editor do Supabase**: `pbcopy` sem `LANG=en_US.UTF-8`
   grava o texto como Mac Roman e os acentos viram "√ß√£o". Isso quebra
   comparações como `"Hoje não consigo investir"` sem dar erro nenhum.
