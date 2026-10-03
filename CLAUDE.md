@@ -472,3 +472,31 @@ claude
 O `CLAUDE.md` é lido automaticamente. Primeira mensagem útil: pedir para
 ler este arquivo inteiro e listar as pendências acima antes de propor
 qualquer coisa.
+
+## Mobilidade elétrica no ecossistema
+
+Recarga de veículos elétricos e venda de eletropostos entram como o
+**primeiro card do ecossistema**, em destaque visual (`.prod--destaque`,
+selo `.prod__novo`). Decisão do Jimmy em out/2026: é a frente que ele já
+vende na prática (carregadores DC comerciais) e a que mais diferencia o
+site dos concorrentes.
+
+Como o texto trata o assunto:
+
+- São **duas frentes distintas** e o texto não as mistura: a *venda do
+  eletroposto* (equipamento, ticket maior, projeto dimensionado) e a
+  *recarga* que a estação vende depois de instalada.
+- O argumento central é que é a única frente em que o licenciado entra na
+  empresa falando de um **ativo que ela vai operar**, não de uma conta que
+  ela já paga.
+- O texto **não afirma** percentuais, prazos, potências, modelos nem como
+  a remuneração do licenciado é calculada nessa frente — nada disso foi
+  informado. A ressalva padrão ("variam conforme o projeto, a análise
+  técnica do local e as condições vigentes") fecha o card e o FAQ.
+- O FAQ assume abertamente que essa frente exige mais estudo técnico. É
+  honesto e funciona como filtro — e vira vantagem no argumento seguinte
+  ("quase nenhum concorrente sabe ter essa conversa hoje").
+
+Aparece também: lede do hero, opção do quiz (`solucao`), listas de
+"Pequena empresa" e "Empresa de maior consumo", faixa de soluções e o FAQ
+"O que faz um licenciado iGreen?".

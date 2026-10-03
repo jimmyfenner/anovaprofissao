@@ -330,6 +330,18 @@ p{margin:0}
 .prod__body h3{margin-bottom:.3rem}
 .prod__body p{font-size:.93rem;color:var(--muted)}
 .prod__chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.7rem}
+.prod--destaque{
+  align-items:flex-start;border:1px solid var(--credit-dim);border-radius:11px;
+  background:linear-gradient(180deg,rgba(52,219,139,.055),transparent 70%);
+  padding:1.5rem;margin-bottom:1.2rem;border-bottom:1px solid var(--credit-dim);
+}
+.prod--destaque .prod__id{background:var(--credit);color:#04120B;border-color:var(--credit)}
+.prod--destaque h3{font-size:clamp(1.15rem,2.4vw,1.42rem)}
+.prod__novo{
+  display:inline-block;font-family:var(--mono);font-size:.66rem;font-weight:600;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--credit);
+  border:1px solid var(--credit-dim);border-radius:4px;padding:.2em .6em;margin-bottom:.55rem;
+}
 .chip{
   font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;padding:.32em .65em;
   border:1px solid var(--line);border-radius:4px;color:var(--muted);
@@ -580,7 +592,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         <h1>A venda acontece uma vez. A conta do cliente chega todo mês.</h1>
         <p class="hero__prova"><b>6.900</b><span>pessoas no Brasil conectaram pelo menos uma conta de energia a um <em>DESCONTO</em> em julho de 2026 — e recebem <u>até 7%</u> toda vez que essa conta é paga. <em>Todos os meses.</em> E energia é só uma das várias soluções recorrentes que temos.</span></p>
         <p class="hero__vaga">Tem vaga</p>
-        <p class="lede hero__sub">E se a sua próxima profissão não dependesse de salário, estoque ou ponto comercial? Existe uma forma de atuar conectando pessoas e empresas a energia, telecom, seguros e outras soluções que elas já contratam todos os meses.</p>
+        <p class="lede hero__sub">E se a sua próxima profissão não dependesse de salário, estoque ou ponto comercial? Existe uma forma de atuar conectando pessoas e empresas a energia, telecom, seguros, recarga de veículos elétricos e outras soluções que elas já contratam todos os meses.</p>
         <p class="hero__ctx">Uma oportunidade profissional desenvolvida através do modelo de licenciamento da <b>iGreen Energy</b>.<br>Este site é de <a href="#jimmy" style="color:var(--muted);font-weight:500;text-decoration:none;border-bottom:1px solid var(--line)">Jimmy Fenner</a>, licenciado independente — <b style="color:var(--text);font-weight:600">primeiro Acionista do Brasil a chegar à qualificação atuando 100% online</b>.</p>
 
         <div class="btn-row">
@@ -788,6 +800,17 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     </div>
 
     <div class="reveal">
+      <div class="prod prod--destaque">
+        <span class="prod__id">EV</span>
+        <div class="prod__body">
+          <span class="prod__novo">Mobilidade elétrica</span>
+          <h3>Recarga de veículos elétricos e venda de eletropostos</h3>
+          <p>A frota elétrica do país cresce todo ano, e cada carro novo precisa de onde carregar. São duas frentes na mesma conversa: <strong style="color:var(--text)">vender o eletroposto</strong> para quem quer instalar — posto, mercado, hotel, condomínio, estacionamento, concessionária, oficina — e a <strong style="color:var(--text)">recarga</strong> que essa estação passa a vender depois de instalada, carro após carro.</p>
+          <p style="margin-top:.7rem">É a frente de maior ticket do ecossistema e a única em que você entra numa empresa falando de um <strong style="color:var(--text)">ativo que ela vai operar</strong>, e não de uma conta que ela já paga. Quem instala um carregador deixa de ser só cliente: passa a ter um ponto que atrai movimento para o próprio negócio.</p>
+          <div class="prod__chips"><span class="chip">Carregadores DC</span><span class="chip">Empresas</span><span class="chip">Ticket maior</span><span class="chip">Recarga recorrente</span><span class="chip">Projeto dimensionado</span></div>
+          <p style="font-size:.83rem;color:var(--muted-dim);margin-top:.8rem">Modelos, potências, prazos, condições comerciais e remuneração variam conforme o projeto, a análise técnica do local e as condições vigentes.</p>
+        </div>
+      </div>
       <div class="prod">
         <span class="prod__id">GREEN</span>
         <div class="prod__body">
@@ -867,11 +890,11 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       </div>
       <div class="prof">
         <h3>Pequena empresa</h3>
-        <ul><li>Energia</li><li>Telecom</li><li>Seguros da frota</li><li>Solar</li></ul>
+        <ul><li>Energia</li><li>Telecom</li><li>Seguros da frota</li><li>Solar</li><li>Eletroposto no estabelecimento</li></ul>
       </div>
       <div class="prof">
         <h3>Empresa de maior consumo</h3>
-        <ul><li>Mercado Livre de Energia</li><li>Projetos solares</li><li>Telecom</li><li>Serviços corporativos</li></ul>
+        <ul><li>Mercado Livre de Energia</li><li>Projetos solares</li><li>Eletropostos</li><li>Telecom</li><li>Serviços corporativos</li></ul>
       </div>
     </div>
     <p class="lede reveal" style="margin-top:2.5rem;font-family:var(--display);font-weight:600;color:var(--text);font-size:clamp(1.15rem,2.4vw,1.5rem);letter-spacing:-.015em">O licenciado aprende a enxergar necessidades, não apenas produtos.</p>
@@ -1057,7 +1080,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       <h2>As dúvidas que aparecem antes de decidir.</h2>
     </div>
     <div class="faq reveal">
-      <details><summary>O que faz um licenciado iGreen?</summary><div>Atua comercialmente identificando pessoas e empresas que podem se beneficiar das soluções do ecossistema — energia, telecom, seguros, energia solar e soluções empresariais — apresentando essas soluções e acompanhando os clientes ao longo do relacionamento.</div></details>
+      <details><summary>O que faz um licenciado iGreen?</summary><div>Atua comercialmente identificando pessoas e empresas que podem se beneficiar das soluções do ecossistema — energia, recarga de veículos elétricos, telecom, seguros, energia solar e soluções empresariais — apresentando essas soluções e acompanhando os clientes ao longo do relacionamento.</div></details>
       <details><summary>Preciso entender de energia?</summary><div>Não para começar. O conhecimento técnico necessário é aprendido nos treinamentos. O que ajuda de verdade é disposição para aprender e para conversar com pessoas.</div></details>
       <details><summary>Preciso saber vender?</summary><div>Não é pré-requisito, mas é a habilidade central da atividade. Quem nunca vendeu começa aprendendo; quem já vende costuma avançar mais rápido no início.</div></details>
       <details><summary>Preciso trabalhar exclusivamente com isso?</summary><div>Não. Muita gente começa conciliando com outra atividade e define depois quanto tempo quer dedicar.</div></details>
@@ -1068,6 +1091,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       <details><summary>Preciso abrir empresa?</summary><div>Depende do seu caso e do volume da sua atuação. É um ponto que vale conversar considerando sua situação específica.</div></details>
       <details><summary>Posso atuar de qualquer cidade?</summary><div>A atuação comercial pode ser desenvolvida remotamente e presencialmente. A elegibilidade de alguns produtos, porém, depende da distribuidora de energia e da região do cliente.</div></details>
       <details><summary>Quem atende os clientes depois da contratação?</summary><div>A estrutura da empresa mantém os canais de atendimento e pós-venda. O licenciado segue como referência de relacionamento comercial do cliente.</div></details>
+      <details><summary>Dá para trabalhar com recarga de carro elétrico? Como funciona vender um eletroposto?</summary><div>Sim, e é uma das frentes mais recentes do ecossistema.<br><br>São dois movimentos diferentes. O primeiro é a <strong>venda do eletroposto</strong> — o equipamento de recarga — para quem quer instalar um: posto de combustível, supermercado, hotel, pousada, condomínio, estacionamento, concessionária, oficina, restaurante de beira de estrada. É uma venda de ticket maior, com projeto dimensionado para o local: potência, quantidade de pontos, infraestrutura elétrica disponível.<br><br>O segundo é a <strong>recarga em si</strong>, que a estação passa a vender depois de instalada. Quem instalou não comprou só um equipamento: passou a ter um ponto que atrai carros, e com eles movimento para a loja, o restaurante ou o hotel.<br><br>É também a frente que exige mais aprendizado técnico — potência, corrente, capacidade de carregamento dos veículos, infraestrutura do ponto. Não é preciso ser engenheiro, mas é preciso querer estudar. Em compensação, é uma conversa que quase nenhum concorrente está sabendo ter hoje.<br><br>Modelos, potências, prazos, condições comerciais e remuneração variam conforme o projeto, a análise técnica do local e as condições vigentes. Isso eu apresento na conversa.</div></details>
       <details><summary>O que é Conexão Seguros? O seguro é mensal?</summary><div>É a frente de seguro veicular do ecossistema, com contratação digital e mensalidade. Atende veículos elegíveis, incluindo carros e motos. Coberturas, assistências, franquias, limites e exclusões variam conforme o plano contratado e estão sujeitas a análise, aceitação e condições vigentes.</div></details>
       <details><summary>O iGreen Club dá comissão?</summary><div>O clube de benefícios não é a fonte de renda do licenciado. Ele é entregue como cortesia aos clientes de energia, telecom e seguros, para que o cliente se sinta valorizado e a aceitação dos demais serviços melhore. Existe a possibilidade de comercializá-lo avulso a um cliente final, por R$ 19,90 mensais conforme condições vigentes, mas essa é a exceção e não o caminho principal.</div></details>
       <details><summary>A iGreen é marketing multinível? É pirâmide?</summary><div><strong>Sim, existe marketing de rede — e não, não é pirâmide.</strong> São coisas diferentes, e vale entender a diferença em vez de tratar as duas como sinônimo.<br><br>O que define uma pirâmide é a origem do dinheiro: ela remunera pela <strong>entrada de novas pessoas</strong>. Não existe produto de verdade, ou ele é só um pretexto para justificar o pagamento. Quando param de entrar pessoas, a estrutura desaba — e quem entrou por último perde.<br><br>Aqui o dinheiro vem de <strong>cliente final pagando por um serviço que usa todo mês</strong>: energia, telefonia, seguro, energia solar. Esse cliente não entrou em negócio nenhum — ele só trocou de fornecedor e paga a conta dele. Se nenhum licenciado novo entrasse a partir de amanhã, os clientes continuariam pagando e a remuneração sobre esse consumo continuaria existindo. É esse o teste.<br><br>Um licenciado pode, além de atender clientes, formar e acompanhar outros licenciados — e ser remunerado pela produção dessa estrutura, conforme as regras do plano comercial. Isso é marketing de rede, é legal no Brasil, e não é escondido em lugar nenhum deste site. A forma como essa remuneração é calculada tem uma diferença relevante em relação ao multinível tradicional — está explicada na pergunta sobre royalties, logo abaixo.<br><br>A estrutura societária também é pública e verificável: a Comerc Participações declarou a aquisição de 50% da iGreen Energy no seu release de resultados do 4º trimestre de 2022, e em janeiro de 2025 a Vibra Energia — empresa de capital aberto listada na B3 sob o código VBBR3 — concluiu a aquisição integral da Comerc. Os documentos estão nas páginas de relações com investidores das duas empresas.</div></details>
@@ -1087,7 +1111,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       <h2>Talvez você não esteja procurando outro emprego. Talvez esteja procurando uma nova profissão.</h2>
       <p class="lede" style="margin-top:1.5rem">Uma atividade onde você aprende a identificar oportunidades em serviços que pessoas e empresas já utilizam todos os meses.</p>
       <div class="stack">
-        <span>Energia</span><span>Telecom</span><span>Seguros</span><span>Energia solar</span><span>Soluções empresariais</span>
+        <span>Energia</span><span>Recarga de elétricos</span><span>Telecom</span><span>Seguros</span><span>Energia solar</span><span>Soluções empresariais</span>
       </div>
       <p class="lede" style="margin-top:2rem;color:var(--text)">Conheça. Entenda. Depois decida.</p>
       <div class="btn-row">
@@ -1739,7 +1763,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
       opts:["Já trabalho com vendas","Já trabalhei com vendas","Nunca trabalhei com vendas","Tenho muitos contatos, mas não sou vendedor"] },
     { key:"solucao", label:"Interesse",
       q:"Qual solução mais chamou a sua atenção?",
-      opts:["Energia","Mercado Livre de Energia","Energia solar","Telecom","Seguro de carro/moto","Quero trabalhar com várias","Ainda não sei"] },
+      opts:["Energia","Recarga de elétricos / eletropostos","Mercado Livre de Energia","Energia solar","Telecom","Seguro de carro/moto","Quero trabalhar com várias","Ainda não sei"] },
     { key:"perfil", label:"Perfil",
       q:"Você se imagina mais:",
       opts:["Atendendo consumidores","Atendendo empresas","Construindo equipe","Um pouco de tudo","Ainda não sei"] },
