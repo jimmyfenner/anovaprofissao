@@ -500,3 +500,45 @@ Como o texto trata o assunto:
 Aparece também: lede do hero, opção do quiz (`solucao`), listas de
 "Pequena empresa" e "Empresa de maior consumo", faixa de soluções e o FAQ
 "O que faz um licenciado iGreen?".
+
+## Página de integradores — querovendercarregador.com.br (out/2026)
+
+Fonte `integradores.html` (mesmo formato da home: só o corpo, `<title>` e
+fontes no topo). O `build.js` publica em `dist/integradores/` e o
+`vercel.json` reescreve `/` para `/integradores` quando o host é
+`querovendercarregador.com.br` (com ou sem www). O canônico é esse domínio,
+porque é o que vai nos anúncios do Google; `anovaprofissao.com.br/integradores`
+continua funcionando como espelho.
+
+Público: integradores solares, instaladores, eletricistas. Assunto: a
+**Conexão Mob** (eletropostos, lançamento oficial 20/10/2026, 20h) como
+produto novo para a carteira de quem já trabalha com energia. O selo do hero
+troca sozinho de "Lançamento oficial" para "lançada em 20/10/2026" depois da
+data (`LANCAMENTO` no script).
+
+Regras de conteúdo (as mesmas da home, mais estas):
+
+- Modelos e capacidades (Lento 7 kW / DUO 7+40 kW / Ultra rápido 80 kW; até
+  5 / 30 / 43 carros por dia) vêm do material de lançamento e do simulador
+  oficial. **Preço de cada modelo e percentuais de comissão não vão para a
+  página** — ainda "a confirmar" e, no caso da Licença Mob, vender
+  participação em SCP com projeção de retorno chama atenção da CVM.
+- Nenhuma marca de carregador (nem a que o Jimmy representa) e nenhum
+  concorrente.
+- O vídeo embutido é a apresentação para integradores (`tgoz7p85QIY`). Ele
+  cita médias de ganho por nível: para anúncio do Google, o ideal é um corte
+  sem essas falas.
+
+Leads: mesma tabela `leads`, `tipo = 'integrador'` (migração
+`db/10-integradores.sql`). Mapeamento das respostas: `experiencia` = o que
+faz hoje, `perfil` = quantos clientes já atendeu, `objetivo` = interesse,
+`solucao` = "Eletroposto (Conexão Mob) — página de integradores". Se a
+migração ainda não rodou, o banco recusa o tipo e a página grava de novo sem
+ele; o painel e o aviso reconhecem esses leads pelo texto de `solucao`.
+O painel mostra o selo "Integrador"; a Edge Function `whatsapp` tem o aviso
+próprio (`corpoInteg`), que só vale depois do deploy da função.
+
+A página só grava no banco a partir dos domínios reais (querovendercarregador,
+anovaprofissao, *.vercel.app). Em prévia local ou Artifact o formulário
+funciona inteiro, mas não cria lead. Conversão do Google Ads: preencher
+`GADS_ID` e `GADS_LABEL` no script; vazio, nada da Google carrega.

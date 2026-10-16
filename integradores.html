@@ -1,0 +1,934 @@
+<title>Quero Vender Carregador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* Página para integradores (querovendercarregador.com.br).
+   Mesmo sistema visual da home do anovaprofissao: grafite com viés verde,
+   verde de crédito com sentido de extrato, linha de extrato como estrutura. */
+:root{
+  --ink:#0A0D0C;
+  --surface:#111614;
+  --surface-2:#171E1B;
+  --line:#232E29;
+  --line-soft:#1A211E;
+  --text:#EAF2ED;
+  --muted:#8FA39A;
+  --muted-dim:#61736B;
+  --credit:#34DB8B;
+  --credit-dim:#1F7D52;
+  --debit:#C4785A;
+  --on-credit:#04120B;
+
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+
+  --wrap:1120px;
+  --gutter:clamp(16px,5vw,56px);
+  --sect:clamp(72px,10vw,128px);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;color-scheme:dark}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--body);font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--credit);outline-offset:3px;border-radius:2px}
+
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--gutter)}
+section{padding-block:var(--sect)}
+section + section{border-top:1px solid var(--line-soft)}
+section[id]{scroll-margin-top:64px}
+
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.025em;line-height:1.06}
+h1{font-size:clamp(2.05rem,5vw,3.4rem);font-weight:800}
+h2{font-size:clamp(1.8rem,4.2vw,2.85rem);font-weight:700}
+h3{font-size:clamp(1.1rem,2.1vw,1.35rem);font-weight:600;line-height:1.22;letter-spacing:-.015em}
+p{margin:0}
+.lede{font-size:clamp(1.04rem,1.8vw,1.24rem);color:var(--muted);max-width:62ch;line-height:1.58}
+.prose{max-width:64ch;color:var(--muted);display:flex;flex-direction:column;gap:1.05em}
+.prose strong{color:var(--text);font-weight:600}
+.note{font-size:.86rem;color:var(--muted-dim);max-width:70ch;line-height:1.55}
+
+.eyebrow{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--credit);display:flex;align-items:flex-start;gap:.7em;margin-bottom:1.4rem;
+}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--credit-dim);flex:none;margin-top:.62em}
+.head{display:flex;flex-direction:column;gap:1.1rem;margin-bottom:clamp(2.4rem,5vw,3.6rem)}
+
+/* ---------- botões ---------- */
+.btn{
+  font-family:var(--body);font-size:.95rem;font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:.6em;
+  padding:.95em 1.5em;border-radius:7px;border:1px solid transparent;
+  cursor:pointer;text-decoration:none;text-align:center;
+  transition:background .18s,border-color .18s,color .18s,transform .18s;
+}
+.btn:active{transform:translateY(1px)}
+.btn--primary{background:var(--credit);color:var(--on-credit);border-color:var(--credit)}
+.btn--primary:hover{background:#4BEA9C}
+.btn--ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn--ghost:hover{border-color:var(--muted-dim);background:var(--surface)}
+.btn--sm{padding:.6em 1.05em;font-size:.86rem}
+.btn--block{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn-row{display:flex;flex-wrap:wrap;gap:.8rem}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:60;background:rgba(10,13,12,.84);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-soft);
+}
+.nav__in{display:flex;align-items:center;justify-content:space-between;gap:1.2rem;padding-block:.8rem}
+.brand{font-family:var(--display);font-weight:800;font-size:1rem;letter-spacing:-.02em;text-decoration:none;color:var(--text);white-space:nowrap}
+.brand em{font-style:normal;color:var(--credit)}
+.nav__links{display:none;gap:1.8rem;align-items:center}
+.nav__links a{color:var(--muted);text-decoration:none;font-size:.9rem;transition:color .16s}
+.nav__links a:hover{color:var(--text)}
+@media(min-width:960px){.nav__links{display:flex}}
+.nav .btn{white-space:nowrap}
+@media(max-width:439px){.nav .btn{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding-block:clamp(52px,8vw,96px) clamp(64px,8vw,104px)}
+.hero__grid{display:grid;gap:clamp(2.6rem,5vw,3.6rem);align-items:center}
+@media(min-width:1000px){.hero__grid{grid-template-columns:1.05fr .95fr}}
+.hero h1{max-width:18ch}
+.hero .lede{margin-top:1.5rem}
+.selo{
+  display:inline-flex;align-items:center;gap:.6em;margin-top:1.6rem;
+  font-family:var(--mono);font-size:.78rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--credit);border:1px solid rgba(52,219,139,.32);background:rgba(52,219,139,.07);
+  padding:.48em .95em;border-radius:5px;
+}
+.selo::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--credit);animation:pulso 1.9s ease-in-out infinite}
+@keyframes pulso{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.selo::before{animation:none}}
+.hero .btn-row{margin-top:2.2rem}
+.hero__ctx{
+  margin-top:2rem;font-family:var(--mono);font-size:.8rem;color:var(--muted-dim);
+  border-left:2px solid var(--line);padding-left:1rem;max-width:54ch;line-height:1.55;
+}
+.hero__ctx b{color:var(--muted);font-weight:500}
+
+/* ---------- extrato (comparação) ---------- */
+.stmt{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stmt__top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:1.05rem 1.3rem;border-bottom:1px solid var(--line)}
+.stmt__title{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-dim)}
+.cmp__head,.cmp__row{display:grid;grid-template-columns:1fr 1fr;gap:.35rem 1rem;padding:.95rem 1.3rem}
+.cmp__head{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--line-soft)}
+.cmp__head span:first-child{color:var(--debit)}
+.cmp__head span:last-child{color:var(--credit)}
+.cmp__row + .cmp__row{border-top:1px solid var(--line-soft)}
+.cmp__lbl{grid-column:1/-1;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-dim)}
+.cmp__a{font-size:.92rem;color:var(--muted)}
+.cmp__b{font-size:.92rem;color:var(--text);font-weight:500}
+.cmp__head .sp{display:none}
+@media(min-width:620px){
+  .cmp__head,.cmp__row{grid-template-columns:.8fr 1fr 1fr;align-items:baseline}
+  .cmp__lbl{grid-column:auto}
+  .cmp__head .sp{display:block}
+}
+.stmt__foot{padding:.85rem 1.3rem;border-top:1px solid var(--line);font-size:.78rem;color:var(--muted-dim);font-family:var(--mono)}
+
+/* ---------- linhas de débito ---------- */
+.split{display:grid;gap:clamp(2.2rem,5vw,4rem)}
+@media(min-width:960px){.split{grid-template-columns:1fr 1fr;align-items:start}}
+.ledger{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden}
+.ledger__row{display:flex;gap:.9rem;align-items:flex-start;padding:1rem 1.25rem}
+.ledger__row + .ledger__row{border-top:1px solid var(--line-soft)}
+.ledger__sig{font-family:var(--mono);font-weight:600;flex:none;width:1.1em;color:var(--debit)}
+.ledger__txt{color:var(--muted);font-size:.95rem}
+.ledger__row--credit .ledger__sig{color:var(--credit)}
+.ledger__row--credit .ledger__txt{color:var(--text);font-weight:500}
+.ledger__row--credit{background:rgba(52,219,139,.05)}
+
+/* ---------- cards ---------- */
+.cards{display:grid;gap:1rem}
+@media(min-width:820px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.6rem 1.5rem;display:flex;flex-direction:column;gap:.75rem}
+.card__n{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--credit)}
+.card p{color:var(--muted);font-size:.95rem}
+
+/* ---------- modelos ---------- */
+.models{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.model{display:grid;gap:.3rem 1.2rem;padding:1.15rem 1.3rem;grid-template-columns:1fr auto}
+.model + .model{border-top:1px solid var(--line-soft)}
+.model__name{font-family:var(--display);font-weight:700;font-size:1.08rem;letter-spacing:-.015em}
+.model__name small{display:block;font-family:var(--mono);font-weight:400;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim);margin-top:.2rem}
+.model__spec{grid-column:1/-1;color:var(--muted);font-size:.92rem}
+.model__cap{font-family:var(--mono);font-size:.86rem;color:var(--credit);text-align:right;white-space:nowrap;align-self:start}
+@media(min-width:720px){
+  .model{grid-template-columns:1.1fr 1.3fr auto;align-items:center}
+  .model__spec{grid-column:auto}
+}
+.inclui{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.4rem}
+.inclui span{font-family:var(--mono);font-size:.74rem;letter-spacing:.06em;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:.35em .85em;background:var(--surface-2)}
+
+/* ---------- papéis ---------- */
+.roles{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.role{display:grid;grid-template-columns:auto 1fr;gap:.4rem 1.1rem;padding:1.4rem 1.3rem}
+.role + .role{border-top:1px solid var(--line-soft)}
+.role__n{
+  grid-row:span 2;width:2.1rem;height:2.1rem;border-radius:7px;display:grid;place-items:center;
+  font-family:var(--mono);font-weight:600;font-size:.9rem;
+  background:rgba(52,219,139,.1);color:var(--credit);border:1px solid rgba(52,219,139,.25);
+}
+.role p{color:var(--muted);font-size:.95rem}
+.callout{
+  margin-top:1.4rem;border:1px dashed var(--line);border-radius:12px;padding:1.2rem 1.3rem;
+  display:flex;gap:1rem;align-items:flex-start;color:var(--muted);font-size:.95rem;
+}
+.callout b{color:var(--text);font-weight:600}
+.callout__tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--credit);flex:none;margin-top:.25em}
+
+/* ---------- linha do tempo ---------- */
+.steps{display:grid;gap:1rem}
+@media(min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step{border-top:2px solid var(--line);padding-top:1.2rem;display:flex;flex-direction:column;gap:.6rem}
+.step:first-child{border-top-color:var(--credit)}
+.step__when{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--credit)}
+.step p{color:var(--muted);font-size:.95rem}
+
+/* ---------- vídeo ---------- */
+.vid{
+  position:relative;display:block;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;
+  border:1px solid var(--line);background:var(--surface) center/cover no-repeat;cursor:pointer;padding:0;
+}
+.vid::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,12,0) 40%,rgba(10,13,12,.82))}
+.vid__play{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;
+  width:4.2rem;height:4.2rem;border-radius:50%;display:grid;place-items:center;
+  background:var(--credit);color:var(--on-credit);transition:transform .18s;
+}
+.vid:hover .vid__play{transform:translate(-50%,-50%) scale(1.06)}
+.vid__cap{position:absolute;left:1.2rem;right:1.2rem;bottom:1rem;z-index:1;text-align:left;font-family:var(--mono);font-size:.78rem;letter-spacing:.08em;color:var(--text)}
+.vid iframe{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:2}
+
+/* ---------- prova ---------- */
+.prova{border-left:2px solid var(--credit);padding-left:1.3rem;display:flex;flex-direction:column;gap:1rem;max-width:72ch;color:var(--muted)}
+.prova ol{margin:0;padding-left:1.2rem;display:flex;flex-direction:column;gap:.8rem}
+.prova a{color:var(--credit);text-underline-offset:3px}
+.prova strong{color:var(--text);font-weight:600}
+
+/* ---------- formulário ---------- */
+.form-wrap{display:grid;gap:clamp(2rem,5vw,3.6rem)}
+@media(min-width:980px){.form-wrap{grid-template-columns:.85fr 1.15fr;align-items:start}}
+.form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(1.3rem,3.5vw,2rem);display:flex;flex-direction:column;gap:1.15rem}
+.row2{display:grid;gap:1.15rem}
+@media(min-width:560px){.row2{grid-template-columns:1fr 1fr}}
+.row2--uf{grid-template-columns:1fr 6.5rem}
+.field{display:flex;flex-direction:column;gap:.45rem;min-width:0}
+.field label,.field legend{font-size:.85rem;font-weight:600;color:var(--text);padding:0}
+.field label small{font-weight:400;color:var(--muted-dim)}
+.field input,.field select{
+  font:inherit;font-size:1rem;color:var(--text);background:var(--ink);
+  border:1px solid var(--line);border-radius:8px;padding:.78em .9em;width:100%;min-width:0;
+}
+.field input::placeholder{color:var(--muted-dim)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--credit-dim);box-shadow:0 0 0 3px rgba(52,219,139,.15)}
+fieldset.field{border:0;margin:0;padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{
+  display:inline-block;font-size:.88rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;
+  padding:.5em .95em;cursor:pointer;transition:border-color .16s,color .16s,background .16s;background:var(--ink);
+}
+.chip input:checked + span{border-color:var(--credit);color:var(--text);background:rgba(52,219,139,.1)}
+.chip input:focus-visible + span{outline:2px solid var(--credit);outline-offset:2px}
+.form__erro{color:var(--debit);font-size:.88rem;min-height:1.2em}
+.form__nota{font-size:.78rem;color:var(--muted-dim);line-height:1.5}
+.form__nota a{color:var(--muted)}
+.ok{display:flex;flex-direction:column;gap:1rem}
+.ok h3{font-size:clamp(1.3rem,3vw,1.7rem)}
+.ok p{color:var(--muted)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* ---------- FAQ ---------- */
+.faq{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{
+  list-style:none;cursor:pointer;padding:1.25rem 2.4rem 1.25rem 0;position:relative;
+  font-family:var(--display);font-weight:600;font-size:clamp(1.02rem,2vw,1.15rem);letter-spacing:-.01em;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";position:absolute;right:.2rem;top:1.05rem;font-family:var(--mono);font-size:1.3rem;color:var(--credit);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details > div{padding:0 0 1.4rem;color:var(--muted);max-width:72ch}
+.faq details > div strong{color:var(--text);font-weight:600}
+.faq details > div a{color:var(--credit)}
+.faq-note{margin-top:1.6rem}
+
+/* ---------- fechamento ---------- */
+.closing{text-align:center}
+.closing h2{max-width:22ch;margin-inline:auto}
+.closing .lede{margin:1.2rem auto 0}
+.closing .btn-row{justify-content:center;margin-top:2rem}
+
+/* ---------- rodapé ---------- */
+footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 2.5rem;background:#080B0A}
+.foot__grid{display:grid;gap:2rem}
+@media(min-width:820px){.foot__grid{grid-template-columns:1.4fr 1fr 1fr}}
+.foot__h{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.9rem}
+.foot__links{display:flex;flex-direction:column;gap:.55rem}
+.foot__links a{color:var(--muted);text-decoration:none;font-size:.92rem}
+.foot__links a:hover{color:var(--credit)}
+.disc{margin-top:2.8rem;padding-top:1.8rem;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.75rem;font-size:.8rem;color:var(--muted-dim);line-height:1.55}
+.disc b{color:var(--muted);font-weight:600}
+
+/* ---------- WhatsApp flutuante ---------- */
+.float{
+  position:fixed;right:clamp(14px,3vw,24px);bottom:clamp(14px,3vw,24px);z-index:70;
+  display:inline-flex;align-items:center;gap:.55em;padding:.8em 1.15em;border-radius:999px;
+  background:var(--credit);color:var(--on-credit);font-weight:600;font-size:.9rem;text-decoration:none;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+.float:hover{background:#4BEA9C}
+@media(max-width:520px){.float span{display:none}.float{padding:.85em}}
+</style>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="#topo">Quero vender <em>carregador</em></a>
+    <nav class="nav__links" aria-label="Seções">
+      <a href="#rotina">A rotina</a>
+      <a href="#mob">Conexão Mob</a>
+      <a href="#papel">Onde você entra</a>
+      <a href="#perguntas">Perguntas</a>
+    </nav>
+    <a class="btn btn--primary btn--sm" href="#conversa" data-ev="nav_cta">Quero conversar</a>
+  </div>
+</header>
+
+<main id="topo">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <p class="eyebrow">Para integradores, instaladores e eletricistas</p>
+      <h1>Quem instala usina vende uma vez. Quem conecta eletroposto participa de cada recarga.</h1>
+      <p class="lede">A iGreen Energy lança a <b style="color:var(--text);font-weight:600">Conexão Mob</b>, a frente de eletropostos do ecossistema. Para quem já fala de kW, carga e quadro elétrico com empresas, condomínios e comércios, é um produto novo para a mesma carteira — e uma relação comercial que não termina na entrega da obra.</p>
+      <p class="selo" id="selo">Lançamento oficial · 20/10, 20h</p>
+      <div class="btn-row">
+        <a class="btn btn--primary" href="#conversa" data-ev="hero_cta">Quero entender o modelo</a>
+        <a class="btn btn--ghost" href="#apresentacao" data-ev="hero_video">Assistir à apresentação</a>
+      </div>
+      <p class="hero__ctx">Site de <b>Jimmy Fenner</b>, licenciado independente da iGreen Energy desde 2022 e primeiro Acionista do Brasil a chegar à qualificação atuando 100% online.</p>
+    </div>
+
+    <div class="stmt" aria-label="Comparação entre a integradora tradicional e o licenciado iGreen">
+      <div class="stmt__top"><span class="stmt__title">Duas formas de trabalhar com energia</span></div>
+      <div class="cmp__head" aria-hidden="true"><span class="sp"></span><span>Integradora</span><span>Licenciado iGreen</span></div>
+      <div class="cmp__row"><span class="cmp__lbl">Receita</span><span class="cmp__a">Venda única por projeto</span><span class="cmp__b">Recorrente sobre a carteira</span></div>
+      <div class="cmp__row"><span class="cmp__lbl">Obra</span><span class="cmp__a">Sua equipe, seu risco</span><span class="cmp__b">Instalação inclusa no eletroposto</span></div>
+      <div class="cmp__row"><span class="cmp__lbl">Equipe</span><span class="cmp__a">Instaladores, folha e encargos</span><span class="cmp__b">Não exige equipe própria</span></div>
+      <div class="cmp__row"><span class="cmp__lbl">Estrutura</span><span class="cmp__a">Galpão, estoque e veículo</span><span class="cmp__b">Sem estoque e sem ponto físico</span></div>
+      <div class="cmp__row"><span class="cmp__lbl">Escala</span><span class="cmp__a">Limitada pela equipe</span><span class="cmp__b">Cresce com indicações</span></div>
+      <div class="stmt__foot">Comparação de modelo de atividade, não de resultado.</div>
+    </div>
+  </div>
+</section>
+
+<!-- A ROTINA -->
+<section id="rotina">
+  <div class="wrap split">
+    <div>
+      <p class="eyebrow">Você conhece essa rotina</p>
+      <h2>A venda termina na entrega da usina. A dor de cabeça, não.</h2>
+      <div class="prose" style="margin-top:1.4rem">
+        <p>O cliente liga porque o aplicativo não abre, porque trocou a senha do Wi-Fi, porque a placa suja não gera como antes. Existe recorrência — só que de chamado, não de receita.</p>
+        <p>Não é falta de competência. É o modelo: <strong>a venda acontece uma vez, e você recebe uma vez</strong>. No mês seguinte, tudo começa de novo.</p>
+      </div>
+    </div>
+    <div class="ledger" role="list" aria-label="Custos da integração">
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Homologação e prazos que dependem da concessionária</span></div>
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Equipe de instalação, mão de obra e retrabalho</span></div>
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Guerra de preço com quem vende kit a preço de custo</span></div>
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Aluguel, veículo e estoque: custo fixo todo mês</span></div>
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Todo dia primeiro, o faturamento recomeça do zero</span></div>
+      <div class="ledger__row ledger__row--credit" role="listitem"><span class="ledger__sig" aria-hidden="true">+</span><span class="ledger__txt">Na iGreen, a venda acontece uma vez. A conta do cliente chega todo mês.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- VANTAGEM -->
+<section id="vantagem">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Por que o integrador sai na frente</p>
+      <h2>Você já tem o que a maioria leva anos para construir.</h2>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <span class="card__n">01 · Autoridade técnica</span>
+        <h3>Você fala a língua do eletroposto.</h3>
+        <p>kW, carga, quadro, aumento de demanda: em eletroposto, a conversa é exatamente essa. Você já tem naturalidade com ela — e quase ninguém no mercado comercial tem.</p>
+      </article>
+      <article class="card">
+        <span class="card__n">02 · O público certo</span>
+        <h3>O cliente ideal já está na sua agenda.</h3>
+        <p>Empresas, condomínios, comércios, postos, hotéis e estacionamentos. O perfil de quem instala um eletroposto é o mesmo de quem já te chamou para falar de energia.</p>
+      </article>
+      <article class="card">
+        <span class="card__n">03 · Carteira pronta</span>
+        <h3>Quem tem solar é o próximo do carro elétrico.</h3>
+        <p>Quem já gera a própria energia em casa é o primeiro da fila para o carro elétrico. Os seus clientes de hoje são os motoristas de amanhã.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- CONEXÃO MOB -->
+<section id="mob">
+  <div class="wrap split">
+    <div>
+      <p class="eyebrow">O produto</p>
+      <h2>Um eletroposto completo, com a iGreen por trás.</h2>
+      <div class="prose" style="margin-top:1.4rem">
+        <p>Na <strong>Conexão Mob</strong>, o eletroposto é vendido como <strong>Licença Mob</strong>: quem compra recebe o equipamento instalado, pintado e ligado ao sistema da iGreen, e passa a operar o ponto.</p>
+        <p>São três modelos, da carga lenta para o comércio do bairro à recarga ultrarrápida para estrada e frota.</p>
+      </div>
+      <div class="inclui" aria-label="Incluso em todos os modelos">
+        <span>Equipamento</span><span>Instalação</span><span>Pintura</span><span>Licença iGreen</span>
+      </div>
+    </div>
+    <div>
+      <div class="models">
+        <div class="model">
+          <span class="model__name">iGreen Lento<small>Carga lenta</small></span>
+          <span class="model__spec">1 conector de 7 kW</span>
+          <span class="model__cap">até 5 carros/dia</span>
+        </div>
+        <div class="model">
+          <span class="model__name">iGreen DUO<small>Carga rápida</small></span>
+          <span class="model__spec">7 kW + 40 kW, dois conectores ao mesmo tempo</span>
+          <span class="model__cap">até 30 carros/dia</span>
+        </div>
+        <div class="model">
+          <span class="model__name">iGreen Ultra rápido<small>Alta potência</small></span>
+          <span class="model__spec">80 kW de potência total</span>
+          <span class="model__cap">até 43 carros/dia</span>
+        </div>
+      </div>
+      <p class="note" style="margin-top:1rem">Capacidade é o limite do equipamento (24 h por dia, 80% da potência e 10 minutos entre um carro e outro), não a procura esperada. Valores e condições de cada modelo são definidos e divulgados pela iGreen Energy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ONDE VOCÊ ENTRA -->
+<section id="papel">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Onde você entra</p>
+      <h2>Você não precisa ter uma máquina para participar das recargas.</h2>
+      <p class="lede">O carro elétrico é a porta de entrada. Atrás dele vêm a conta de luz, o seguro e o celular de quem dirige — e cada uma dessas relações pode ficar na sua carteira.</p>
+    </div>
+    <div class="roles">
+      <div class="role">
+        <span class="role__n" aria-hidden="true">1</span>
+        <h3>Você conecta o eletroposto</h3>
+        <p>Leva a Licença Mob para as empresas, condomínios e comércios que já confiam em você e acompanha o projeto. Quem conecta a venda participa da venda e das recargas daquele eletroposto.</p>
+      </div>
+      <div class="role">
+        <span class="role__n" aria-hidden="true">2</span>
+        <h3>Você conecta o motorista</h3>
+        <p>O motorista que você traz para a iGreen continua vinculado a você. As recargas dele geram comissão para você em qualquer eletroposto da rede, inclusive nos que você não vendeu.</p>
+      </div>
+      <div class="role">
+        <span class="role__n" aria-hidden="true">3</span>
+        <h3>Você amplia a carteira</h3>
+        <p>Energia por assinatura, mercado livre de energia, seguro de carro e moto — inclusive para carro elétrico — e telefonia. Cada solução que o mesmo cliente contrata tem a sua própria recorrência.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="callout__tag">Instalador?</span>
+      <p><b>A iGreen está abrindo espaço para licenciados instaladores</b> se candidatarem às instalações dos eletropostos. Os critérios são apresentados na nossa conversa.</p>
+    </div>
+    <p class="note" style="margin-top:1.4rem">Percentuais, critérios e elegibilidade são definidos pela iGreen Energy, podem mudar e são apresentados com o material oficial na nossa conversa. Não existe renda garantida.</p>
+  </div>
+</section>
+
+<!-- TRANSIÇÃO -->
+<section id="transicao">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Sem parar a sua integradora</p>
+      <h2>Uma transição no seu ritmo.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="step__when">Agora</span>
+        <h3>Mesma carteira, produto novo.</h3>
+        <p>Você oferece eletroposto, energia e seguro para os clientes que já tem, sem parar nenhuma obra em andamento.</p>
+      </div>
+      <div class="step">
+        <span class="step__when">Próximos meses</span>
+        <h3>A base vai se somando.</h3>
+        <p>Cada cliente conectado entra numa carteira que paga todo mês. Ela cresce por acúmulo, não por projeto.</p>
+      </div>
+      <div class="step">
+        <span class="step__when">Médio prazo</span>
+        <h3>Você decide o desenho.</h3>
+        <p>Seguir com a integradora, reduzir a obra ou concentrar na carteira recorrente. A escolha passa a ser sua, não do mês.</p>
+      </div>
+    </div>
+    <p class="note" style="margin-top:1.6rem">Exemplo de trajetória, não de resultado. O ritmo e o tamanho da carteira dependem da sua atuação.</p>
+  </div>
+</section>
+
+<!-- APRESENTAÇÃO -->
+<section id="apresentacao">
+  <div class="wrap" style="max-width:920px">
+    <div class="head">
+      <p class="eyebrow">A apresentação completa</p>
+      <h2>Quinze minutos, direto para quem integra.</h2>
+      <p class="lede">Gravei esta apresentação especificamente para integradores: o que muda com os eletropostos na iGreen e como ela se encaixa no dia a dia de quem já trabalha com energia.</p>
+    </div>
+    <button class="vid" type="button" id="vid" data-yt="tgoz7p85QIY" data-ev="video_play" aria-label="Assistir à apresentação para integradores">
+      <span class="vid__play" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></span>
+      <span class="vid__cap">Integrador, pare de brigar por preço de kit · 15:47</span>
+    </button>
+  </div>
+</section>
+
+<!-- QUEM ESTÁ POR TRÁS -->
+<section id="quem">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Quem está por trás</p>
+      <h2>Você não precisa acreditar em mim.</h2>
+    </div>
+    <div class="prova">
+      <p>A estrutura por trás da iGreen Energy é pública e está publicada pelas próprias companhias, em documentos auditados:</p>
+      <ol>
+        <li>A <strong>Comerc Participações</strong> declarou a aquisição de 50% da iGreen Energy no seu release de resultados do 4º trimestre de 2022. <a href="https://ri.comerc.com.br/central-de-resultados-2/" target="_blank" rel="noopener" data-ev="prova_comerc">Ver os resultados da Comerc</a></li>
+        <li>Em janeiro de 2025, a <strong>Vibra Energia</strong> concluiu a aquisição integral da Comerc. A Vibra é empresa de capital aberto, listada na B3 sob o código VBBR3. <a href="https://ri.vibraenergia.com.br" target="_blank" rel="noopener" data-ev="prova_vibra">Ver relações com investidores da Vibra</a></li>
+      </ol>
+      <p class="note">Nenhum documento prova que uma oportunidade é boa para você — essa avaliação continua sendo sua. Mas a estrutura é verificável e não depende da palavra de quem está te convidando.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONVERSA -->
+<section id="conversa">
+  <div class="wrap form-wrap">
+    <div>
+      <p class="eyebrow">Próximo passo</p>
+      <h2>Vamos ver se faz sentido para você.</h2>
+      <div class="prose" style="margin-top:1.3rem">
+        <p>Leva menos de um minuto. Eu recebo as suas respostas e te chamo no WhatsApp com o <strong>material oficial</strong>: modelos, valores e regras vigentes da Conexão Mob.</p>
+        <p>Se não fizer sentido para o seu momento, eu também te digo.</p>
+      </div>
+    </div>
+
+    <form class="form" id="form" novalidate>
+      <div id="form-campos" style="display:flex;flex-direction:column;gap:1.15rem">
+        <div class="row2">
+          <div class="field"><label for="f-nome">Nome</label><input id="f-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required maxlength="120"></div>
+          <div class="field"><label for="f-zap">WhatsApp</label><input id="f-zap" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" required maxlength="40"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="f-email">E-mail <small>(opcional)</small></label><input id="f-email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" maxlength="160"></div>
+          <div class="row2 row2--uf">
+            <div class="field"><label for="f-cidade">Cidade</label><input id="f-cidade" name="cidade" type="text" autocomplete="address-level2" placeholder="Sua cidade" maxlength="80"></div>
+            <div class="field"><label for="f-uf">UF</label>
+              <select id="f-uf" name="uf" autocomplete="address-level1">
+                <option value="">—</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>O que você faz hoje?</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="atuacao" value="Integrador de energia solar"><span>Integrador solar</span></label>
+            <label class="chip"><input type="radio" name="atuacao" value="Instalador ou eletricista"><span>Instalador ou eletricista</span></label>
+            <label class="chip"><input type="radio" name="atuacao" value="Manutenção de sistemas elétricos"><span>Manutenção</span></label>
+            <label class="chip"><input type="radio" name="atuacao" value="Engenharia ou projetos"><span>Engenharia ou projetos</span></label>
+            <label class="chip"><input type="radio" name="atuacao" value="Outra atividade"><span>Outra atividade</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Quantos clientes você já atendeu?</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="carteira" value="Até 50 clientes"><span>Até 50</span></label>
+            <label class="chip"><input type="radio" name="carteira" value="De 50 a 200 clientes"><span>50 a 200</span></label>
+            <label class="chip"><input type="radio" name="carteira" value="Mais de 200 clientes"><span>Mais de 200</span></label>
+            <label class="chip"><input type="radio" name="carteira" value="Estou começando"><span>Estou começando</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>O que mais te interessa?</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="interesse" value="Vender eletropostos"><span>Vender eletropostos</span></label>
+            <label class="chip"><input type="radio" name="interesse" value="Instalar eletropostos"><span>Instalar eletropostos</span></label>
+            <label class="chip"><input type="radio" name="interesse" value="Montar carteira recorrente"><span>Carteira recorrente</span></label>
+            <label class="chip"><input type="radio" name="interesse" value="Quero entender tudo"><span>Quero entender tudo</span></label>
+          </div>
+        </fieldset>
+
+        <div class="hp" aria-hidden="true"><label for="f-site">Site</label><input id="f-site" name="site" type="text" tabindex="-1" autocomplete="off"></div>
+
+        <p class="form__erro" id="form-erro" role="alert"></p>
+        <button class="btn btn--primary btn--block" type="submit" id="form-go">Enviar e falar com o Jimmy</button>
+        <p class="form__nota">Ao enviar, você autoriza o contato e o tratamento dos seus dados para essa finalidade, conforme a <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>. Sem spam e sem lista de transmissão.</p>
+      </div>
+
+      <div class="ok" id="form-ok" hidden>
+        <p class="eyebrow" style="margin-bottom:0">Recebido</p>
+        <h3 id="ok-titulo">Pronto. Agora é só me chamar.</h3>
+        <p>Suas respostas já chegaram para mim. Toque no botão abaixo para abrir a conversa no WhatsApp — a mensagem já vai pronta.</p>
+        <a class="btn btn--primary btn--block" id="ok-wa" href="#" target="_blank" rel="noopener" data-ev="whatsapp_pos_form">Abrir conversa no WhatsApp</a>
+        <p class="form__nota">Prefere esperar? Eu te chamo no número informado.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- PERGUNTAS -->
+<section id="perguntas">
+  <div class="wrap" style="max-width:900px">
+    <div class="head">
+      <p class="eyebrow">Perguntas frequentes</p>
+      <h2>O que todo integrador pergunta primeiro.</h2>
+    </div>
+    <div class="faq">
+<details><summary>Preciso parar a minha integradora?</summary><div>Não. A ideia é justamente o contrário: oferecer eletroposto, energia e seguro para a carteira que você já tem, sem parar nenhuma obra. Com o tempo, você decide quanto da sua atuação quer concentrar na carteira recorrente.</div></details>
+<details><summary>Preciso comprar um eletroposto para participar?</summary><div>Não. Você pode conectar quem vai comprar o eletroposto e conectar motoristas à iGreen sem ter máquina própria. Se quiser ter o seu, também pode — e existe uma condição específica para licenciados cadastrados até o lançamento. Explico na conversa.</div></details>
+<details><summary>O que exatamente eu vendo?</summary><div>A <strong>Licença Mob</strong>, que é o eletroposto completo — equipamento, instalação, pintura e Licença iGreen —, para quem quer instalar um ponto de recarga. Além dela, todo o ecossistema da iGreen: energia por assinatura, mercado livre de energia, seguro de carro e moto e telefonia.</div></details>
+<details><summary>Quanto custa para começar?</summary><div>Para atuar como licenciado, a licença Connect custa <strong>R$ 1.997 à vista, ou 12 parcelas de R$ 197,41 no cartão</strong>. Ela dá acesso a energia, telecom e seguros.<br><br>A Licença Mob — o eletroposto em si — é outro produto, comprado por quem vai operar o ponto. Os valores de cada modelo são definidos e divulgados pela iGreen Energy.<br><br>Valores, formas de pagamento e o que está incluso podem mudar. Confirmo as condições vigentes na nossa conversa.</div></details>
+<details><summary>Quanto dá para ganhar?</summary><div>Não existe salário, piso nem renda garantida. A remuneração vem de clientes reais pagando por serviços que usam — recargas, contas de energia, seguros, planos de telefonia — conforme as regras vigentes da iGreen Energy, que incluem percentuais e critérios específicos por produto. Esses números podem mudar, e eu os apresento com o material oficial na nossa conversa.</div></details>
+<details><summary>O motorista que eu trouxer fica comigo?</summary><div>Sim. Quem já é cliente iGreen continua com o licenciado que o conectou à primeira solução, mesmo quando recarrega no eletroposto de outra pessoa. É essa regra que protege a carteira que você constrói.</div></details>
+<details><summary>Sou instalador. Posso fazer as instalações dos eletropostos?</summary><div>A iGreen está abrindo espaço para que licenciados que já trabalham com instalação se candidatem às instalações. Os critérios técnicos e comerciais são definidos pela empresa e apresentados na conversa.</div></details>
+<details><summary>Quando começa?</summary><div>O lançamento oficial da Conexão Mob é em <strong>20 de outubro de 2026, às 20h</strong>. Quem entende o modelo antes chega ao lançamento preparado para conversar com os próprios clientes.</div></details>
+<details><summary>Isso é pirâmide?</summary><div>Não. A remuneração vem de clientes finais pagando por serviços que usam: a recarga do carro, a conta de luz, o seguro, o plano de celular. Não é a entrada de pessoas. Escrevi uma resposta completa, com os documentos públicos de quem está por trás da empresa, em <a href="https://anovaprofissao.com.br/#piramide" target="_blank" rel="noopener">anovaprofissao.com.br</a>.</div></details>
+<details><summary>Preciso abrir empresa?</summary><div>Depende do seu caso e do volume da sua atuação. Se você já tem uma integradora, muitas vezes a estrutura existente resolve. É um ponto que vale conversar considerando a sua situação específica.</div></details>
+    </div>
+    <p class="note faq-note">Condições comerciais, valores, percentuais e regras de produtos são definidos pela iGreen Energy e podem ser alterados a qualquer momento. As informações desta página têm caráter informativo e não substituem os materiais e contratos oficiais vigentes.</p>
+  </div>
+</section>
+
+<!-- FECHAMENTO -->
+<section class="closing">
+  <div class="wrap">
+    <h2>Você já entende de energia. Falta só a recorrência.</h2>
+    <p class="lede">Me conta em um minuto o que você faz hoje. Eu te mostro o material oficial e você decide com calma.</p>
+    <div class="btn-row">
+      <a class="btn btn--primary" href="#conversa" data-ev="closing_cta">Quero conversar</a>
+      <a class="btn btn--ghost" href="#perguntas" data-ev="closing_faq">Ver as perguntas</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot__grid">
+      <div>
+        <span class="brand" style="font-size:1.05rem">Quero vender <em>carregador</em></span>
+        <p style="color:var(--muted);font-size:.9rem;margin-top:.9rem;max-width:40ch">Uma apresentação da Conexão Mob e do modelo de licenciamento da iGreen Energy para quem já trabalha com energia.</p>
+      </div>
+      <div>
+        <p class="foot__h">Nesta página</p>
+        <div class="foot__links">
+          <a href="#mob">Conexão Mob</a>
+          <a href="#papel">Onde você entra</a>
+          <a href="#apresentacao">Apresentação</a>
+          <a href="#perguntas">Perguntas frequentes</a>
+        </div>
+      </div>
+      <div>
+        <p class="foot__h">Contato e termos</p>
+        <div class="foot__links">
+          <a href="https://anovaprofissao.com.br" target="_blank" rel="noopener" data-ev="rodape_anovaprofissao">A Nova Profissão</a>
+          <a href="https://youtube.com/@jimmyfenner" target="_blank" rel="noopener" data-ev="youtube_rodape">YouTube</a>
+          <a href="https://instagram.com/minerandoosol" target="_blank" rel="noopener" data-ev="instagram_rodape">Instagram</a>
+          <a href="/privacidade" data-ev="footer_privacy">Política de Privacidade</a>
+          <a href="/termos" data-ev="footer_terms">Termos de Uso</a>
+          <a href="/aviso-legal" data-ev="footer_legal">Aviso Legal</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <p><b>Site independente.</b> Esta página é mantida por Jimmy Fenner, licenciado independente da iGreen Energy. Não é o site oficial da iGreen Energy e não representa a empresa. Marcas e nomes de produtos citados pertencem aos seus respectivos titulares.</p>
+      <p><b>Resultados.</b> Não existe garantia de renda. Os resultados dependem de desempenho individual, dedicação, mercado, produtos comercializados, regras comerciais vigentes e demais circunstâncias aplicáveis. Nenhuma informação desta página constitui promessa, projeção ou garantia de remuneração.</p>
+      <p><b>Conexão Mob.</b> Modelos, capacidades e regras descritos com base no material de lançamento da iGreen Energy. Valores de licença, percentuais de comissão, elegibilidade e demais condições são definidos pela empresa e podem ser alterados a qualquer momento, sem aviso prévio.</p>
+      <p style="padding-top:.4rem">© <span id="yr">2026</span> Jimmy Fenner · Balneário Camboriú, SC</p>
+    </div>
+  </div>
+</footer>
+
+<a class="float" id="float-wa" href="#" target="_blank" rel="noopener" data-ev="whatsapp_click" aria-label="Falar com Jimmy no WhatsApp">
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.85 9.85 0 0012.04 2zm0 18.15h-.01a8.2 8.2 0 01-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 01-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 012.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.230-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.16.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03s.87 2.35.99 2.51c.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.44-.59 1.640-1.16.2-.57.2-1.05.14-1.16-.06-.1-.22-.16-.47-.28z"/></svg>
+  <span>Falar com Jimmy</span>
+</a>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====== CONFIGURAÇÃO ====== */
+  var WHATSAPP = "5548991067007";   // mesmo número que recebe os leads da home
+  var NOME     = "Jimmy";
+  var LANCAMENTO = new Date("2026-10-20T20:00:00-03:00");
+  // Mesmo banco de leads da home. A chave anon é pública por natureza: quem
+  // protege os dados é a RLS, que só deixa o site GRAVAR, nunca ler.
+  var SUPABASE_URL = "https://buapklmgdjcoyzrmhhcd.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
+  // Conversão do Google Ads (Ferramentas > Conversões). Vazio = nada da Google carrega.
+  var GADS_ID    = "";   // ex.: "AW-123456789"
+  var GADS_LABEL = "";   // ex.: "AbCdEfGhIjKlMnOp"
+  /* ========================== */
+
+  var $  = function(s,c){return (c||document).querySelector(s)};
+  var $$ = function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s))};
+
+  // Só grava no banco a partir dos domínios reais. Em prévia (Artifact, arquivo
+  // local) o formulário funciona de ponta a ponta, mas não cria lead de verdade.
+  var REAL = /(^|\.)(querovendercarregador\.com\.br|anovaprofissao\.com\.br)$|\.vercel\.app$/.test(location.hostname);
+
+  $("#yr").textContent = new Date().getFullYear();
+
+  /* ---- selo do lançamento: muda sozinho depois do dia 20 ---- */
+  if(Date.now() >= LANCAMENTO.getTime()){
+    $("#selo").textContent = "Conexão Mob · lançada em 20/10/2026";
+  }
+
+  /* ---- origem / UTM ---- */
+  var origem = {};
+  try{ var s = sessionStorage.getItem("qvc_origem"); if(s) origem = JSON.parse(s); }catch(e){}
+  (function(){
+    var p = new URLSearchParams(location.search), got = false;
+    ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(function(k){
+      if(p.get(k)){ origem[k] = p.get(k); got = true; }
+    });
+    // gclid = clique de anúncio do Google; sem utm, marca a origem assim mesmo
+    if(p.get("gclid") && !origem.utm_source){ origem.utm_source = "google"; origem.utm_medium = "cpc"; got = true; }
+    if(!origem.landing){ origem.landing = (location.hostname.replace(/^www\./,"") + location.pathname).slice(0,300); got = true; }
+    if(!origem.referrer){ origem.referrer = document.referrer || "direto"; got = true; }
+    if(!origem.device){ origem.device = matchMedia("(max-width:760px)").matches ? "mobile" : "desktop"; got = true; }
+    if(got){ try{ sessionStorage.setItem("qvc_origem", JSON.stringify(origem)); }catch(e){} }
+  })();
+
+  function post(tabela, dados){
+    return fetch(SUPABASE_URL + "/rest/v1/" + tabela, {
+      method: "POST", keepalive: true,
+      headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY,
+                "Content-Type": "application/json", "Prefer": "return=minimal"},
+      body: JSON.stringify(dados)
+    });
+  }
+
+  /* ---- contador de visitas (mesma tabela e mesmas regras da home) ---- */
+  (function(){
+    try{
+      if(!REAL) return;
+      if(/[?&]naocontar=1/.test(location.search)) localStorage.setItem("anp_admin","1");
+      if(localStorage.getItem("anp_admin")) return;
+      if(navigator.webdriver || /bot|crawl|spider|slurp|preview|lighthouse|headless|adsbot|mediapartners/i.test(navigator.userAgent)) return;
+      if(sessionStorage.getItem("qvc_visita")) return;
+      sessionStorage.setItem("qvc_visita","1");
+      var vid = localStorage.getItem("anp_vid");
+      if(!vid){
+        vid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+            : Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+        localStorage.setItem("anp_vid", vid);
+      }
+      var ref = null;
+      if(document.referrer){
+        var h = new URL(document.referrer).hostname.replace(/^(www|m|l|lm|web)\./, "");
+        if(h && h !== location.hostname.replace(/^www\./, "")) ref = h.slice(0, 200);
+      }
+      post("visitas", {
+        vid: vid, landing: origem.landing, referrer: ref,
+        utm_source: origem.utm_source || null, utm_medium: origem.utm_medium || null,
+        utm_campaign: origem.utm_campaign || null, device: origem.device || null
+      }).catch(function(){});
+    }catch(e){}
+  })();
+
+  /* ---- medição: Meta Pixel (ID vem do painel) e Google Ads (constante acima) ---- */
+  var EVENTO_META = { form_inicio: "ViewContent", lead_integrador: "Lead" };
+
+  function carregarPixel(id){
+    if(!id || window.fbq) return;
+    /* eslint-disable */
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    /* eslint-enable */
+    window.fbq("init", id);
+    window.fbq("track", "PageView");
+  }
+
+  function carregarGoogleAds(){
+    if(!GADS_ID || window.gtag) return;
+    var sc = document.createElement("script");
+    sc.async = true;
+    sc.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GADS_ID);
+    document.head.appendChild(sc);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    window.gtag("js", new Date());
+    window.gtag("config", GADS_ID);
+  }
+  if(REAL) carregarGoogleAds();
+
+  function track(name, params){
+    var payload = Object.assign({event:name}, origem, params||{});
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(payload);
+    if(typeof window.fbq === "function"){
+      window.fbq("trackCustom", name, payload);
+      if(EVENTO_META[name]) window.fbq("track", EVENTO_META[name]);
+    }
+  }
+  document.addEventListener("click", function(e){
+    var el = e.target.closest("[data-ev]");
+    if(el) track(el.getAttribute("data-ev"));
+  });
+
+  if(REAL){
+    fetch(SUPABASE_URL + "/rest/v1/site_config?select=chave,valor", {
+      headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY}
+    }).then(function(r){ return r.ok ? r.json() : null; }).then(function(cfg){
+      (cfg || []).forEach(function(c){
+        if(c.chave === "meta_pixel" && c.valor) carregarPixel(String(c.valor).replace(/\D/g, ""));
+      });
+    }).catch(function(){});
+  }
+
+  /* ---- WhatsApp ---- */
+  function waLink(msg){ return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg); }
+  // o botão flutuante não passa pelo formulário: a origem viaja no próprio texto
+  function rastro(){
+    var campanha = [origem.utm_source, origem.utm_medium, origem.utm_campaign].filter(Boolean).join(" / ");
+    var de = campanha || (origem.referrer && origem.referrer !== "direto" ? origem.referrer : "acesso direto");
+    return "\n\n— vim de: " + de + " · " + (origem.landing || "/") + " · " + (origem.device || "");
+  }
+  $("#float-wa").href = waLink("Olá " + NOME + "! Sou da área de energia, vi a página Quero Vender Carregador e quero entender a Conexão Mob." + rastro());
+
+  /* ---- vídeo: miniatura primeiro, o player só carrega no clique ---- */
+  var vid = $("#vid");
+  vid.style.backgroundImage = "url(https://i.ytimg.com/vi/" + vid.getAttribute("data-yt") + "/maxresdefault.jpg)";
+  vid.addEventListener("click", function(){
+    if(vid.querySelector("iframe")) return;
+    var f = document.createElement("iframe");
+    f.src = "https://www.youtube-nocookie.com/embed/" + vid.getAttribute("data-yt") + "?autoplay=1&rel=0&modestbranding=1";
+    f.title = "Apresentação para integradores";
+    f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    f.allowFullscreen = true;
+    vid.appendChild(f);
+  });
+
+  /* ---- formulário ---- */
+  var form = $("#form"), erro = $("#form-erro"), go = $("#form-go"), iniciou = false;
+
+  form.addEventListener("input", function(){
+    if(!iniciou){ iniciou = true; track("form_inicio"); }
+    erro.textContent = "";
+  });
+
+  function radio(nome){ var el = form.querySelector('input[name="'+nome+'"]:checked'); return el ? el.value : null; }
+  function txt(id){ return ($(id).value || "").trim(); }
+
+  function mensagem(L){
+    return "Olá " + NOME + "! Vim pela página Quero Vender Carregador.\n\n" +
+      "Nome: " + L.nome + "\n" +
+      (L.cidade ? "Cidade: " + L.cidade + (L.uf ? "/" + L.uf : "") + "\n" : "") +
+      (L.experiencia ? "Atuação: " + L.experiencia + "\n" : "") +
+      (L.perfil ? "Clientes atendidos: " + L.perfil + "\n" : "") +
+      (L.objetivo ? "Interesse: " + L.objetivo + "\n" : "") +
+      "\nQuero entender a Conexão Mob para integradores.";
+  }
+
+  function gravar(L){
+    try{ localStorage.setItem("qvc_ultimo_lead", JSON.stringify(L)); }catch(e){}
+    if(!REAL){ console.info("[prévia] lead não gravado:", L); return Promise.resolve(true); }
+    return post("leads", L).then(function(r){
+      if(r.ok) return true;
+      // Se a migração 10 (tipo 'integrador') ainda não rodou, o banco recusa o
+      // tipo. Grava de novo sem ele para o lead nunca se perder: a origem
+      // continua identificada por landing e solucao.
+      return r.text().then(function(t){
+        if(/tipo|check/i.test(t)){
+          var semTipo = Object.assign({}, L); delete semTipo.tipo;
+          return post("leads", semTipo).then(function(r2){ return r2.ok; });
+        }
+        console.error("lead não gravado:", r.status, t);
+        return false;
+      });
+    }).then(function(ok){
+      if(ok){ try{ localStorage.removeItem("qvc_ultimo_lead"); }catch(e){} }
+      return ok;
+    }).catch(function(e){ console.error("lead não gravado:", e); return false; });
+  }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    if(txt("#f-site")) return;   // robô preencheu o campo escondido
+
+    var nome = txt("#f-nome"), zap = txt("#f-zap"), d = zap.replace(/\D/g, "");
+    if(nome.length < 2){ erro.textContent = "Me diz o seu nome."; $("#f-nome").focus(); return; }
+    if(d.length < 10 || d.length > 13){ erro.textContent = "Confere o WhatsApp com DDD — é por ele que eu te chamo."; $("#f-zap").focus(); return; }
+    var email = txt("#f-email");
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ erro.textContent = "Esse e-mail parece incompleto. Pode deixar em branco, se preferir."; $("#f-email").focus(); return; }
+
+    var L = {
+      tipo: "integrador",
+      nome: nome.slice(0,120),
+      whatsapp: zap.slice(0,40),
+      whatsapp_e164: d.indexOf("55") === 0 && d.length >= 12 ? d : "55" + d,
+      email: email || null,
+      cidade: txt("#f-cidade") || null,
+      uf: $("#f-uf").value || null,
+      experiencia: radio("atuacao"),
+      perfil: radio("carteira"),
+      objetivo: radio("interesse"),
+      solucao: "Eletroposto (Conexão Mob) — página de integradores",
+      utm_source: origem.utm_source || null,
+      utm_medium: origem.utm_medium || null,
+      utm_campaign: origem.utm_campaign || null,
+      utm_content: origem.utm_content || null,
+      utm_term: origem.utm_term || null,
+      landing: origem.landing || null,
+      referrer: origem.referrer || null,
+      device: origem.device || null
+    };
+
+    go.disabled = true; go.textContent = "Enviando…";
+    gravar(L).then(function(ok){
+      track("lead_integrador", {gravado: ok});
+      if(ok && REAL && GADS_ID && GADS_LABEL && typeof window.gtag === "function"){
+        window.gtag("event", "conversion", {send_to: GADS_ID + "/" + GADS_LABEL});
+      }
+      $("#ok-wa").href = waLink(mensagem(L));
+      if(!ok){
+        $("#ok-titulo").textContent = "Quase lá: me chama no WhatsApp.";
+      }
+      $("#form-campos").hidden = true;
+      $("#form-ok").hidden = false;
+      $("#form-ok").scrollIntoView({behavior: "smooth", block: "center"});
+    });
+  });
+})();
+</script>

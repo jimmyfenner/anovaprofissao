@@ -50,7 +50,7 @@ const limpa = s => s.replace(/<[^>]+>/g, '')
   .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
   .replace(/\s+/g, ' ').trim();
 
-function schemas(html) {
+function schemas(html, comSite = true) {
   const pessoa = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -71,7 +71,7 @@ function schemas(html) {
     inLanguage: 'pt-BR',
     publisher: { '@type': 'Person', name: 'Jimmy Fenner' },
   };
-  return [site, pessoa, faqSchema(html)].filter(Boolean)
+  return [comSite && site, pessoa, faqSchema(html)].filter(Boolean)
     .map(s => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join('\n');
 }
 
@@ -87,7 +87,7 @@ function separaCabeca(src) {
   return { body: body.trimStart(), links: links.join('\n') };
 }
 
-function documento({ body, title, desc, canonical, noindex, links = '' }) {
+function documento({ body, title, desc, canonical, noindex, links = '', siteNome = SITE.nome, comSite = true }) {
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -102,7 +102,7 @@ ${noindex ? '<meta name="robots" content="noindex,nofollow">' : '<meta name="rob
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(FAVICON)}">
 ${links}
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="${SITE.nome}">
+<meta property="og:site_name" content="${siteNome}">
 <meta property="og:locale" content="${SITE.locale}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
@@ -112,7 +112,7 @@ ${links}
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${desc}">
 <meta name="twitter:image" content="${SITE.url}/og.png">
-${noindex ? '' : schemas(body)}
+${noindex ? '' : schemas(body, comSite)}
 <style>
   html{color-scheme:dark}
   body{margin:0}
@@ -210,6 +210,19 @@ fs.writeFileSync(out('admin', 'index.html'), documento({
   desc: 'Área restrita.', canonical: SITE.url + '/admin/', noindex: true,
 }));
 
+/* Página de integradores (eletropostos). Servida em /integradores e, pelo
+   rewrite por host do vercel.json, na raiz de querovendercarregador.com.br —
+   que é o endereço canônico, porque é o domínio que vai nos anúncios. */
+const QVC = 'https://querovendercarregador.com.br';
+const integ = separaCabeca(fs.readFileSync(path.join(__dirname, 'integradores.html'), 'utf8'));
+mkdir(out('integradores'));
+fs.writeFileSync(out('integradores', 'index.html'), documento({
+  body: integ.body, links: integ.links,
+  title: 'Quero Vender Carregador | Eletropostos iGreen para integradores',
+  desc: 'Para integradores, instaladores e eletricistas: conheça a Conexão Mob, a frente de eletropostos da iGreen Energy, e como ela se encaixa na carteira de quem já trabalha com energia.',
+  canonical: QVC + '/', siteNome: 'Quero Vender Carregador', comSite: false,
+}));
+
 LEGAIS.forEach(p => {
   mkdir(out(p.slug));
   fs.writeFileSync(out(p.slug, 'index.html'), documento({
@@ -239,6 +252,8 @@ const faq = faqSchema(home.body);
 const n = faq ? faq.mainEntity.length : 0;
 console.log('dist/index.html      ', (fs.statSync(out('index.html')).size / 1024).toFixed(0) + ' KB');
 console.log('dist/admin/index.html', (fs.statSync(out('admin', 'index.html')).size / 1024).toFixed(0) + ' KB');
+const faqInteg = faqSchema(integ.body);
+console.log('dist/integradores/index.html', (fs.statSync(out('integradores', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqInteg ? faqInteg.mainEntity.length : 0) + ' perguntas');
 LEGAIS.forEach(p => console.log('dist/' + p.slug + '/index.html'));
 console.log('dist/robots.txt, dist/sitemap.xml');
 console.log('FAQPage schema: ' + n + ' perguntas extraídas da própria página');

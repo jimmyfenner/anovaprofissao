@@ -175,6 +175,9 @@ Deno.serve(async (req) => {
       const ehTeste = acao === "teste";
       // quem veio pelo botão de cadastro direto já decidiu: o aviso é outro
       const ehDireto = L.tipo === "direto";
+      // página de integradores (querovendercarregador.com.br); o segundo teste
+      // cobre leads gravados antes da migração 10, que chegam sem o tipo
+      const ehInteg = L.tipo === "integrador" || /página de integradores/.test(L.solucao ?? "");
       const onde = `${L.cidade ?? "?"}/${L.uf ?? "?"}`;
 
       const corpoDireto = [
@@ -185,6 +188,18 @@ Deno.serve(async (req) => {
         "Essa pessoa nao fez o quiz: clicou para se cadastrar agora e foi",
         "levada ao cadastro oficial. Fale com ela hoje — provavelmente esta",
         "com o formulario da iGreen aberto neste momento.", "",
+        `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
+        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
+      ];
+
+      const corpoInteg = [
+        "🔌 *Integrador — eletropostos (Conexão Mob)*", "",
+        `*${L.nome ?? "?"}* — ${onde}`,
+        `WhatsApp: ${L.whatsapp ?? "?"}`,
+        L.email ? `E-mail: ${L.email}` : null, "",
+        `Atuação: ${L.experiencia ?? "—"}`,
+        `Clientes atendidos: ${L.perfil ?? "—"}`,
+        `Interesse: ${L.objetivo ?? "—"}`, "",
         `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
         L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];
@@ -216,12 +231,14 @@ Deno.serve(async (req) => {
       // null = linha opcional ausente; "" = linha em branco proposital (Boolean apagaria as duas)
       const texto = ehTeste
         ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
-        : (ehDireto ? corpoDireto : corpoQuiz).filter((l) => l !== null).join("\n");
+        : (ehDireto ? corpoDireto : ehInteg ? corpoInteg : corpoQuiz).filter((l) => l !== null).join("\n");
 
       const assunto = ehTeste
         ? "Teste de aviso — A Nova Profissao"
         : ehDireto
           ? `🔴 CADASTRO DIRETO: ${L.nome ?? "?"} foi para o cadastro agora`
+          : ehInteg
+            ? `🔌 Integrador (eletropostos): ${L.nome ?? "?"} — ${onde}`
           : semInvestir
             ? `Lead novo (sem investimento agora): ${L.nome ?? "?"} — ${onde}`
             : `Lead novo: ${L.nome ?? "?"} — ${onde}`;

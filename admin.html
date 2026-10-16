@@ -109,6 +109,7 @@ p{margin:0}
 .dl__edit:hover{border-color:var(--line)}
 .dl__edit:focus{outline:0;border-color:var(--credit);background:var(--surface)}
 .pill--direto{color:#04120B;border-color:#E0A83C;background:#E0A83C;font-weight:600}
+.pill--integ{color:#04120B;border-color:#34DB8B;background:#34DB8B;font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
 .src{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.28em .55em;white-space:nowrap}
@@ -598,6 +599,7 @@ function render(){
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
         (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
+        (ehInteg(l) ? '<span class="pill pill--integ">Integrador</span>' : '')+
         '<span class="src">'+esc(l.utm_source||"direto")+'</span>'+
         '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
         '<span class="lead__when">'+quando(l.criado_em)+'</span>'+
@@ -645,10 +647,14 @@ function render(){
   });
 }
 
+// lead da página de integradores; o segundo teste cobre os gravados antes da migração 10
+function ehInteg(l){ return l.tipo==="integrador" || /página de integradores/.test(l.solucao||""); }
+
 function detalhe(l){
   return '<div class="detail">'+
     '<dl class="dl">'+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
+      (ehInteg(l) ? linha("Veio por", "Página de integradores (querovendercarregador.com.br) — Atuação, Perfil e Objetivo abaixo são as respostas de lá") : "")+
       campo(l.id, "nome", "Nome", l.nome)+
       campo(l.id, "whatsapp", "WhatsApp", l.whatsapp)+
       campo(l.id, "email", "E-mail", l.email)+
@@ -676,7 +682,9 @@ function detalhe(l){
       '<div><h3>Anotações</h3>'+
         '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
       '<div class="acts">'+
-        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent(l.tipo==="direto"
+        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent(ehInteg(l)
+          ? "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy. Recebi suas respostas na página para integradores — posso te mostrar como a Conexão Mob se encaixa no seu trabalho?"
+          : l.tipo==="direto"
           ? "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você foi para o cadastro — estou aqui para te ajudar em qualquer passo."
           : "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
