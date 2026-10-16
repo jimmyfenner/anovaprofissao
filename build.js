@@ -197,8 +197,14 @@ ${miolo}
 mkdir(out());
 mkdir(out('admin'));
 
+/* A home NÃO fica em dist/index.html, de propósito. Na Vercel o arquivo
+   ganha dos rewrites: com index.html na raiz, o rewrite por host do
+   vercel.json nunca roda e querovendercarregador.com.br mostrava a home.
+   Sem arquivo em "/", o vercel.json decide: integradores no domínio deles,
+   /home (servida como "/") em todos os outros. /home direto redireciona. */
 const home = separaCabeca(fs.readFileSync(path.join(__dirname, 'home.html'), 'utf8'));
-fs.writeFileSync(out('index.html'), documento({
+mkdir(out('home'));
+fs.writeFileSync(out('home', 'index.html'), documento({
   body: home.body, links: home.links,
   title: SITE.title, desc: SITE.desc, canonical: SITE.url + '/',
 }));
@@ -250,7 +256,7 @@ ${LEGAIS.map(p => `  <url><loc>${SITE.url}/${p.slug}</loc><lastmod>${hoje}</last
 
 const faq = faqSchema(home.body);
 const n = faq ? faq.mainEntity.length : 0;
-console.log('dist/index.html      ', (fs.statSync(out('index.html')).size / 1024).toFixed(0) + ' KB');
+console.log('dist/home/index.html ', (fs.statSync(out('home', 'index.html')).size / 1024).toFixed(0) + ' KB');
 console.log('dist/admin/index.html', (fs.statSync(out('admin', 'index.html')).size / 1024).toFixed(0) + ' KB');
 const faqInteg = faqSchema(integ.body);
 console.log('dist/integradores/index.html', (fs.statSync(out('integradores', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqInteg ? faqInteg.mainEntity.length : 0) + ' perguntas');

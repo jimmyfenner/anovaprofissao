@@ -5,18 +5,59 @@
   "framework": null,
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
-    { "source": "/", "has": [{ "type": "host", "value": "querovendercarregador.com.br" }], "destination": "/integradores" },
-    { "source": "/", "has": [{ "type": "host", "value": "www.querovendercarregador.com.br" }], "destination": "/integradores" }
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/integradores"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/integradores"
+    },
+    {
+      "source": "/",
+      "destination": "/home"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
+        }
       ]
     }
   ]

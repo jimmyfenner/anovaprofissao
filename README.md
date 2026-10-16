@@ -4,7 +4,7 @@ Site estático. Sem framework, sem dependências.
 
 ```bash
 node build.js      # gera dist/
-npx serve dist     # olhar local
+npx serve dist     # olhar local: a home fica em /home (ver build.js)
 ```
 
 Deploy automático na Vercel a cada push na `main`.

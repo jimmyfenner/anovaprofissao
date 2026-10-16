@@ -506,7 +506,14 @@ Aparece também: lede do hero, opção do quiz (`solucao`), listas de
 Fonte `integradores.html` (mesmo formato da home: só o corpo, `<title>` e
 fontes no topo). O `build.js` publica em `dist/integradores/` e o
 `vercel.json` reescreve `/` para `/integradores` quando o host é
-`querovendercarregador.com.br` (com ou sem www). O canônico é esse domínio,
+`querovendercarregador.com.br` (com ou sem www). Para isso funcionar a home
+**não** pode existir como `dist/index.html`: na Vercel o arquivo tem
+precedência sobre os rewrites, e o domínio novo mostrava a home (aconteceu
+em 16/10/2026). O build gera a home em `dist/home/`, e o `vercel.json` faz
+`/` virar `/integradores` nesse host e `/home` nos demais; `/home` acessado
+direto redireciona para `/`. O DNS do domínio está na Cloudflare (A para
+216.198.79.1 e CNAME `www`, ambos sem proxy), verificado na Vercel por TXT
+`_vercel`, porque o domínio já tinha sido ligado a outra conta Vercel. O canônico é esse domínio,
 porque é o que vai nos anúncios do Google; `anovaprofissao.com.br/integradores`
 continua funcionando como espelho.
 
