@@ -853,11 +853,13 @@ function carregarVisitas(){
         new Date(d.total.desde).toLocaleDateString("pt-BR")+"): "+n(d.total.visitantes)+" visitantes, "+n(d.total.visitas)+" visitas.";
     }
 
+    // fatia pequena não pode virar "0%": 15 de 3.882 ainda é gente de verdade
+    var pct = function(v, t){ var p = 100*v/t; return p > 0 && p < 1 ? "<1%" : Math.round(p)+"%"; };
     var lista = function(arr, chave, rotulo){
       var tot = arr.reduce(function(a,x){ return a + x.visitas; }, 0);
       return arr.length ? arr.map(function(x){
         return '<div class="ext"><span>'+esc(rotulo(x[chave]))+'</span><b>'+n(x.visitas)+'</b>'+
-               '<small>'+Math.round(100*x.visitas/tot)+'%</small></div>';
+               '<small>'+pct(x.visitas, tot)+'</small></div>';
       }).join("") : '<p class="sub">Nenhuma visita registrada ainda.</p>';
     };
     $("#v-origens").innerHTML = lista(d.origens || [], "origem", function(o){ return o === "direto" ? "Acesso direto ou link sem origem" : o; });
