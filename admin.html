@@ -164,6 +164,9 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
 /* visitas */
 .vis{margin-block:clamp(1.5rem,3vw,2.2rem)}
 .vis .stats{margin-top:0}
+.vis__fil{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.vis__fil label{font-family:var(--mono);font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim)}
+.vis__fil select{flex:1;max-width:420px;min-width:0}
 .graf{display:flex;align-items:flex-end;gap:3px;height:180px;padding-top:1.4rem;border-bottom:1px solid var(--line)}
 .graf__b{flex:1;min-width:0;position:relative;height:100%;display:flex;align-items:flex-end;cursor:default}
 .graf__b i{display:block;width:100%;background:var(--credit-dim);border-radius:2px 2px 0 0;min-height:1px}
@@ -291,6 +294,14 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <div class="list" id="lista"></div>
 
     <div class="vis hidden" id="tela-vis">
+      <div class="vis__fil">
+        <label for="v-pag">Página</label>
+        <select class="inp" id="v-pag">
+          <option value="">Todas as páginas</option>
+          <option value="home">A Nova Profissão (anovaprofissao.com.br)</option>
+          <option value="integradores">Integradores (querovendercarregador.com.br)</option>
+        </select>
+      </div>
       <dl class="stats">
         <div class="stat stat--hi"><dt>Visitantes hoje</dt><dd id="v-hoje">—</dd></div>
         <div class="stat"><dt>Últimos 7 dias</dt><dd id="v-d7">—</dd></div>
@@ -309,6 +320,11 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
           <h2>De onde vieram</h2>
           <p class="sub">Visitas dos últimos 30 dias. Campanha marcada com utm_source aparece pelo nome; o resto, pelo site que mandou a pessoa.</p>
           <div id="v-origens"></div>
+        </div>
+        <div class="box">
+          <h2>Por página</h2>
+          <p class="sub">Visitas dos últimos 30 dias em cada página, sempre as duas juntas para comparar — o filtro acima não muda este quadro.</p>
+          <div id="v-paginas"></div>
         </div>
         <div class="box">
           <h2>Aparelho</h2>
@@ -793,18 +809,22 @@ function mostrar(v){
 $("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
 $("#btn-cont").addEventListener("click", function(){ mostrar(vista === "cont" ? "leads" : "cont"); });
 $("#btn-vis").addEventListener("click",  function(){ mostrar(vista === "vis"  ? "leads" : "vis"); });
+$("#v-pag").addEventListener("change", carregarVisitas);
 
 /* ================= VISITAS ================= */
-// a soma é feita no banco (função resumo_visitas, db/09-visitas.sql): o painel
+// a soma é feita no banco (função resumo_visitas, db/09 e db/11): o painel
 // recebe só os totais, não as linhas — não importa quantas visitas existam
 function carregarVisitas(){
   var msg = function(t){ $("#v-msg").innerHTML = t ? '<p class="aviso aviso--erro" style="margin-bottom:1.2rem">'+esc(t)+'</p>' : ""; };
   if(DEMO){ msg("Indisponível em modo demonstração."); return; }
   msg("");
-  sb.rpc("resumo_visitas").then(function(r){
+  // sem filtro a chamada vai sem argumento, e funciona antes e depois do SQL 11
+  var pag = $("#v-pag").value;
+  sb.rpc("resumo_visitas", pag ? {pagina: pag} : {}).then(function(r){
     if(r.error){
       msg(/resumo_visitas|function|schema cache/i.test(r.error.message)
-        ? "Falta rodar o SQL db/09-visitas.sql no Supabase."
+        ? (pag ? "Para separar por página, falta rodar o SQL db/11-visitas-por-pagina.sql no Supabase."
+               : "Falta rodar o SQL db/09-visitas.sql no Supabase.")
         : r.error.message);
       return;
     }
@@ -841,6 +861,10 @@ function carregarVisitas(){
       }).join("") : '<p class="sub">Nenhuma visita registrada ainda.</p>';
     };
     $("#v-origens").innerHTML = lista(d.origens || [], "origem", function(o){ return o === "direto" ? "Acesso direto ou link sem origem" : o; });
+    var NOME_PAG = {home: "A Nova Profissão", integradores: "Integradores (querovendercarregador)"};
+    $("#v-paginas").innerHTML = d.paginas
+      ? lista(d.paginas, "pagina", function(o){ return NOME_PAG[o] || o; })
+      : '<p class="sub">Disponível depois de rodar o SQL db/11-visitas-por-pagina.sql.</p>';
     $("#v-disp").innerHTML    = lista(d.dispositivos || [], "device", function(o){ return o === "mobile" ? "Celular" : o === "desktop" ? "Computador" : "Não identificado"; });
   });
 }

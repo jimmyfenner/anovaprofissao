@@ -351,6 +351,16 @@ e abrir o site com `?naocontar=1` faz o mesmo (serve para o celular dele).
 A Política de Privacidade (item 8) descreve essa contagem. Se mudar o que é
 gravado, ela muda junto, e `ATUALIZADO` no build.js também.
 
+**Por página** (migração `db/11-visitas-por-pagina.sql`, out/2026): a mesma
+tabela recebe a home e a página de integradores. `visita_pagina(landing)`
+classifica (`integradores` se o landing tem querovendercarregador ou
+`/integradores`, senão `home`) e `resumo_visitas(pagina)` aceita `null`, `home`
+ou `integradores` — o filtro vale para números, gráfico, origens, aparelhos e
+conversão (leads de integrador contra os demais). O quadro `paginas` vem
+sempre com as duas, para comparar. A versão sem parâmetro foi removida: com as
+duas, a chamada sem argumento ficaria ambígua. O `anp_admin` é por domínio:
+no querovendercarregador é preciso abrir `?naocontar=1` lá também.
+
 ---
 
 # Estado atual e pendências (atualizado em 30/set/2026)
@@ -384,7 +394,9 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 07 e 08 foram aplicadas em 30/set/2026 (e a Edge Function
+Nenhuma. 10 (tipo integrador) e 11 (visitas por página) aplicadas em
+17/out/2026, junto com o deploy da Edge Function com `corpoInteg`, e testadas.
+07 e 08 foram aplicadas em 30/set/2026 (e a Edge Function
 `whatsapp` publicada no mesmo dia já com `investimento` e `momento`); 09
 (visitas) em 02/out/2026, testada de ponta a ponta: o site grava (201), anon
 é barrado na tabela e no resumo (401), e a visita de teste foi apagada.
@@ -397,13 +409,10 @@ Verificar antes de qualquer coisa:
 - **Leads de teste a apagar** no painel: Jonas, "Teste Claude (ignorar)",
   "Teste 2 (pode apagar)", "Teste Pixel Claude". Exclusão exige login
   (anon não tem DELETE — está correto assim).
-- **`link_grupo` vazio** — o convite para o canal de espera só aparece
-  quando o Jimmy colar o link no painel. Recomendação registrada: canal,
-  não grupo.
-- **E-mail de aviso não chegou** no teste de 30/set (o WhatsApp sim).
-  Diagnóstico pendente: ver a linha de canal `email` na aba Notificações
-  do painel. Suspeita principal: Resend em modo de teste (remetente
-  `onboarding@resend.dev` só entrega para o dono da conta Resend).
+- **Anúncios da Meta parados desde 14/10/2026** (as visitas caíram de
+  ~350/dia para ~3). E de 11 a 13/10 vieram ~1.000 visitas de anúncio e
+  nenhum lead — o quiz e a gravação foram testados e funcionam, então a
+  conversa é público/oferta, não técnica.
 - **Depoimentos reais** ainda não subiram — a seção segue vazia por regra.
 - **Proteção anti-spam** no endpoint público de escrita: adiada de
   propósito pelo Jimmy.
@@ -543,7 +552,7 @@ faz hoje, `perfil` = quantos clientes já atendeu, `objetivo` = interesse,
 migração ainda não rodou, o banco recusa o tipo e a página grava de novo sem
 ele; o painel e o aviso reconhecem esses leads pelo texto de `solucao`.
 O painel mostra o selo "Integrador"; a Edge Function `whatsapp` tem o aviso
-próprio (`corpoInteg`), que só vale depois do deploy da função.
+próprio (`corpoInteg`), publicado em 17/10/2026.
 
 A página só grava no banco a partir dos domínios reais (querovendercarregador,
 anovaprofissao, *.vercel.app). Em prévia local ou Artifact o formulário
