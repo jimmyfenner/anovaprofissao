@@ -556,5 +556,11 @@ próprio (`corpoInteg`), publicado em 17/10/2026.
 
 A página só grava no banco a partir dos domínios reais (querovendercarregador,
 anovaprofissao, *.vercel.app). Em prévia local ou Artifact o formulário
-funciona inteiro, mas não cria lead. Conversão do Google Ads: preencher
-`GADS_ID` e `GADS_LABEL` no script; vazio, nada da Google carrega.
+funciona inteiro, mas não cria lead. Conversão do Google Ads (conta
+210-448-8503, "Minerando o Sol"): ação **"Lead integrador
+(querovendercarregador)"**, categoria Enviar formulário de lead, primária,
+contagem "Uma", criada em 18/10/2026. Tag `AW-10947392047`, rótulo
+`mVgkCO79kKEdEK_kj-Qo` (com a letra O). Ficam em `GADS_ID`/`GADS_LABEL` no
+script; a tag só carrega nos domínios reais e a conversão só dispara depois que
+o banco confirma a gravação do lead. A Política de Privacidade (item 8) descreve
+a tag; `ATUALIZADO` foi para 18/10/2026.
