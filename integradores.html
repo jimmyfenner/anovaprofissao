@@ -829,7 +829,20 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 
   /* ---- vídeo: miniatura primeiro, o player só carrega no clique ---- */
   var vid = $("#vid");
-  vid.style.backgroundImage = "url(https://i.ytimg.com/vi/" + vid.getAttribute("data-yt") + "/maxresdefault.jpg)";
+  // Nem todo vídeo tem a capa em alta: quando falta, o YouTube devolve uma
+  // imagem cinza de 120×90 em vez de erro. Testa da maior para a menor e usa a
+  // primeira de verdade (hqdefault é 4:3 com faixas pretas, que o cover corta).
+  (function capa(qs){
+    if(!qs.length) return;
+    var url = "https://i.ytimg.com/vi/" + vid.getAttribute("data-yt") + "/" + qs[0] + ".jpg";
+    var im = new Image();
+    im.onload = function(){
+      if(im.naturalWidth > 120) vid.style.backgroundImage = "url(" + url + ")";
+      else capa(qs.slice(1));
+    };
+    im.onerror = function(){ capa(qs.slice(1)); };
+    im.src = url;
+  })(["maxresdefault", "sddefault", "hqdefault"]);
   vid.addEventListener("click", function(){
     if(vid.querySelector("iframe")) return;
     var f = document.createElement("iframe");
