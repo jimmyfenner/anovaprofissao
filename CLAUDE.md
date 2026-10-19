@@ -570,7 +570,9 @@ Fonte `transicao-energetica.html`, publicada em `dist/transicao-energetica/` e,
 pelo rewrite por host do `vercel.json`, na raiz de `transicaoenergetica.com.br`
 (canônico; o nome do domínio é o ativo). `anovaprofissao.com.br/transicao-energetica`
 é espelho e `/transicaoenergetica` redireciona para ele. Domínio na Vercel desde
-19/10/2026 (verificado sem TXT); DNS no Registro.br.
+19/10/2026 (verificado sem TXT). DNS na Cloudflare, como o querovendercarregador
+(A `@` → 216.198.79.1 e CNAME `www` → cname.vercel-dns.com, ambos sem proxy); a
+troca de servidores no Registro.br foi publicada no .br em 19/10/2026 às 17:31.
 
 Conteúdo: a transição em números, os quatro movimentos (fonte, quem gera, quem
 escolhe, o que consome), o cronograma da abertura do mercado, as perguntas do
