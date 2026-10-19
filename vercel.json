@@ -10,6 +10,11 @@
       "source": "/home",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/transicaoenergetica",
+      "destination": "/transicao-energetica",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -32,6 +37,26 @@
         }
       ],
       "destination": "/integradores"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "transicaoenergetica.com.br"
+        }
+      ],
+      "destination": "/transicao-energetica"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.transicaoenergetica.com.br"
+        }
+      ],
+      "destination": "/transicao-energetica"
     },
     {
       "source": "/",

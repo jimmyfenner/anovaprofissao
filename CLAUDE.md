@@ -394,7 +394,10 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 10 (tipo integrador) e 11 (visitas por página) aplicadas em
+- `db/12-visitas-transicao.sql` — terceira página no contador (ver a seção da
+  página da transição).
+
+10 (tipo integrador) e 11 (visitas por página) aplicadas em
 17/out/2026, junto com o deploy da Edge Function com `corpoInteg`, e testadas.
 07 e 08 foram aplicadas em 30/set/2026 (e a Edge Function
 `whatsapp` publicada no mesmo dia já com `investimento` e `momento`); 09
@@ -562,3 +565,43 @@ contagem "Uma", criada em 18/10/2026. Tag `AW-10947392047`, rótulo
 script; a tag só carrega nos domínios reais e a conversão só dispara depois que
 o banco confirma a gravação do lead. A Política de Privacidade (item 8) descreve
 a tag; `ATUALIZADO` foi para 18/10/2026.
+
+## Página "Transição energética" — transicaoenergetica.com.br (out/2026)
+
+Fonte `transicao-energetica.html`, publicada em `dist/transicao-energetica/` e,
+pelo rewrite por host do `vercel.json`, na raiz de `transicaoenergetica.com.br`
+(canônico; o nome do domínio é o ativo). `anovaprofissao.com.br/transicao-energetica`
+é espelho e `/transicaoenergetica` redireciona para ele. Domínio na Vercel desde
+19/10/2026 (verificado sem TXT); DNS no Registro.br.
+
+Conteúdo: a transição em números, os quatro movimentos (fonte, quem gera, quem
+escolhe, o que consome), o cronograma da abertura do mercado, as perguntas do
+consumidor, a **órbita das 5 frentes** (Conexão Green, Conexão Livre, Conexão
+Placas, Licença Mob = ter um eletroposto, Conexão Mob = vender eletropostos e
+conectar motoristas) e 3 cortes do **Carlos Evangelista** (fundador e
+ex-presidente da ABGD, licenciado iGreen, sócio da Vértice), usados com
+autorização. Não tem formulário: os botões levam à avaliação da home com
+`utm_source=transicaoenergetica`, e é por essa origem que o lead é atribuído à
+página no painel (`lead_pagina()`, migração `db/12-visitas-transicao.sql`).
+
+Regras específicas:
+
+- **Licença Mob sem retorno**: a página fala só da existência da solução.
+  Nenhuma estimativa de faturamento, payback ou rentabilidade (CVM: é
+  participação em SCP). Decisão do Jimmy em 19/10/2026.
+- **Números só em `dados/transicao.json`**, nunca no HTML. O build troca os
+  marcadores `{{id.campo}}` e monta a lista de fontes do rodapé; marcador sem
+  dado **trava o build**. Só fonte primária oficial (EPE, ANEEL, MME, CCEE,
+  Planalto, ABSOLAR, ABVE), arredondando só para baixo. Fonte que é empresa
+  concorrente (ex.: rede de recarga) não aparece nem como crédito.
+- **Revisão quinzenal automática** (tarefa agendada `revisar-dados-transicao`,
+  dias 1 e 16, 9h): pesquisa as fontes, atualiza o JSON quando houver dado
+  oficial mais novo, roda o build, publica e avisa o Jimmy.
+- **Datas oficiais da abertura**: 25/11/2027 (industriais e comerciais) e
+  25/11/2028 (demais consumidores), Decreto nº 13.097/2026, com base na Lei
+  nº 15.269/2025 (conversão da MP 1.304, não da 1.300). No corte 34 o Carlos
+  diz "15 de novembro": a página tem uma nota de correção embaixo do vídeo.
+  O corte 42 ("nunca vi setor crescer") ficou de fora por dizer "pessoas que
+  estão mudando a sua vida".
+- Vídeos em `media/transicao/` (720p, ~10 MB cada, capa .jpg), copiados para
+  `dist/media/` pelo build e tocados com `<video>` só no toque.

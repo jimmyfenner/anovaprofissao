@@ -306,6 +306,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
           <option value="">Todas as páginas</option>
           <option value="home">A Nova Profissão (anovaprofissao.com.br)</option>
           <option value="integradores">Integradores (querovendercarregador.com.br)</option>
+          <option value="transicao">Transição energética (transicaoenergetica.com.br)</option>
         </select>
       </div>
       <dl class="stats">
@@ -871,7 +872,7 @@ function carregarVisitas(){
       }).join("") : '<p class="sub">Nenhuma visita registrada ainda.</p>';
     };
     $("#v-origens").innerHTML = lista(d.origens || [], "origem", function(o){ return o === "direto" ? "Acesso direto ou link sem origem" : o; });
-    var NOME_PAG = {home: "A Nova Profissão", integradores: "Integradores (querovendercarregador)"};
+    var NOME_PAG = {home: "A Nova Profissão", integradores: "Integradores (querovendercarregador)", transicao: "Transição energética"};
     $("#v-paginas").innerHTML = d.paginas
       ? lista(d.paginas, "pagina", function(o){ return NOME_PAG[o] || o; })
       : '<p class="sub">Disponível depois de rodar o SQL db/11-visitas-por-pagina.sql.</p>';

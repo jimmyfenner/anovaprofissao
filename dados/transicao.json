@@ -1,0 +1,80 @@
+{
+  "_leia": "Números da página transicao-energetica.html. Só entram dados de fonte primária oficial (EPE, ANEEL, MME, CCEE, Planalto, ABSOLAR, ABVE), com url e referência. Arredondar só para baixo. Se um dado não for encontrado, manter o anterior. Os campos usados pela página são valor, rotulo, texto, faq, fonte, fonte_curta, ano e referencia; apagar ou renomear um deles trava o build de propósito.",
+  "atualizado_em": "2026-10-19",
+  "itens": {
+    "renovaveis_eletrica": {
+      "rotulo": "Eletricidade de fontes renováveis",
+      "valor": "86,8%",
+      "ano": "2025",
+      "texto": "da eletricidade ofertada no Brasil em 2025 veio de fontes renováveis.",
+      "fonte": "EPE · Balanço Energético Nacional 2026",
+      "fonte_curta": "EPE",
+      "referencia": "ano-base 2025",
+      "url": "https://www.epe.gov.br/pt/publicacoes-dados-abertos/publicacoes/balanco-energetico-nacional-2026"
+    },
+    "gd_potencia": {
+      "rotulo": "Potência em micro e minigeração distribuída",
+      "valor": "54,2 GW",
+      "fonte": "ANEEL · Painel de Geração Distribuída",
+      "referencia": "conexões até 31/08/2026",
+      "url": "https://www.gov.br/aneel/pt-br/centrais-de-conteudos/relatorios-e-indicadores/micro-e-minigeracao-distribuida"
+    },
+    "gd_unidades": {
+      "valor": "9,1 milhões",
+      "texto": "de unidades consumidoras já recebem créditos de geração distribuída (ANEEL, conexões até 31/08/2026).",
+      "fonte": "ANEEL · Painel de Geração Distribuída",
+      "referencia": "conexões até 31/08/2026",
+      "url": "https://www.gov.br/aneel/pt-br/centrais-de-conteudos/relatorios-e-indicadores/micro-e-minigeracao-distribuida"
+    },
+    "lei_gd": {
+      "valor": "Lei nº 14.300/2022",
+      "fonte": "Planalto · Lei nº 14.300/2022, marco legal da geração distribuída",
+      "referencia": "06/01/2022",
+      "url": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2022/lei/l14300.htm"
+    },
+    "ml_lei": {
+      "valor": "Lei nº 15.269/2025",
+      "texto": "criou o cronograma de abertura do mercado livre para a baixa tensão; o Decreto nº 13.097/2026 fixou as datas.",
+      "faq": "A abertura vem em etapas. Desde 1º de janeiro de 2024, todos os consumidores do Grupo A, atendidos em média e alta tensão, podem escolher o fornecedor (Portaria MME nº 50/2022). Para a baixa tensão, a Lei nº 15.269/2025 criou o cronograma e o Decreto nº 13.097/2026 fixou as datas: 25 de novembro de 2027 para consumidores industriais e comerciais e 25 de novembro de 2028 para os demais consumidores, o que inclui as residências. A efetivação depende da regulamentação da ANEEL prevista no próprio decreto.",
+      "fonte": "Planalto · Lei nº 15.269/2025",
+      "referencia": "24/11/2025",
+      "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15269.htm"
+    },
+    "ml_alta_tensao": {
+      "valor": "Desde jan/2024",
+      "texto": "Todo consumidor do Grupo A, atendido em média e alta tensão, pode escolher o fornecedor de energia.",
+      "fonte": "MME · Portaria Normativa nº 50/2022",
+      "referencia": "27/09/2022",
+      "url": "https://www.gov.br/mme/pt-br/acesso-a-informacao/legislacao/portarias/2022/portaria-normativa-n-50-gm-mme-2022.pdf"
+    },
+    "ml_comercio": {
+      "valor": "25/11/2027",
+      "texto": "Consumidores industriais e comerciais atendidos em baixa tensão poderão escolher o fornecedor.",
+      "fonte": "Planalto · Decreto nº 13.097/2026",
+      "referencia": "12/08/2026",
+      "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D13097.htm"
+    },
+    "ml_residencial": {
+      "rotulo": "Residências passam a poder escolher o fornecedor",
+      "valor": "25/11/2028",
+      "texto": "Os demais consumidores, o que inclui as residências, também poderão escolher de quem compram energia. A efetivação depende da regulamentação da ANEEL.",
+      "fonte": "Planalto · Decreto nº 13.097/2026",
+      "referencia": "12/08/2026",
+      "url": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D13097.htm"
+    },
+    "ve_vendas": {
+      "rotulo": "Veículos leves eletrificados vendidos em 2026 (jan–set)",
+      "valor": "381.609",
+      "fonte": "ABVE · vendas de veículos eletrificados",
+      "referencia": "jan–set/2026",
+      "url": "https://abve.org.br/eletrificados-leves-ultrapassam-a-marca-de-1-milhao-de-unidades-vendidas-no-brasil/"
+    },
+    "ve_pontos": {
+      "valor": "29.866",
+      "texto": "pontos de recarga públicos e semipúblicos no país em agosto de 2026.",
+      "fonte": "ABVE · base nacional de pontos de recarga",
+      "referencia": "ago/2026",
+      "url": "https://abve.org.br/recarga-rapida-dc-quase-triplica-em-12-meses-e-ja-responde-por-38-da-rede-brasileira/"
+    }
+  }
+}

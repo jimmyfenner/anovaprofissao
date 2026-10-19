@@ -20,7 +20,7 @@ const SITE = {
 
 /* Data de revisão dos textos jurídicos. É fixa de propósito: ela diz quando o
    texto mudou, não quando o site foi publicado. Atualize ao alterar legal/*. */
-const ATUALIZADO = '18 de outubro de 2026';
+const ATUALIZADO = '19 de outubro de 2026';
 
 const out = (...p) => path.join(__dirname, 'dist', ...p);
 const mkdir = d => fs.mkdirSync(d, { recursive: true });
@@ -46,7 +46,8 @@ function faqSchema(html) {
   }
   return itens.length ? { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: itens } : null;
 }
-const limpa = s => s.replace(/<[^>]+>/g, '')
+// <br> vira espaço antes de tirar as tags, senão "seguros.<br><br>A Licença" gruda
+const limpa = s => s.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')
   .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
   .replace(/\s+/g, ' ').trim();
 
@@ -229,6 +230,60 @@ fs.writeFileSync(out('integradores', 'index.html'), documento({
   canonical: QVC + '/', siteNome: 'Quero Vender Carregador', comSite: false,
 }));
 
+/* Página "Transição energética". Servida em /transicao-energetica e, pelo
+   rewrite por host do vercel.json, na raiz de transicaoenergetica.com.br — o
+   endereço canônico, porque o nome do domínio é o ativo.
+   Os números do setor vêm de dados/transicao.json: cada marcador {{id.campo}}
+   do HTML é trocado aqui, e {{fontes}} vira a lista de fontes do rodapé. Se
+   sobrar marcador sem dado, o build PARA — é a trava contra uma atualização
+   quinzenal que apague ou renomeie um campo e publique a página com buraco. */
+const TE = 'https://transicaoenergetica.com.br';
+const teDados = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'transicao.json'), 'utf8'));
+const dataBR = iso => iso.split('-').reverse().join('/');
+const escHtml = v => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function renderTransicao(src) {
+  const itens = teDados.itens;
+  const fontes = [];
+  const vistos = new Set();
+  Object.values(itens).forEach(d => {
+    const chave = d.fonte + '|' + d.url;
+    if (!d.url || vistos.has(chave)) return;
+    vistos.add(chave);
+    fontes.push(`<li><a href="${escHtml(d.url)}" target="_blank" rel="noopener nofollow">${escHtml(d.fonte)}</a>${d.referencia ? ' · ' + escHtml(d.referencia) : ''}</li>`);
+  });
+  let html = src
+    .replace(/\{\{atualizado\}\}/g, dataBR(teDados.atualizado_em))
+    .replace(/\{\{fontes\}\}/g, '<ol>' + fontes.join('') + '</ol>')
+    .replace(/\{\{([a-z0-9_]+)\.([a-z_]+)\}\}/g, (m, id, campo) =>
+      itens[id] && itens[id][campo] != null && itens[id][campo] !== '' ? escHtml(itens[id][campo]) : m);
+  const sobra = html.match(/\{\{[^}]+\}\}/g);
+  if (sobra) {
+    console.error('ERRO: transicao-energetica.html tem marcadores sem dado em dados/transicao.json:', [...new Set(sobra)].join(', '));
+    process.exit(1);
+  }
+  return html;
+}
+const te = separaCabeca(renderTransicao(fs.readFileSync(path.join(__dirname, 'transicao-energetica.html'), 'utf8')));
+mkdir(out('transicao-energetica'));
+fs.writeFileSync(out('transicao-energetica', 'index.html'), documento({
+  body: te.body, links: te.links,
+  title: 'Transição energética no Brasil: o que muda e como empreender',
+  desc: 'Abertura do mercado livre, geração distribuída e carros elétricos: entenda a transição energética no Brasil e as frentes para empreender nela com o ecossistema da iGreen Energy.',
+  canonical: TE + '/', siteNome: 'Transição Energética', comSite: false,
+}));
+
+/* vídeos e capas da página da transição: arquivos estáticos, copiados como estão */
+const MEDIA = path.join(__dirname, 'media');
+(function copia(dir, rel) {
+  if (!fs.existsSync(dir)) return;
+  fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+    const de = path.join(dir, e.name), para = out('media', rel, e.name);
+    if (e.isDirectory()) return copia(de, path.join(rel, e.name));
+    mkdir(path.dirname(para));
+    fs.copyFileSync(de, para);
+  });
+})(MEDIA, '');
+
 LEGAIS.forEach(p => {
   mkdir(out(p.slug));
   fs.writeFileSync(out(p.slug, 'index.html'), documento({
@@ -260,6 +315,8 @@ console.log('dist/home/index.html ', (fs.statSync(out('home', 'index.html')).siz
 console.log('dist/admin/index.html', (fs.statSync(out('admin', 'index.html')).size / 1024).toFixed(0) + ' KB');
 const faqInteg = faqSchema(integ.body);
 console.log('dist/integradores/index.html', (fs.statSync(out('integradores', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqInteg ? faqInteg.mainEntity.length : 0) + ' perguntas');
+const faqTe = faqSchema(te.body);
+console.log('dist/transicao-energetica/index.html', (fs.statSync(out('transicao-energetica', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqTe ? faqTe.mainEntity.length : 0) + ' perguntas · dados de ' + dataBR(teDados.atualizado_em));
 LEGAIS.forEach(p => console.log('dist/' + p.slug + '/index.html'));
 console.log('dist/robots.txt, dist/sitemap.xml');
 console.log('FAQPage schema: ' + n + ' perguntas extraídas da própria página');
