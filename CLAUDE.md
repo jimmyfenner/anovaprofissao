@@ -532,9 +532,12 @@ data (`LANCAMENTO` no script).
 
 Regras de conteúdo (as mesmas da home, mais estas):
 
-- Modelos e capacidades (Lento 7 kW / DUO 7+40 kW / Ultra rápido 80 kW; até
+- Modelos e capacidades (Mob 7 kW / Mob Fast 7+40 kW / Mob Ultra Fast 80 kW; até
   5 / 30 / 43 carros por dia) vêm do material de lançamento e do simulador
-  oficial. **Preço de cada modelo e percentuais de comissão não vão para a
+  oficial. Os nomes são os do site oficial igreenmob.com.br, decididos pelo
+  Jimmy em 19/10/2026 para todos os sites (aqui, transição e QueroCarregador);
+  "Lento / DUO / Ultra rápido" do simulador não se usa mais.
+  **Preço de cada modelo e percentuais de comissão não vão para a
   página** — ainda "a confirmar" e, no caso da Licença Mob, vender
   participação em SCP com projeção de retorno chama atenção da CVM.
 - Nenhuma marca de carregador (nem a que o Jimmy representa) e nenhum
