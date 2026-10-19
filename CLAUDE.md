@@ -406,9 +406,6 @@ Verificar antes de qualquer coisa:
 
 ## Outras pendências
 
-- **Leads de teste a apagar** no painel: Jonas, "Teste Claude (ignorar)",
-  "Teste 2 (pode apagar)", "Teste Pixel Claude". Exclusão exige login
-  (anon não tem DELETE — está correto assim).
 - **Anúncios da Meta parados desde 14/10/2026** (as visitas caíram de
   ~350/dia para ~3). E de 11 a 13/10 vieram ~1.000 visitas de anúncio e
   nenhum lead — o quiz e a gravação foram testados e funcionam, então a
@@ -551,7 +548,8 @@ faz hoje, `perfil` = quantos clientes já atendeu, `objetivo` = interesse,
 `solucao` = "Eletroposto (Conexão Mob) — página de integradores". Se a
 migração ainda não rodou, o banco recusa o tipo e a página grava de novo sem
 ele; o painel e o aviso reconhecem esses leads pelo texto de `solucao`.
-O painel mostra o selo "Integrador"; a Edge Function `whatsapp` tem o aviso
+O painel mostra o selo "Integrador" e tem o filtro "Todos os tipos" (quiz,
+cadastro direto, integradores) ao lado do de status; a Edge Function `whatsapp` tem o aviso
 próprio (`corpoInteg`), publicado em 17/10/2026.
 
 A página só grava no banco a partir dos domínios reais (querovendercarregador,
