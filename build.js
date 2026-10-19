@@ -84,11 +84,33 @@ function separaCabeca(src) {
   const links = [];
   let body = src
     .replace(/<title>[\s\S]*?<\/title>\s*/i, '')
-    .replace(/<link\b[^>]*>\s*/gi, m => { links.push(m.trim()); return ''; });
+    // fontes do Google saem: o site serve as próprias (ver FONTES abaixo)
+    .replace(/<link\b[^>]*>\s*/gi, m => { if (!/fonts\.(googleapis|gstatic)\.com/.test(m)) links.push(m.trim()); return ''; });
   return { body: body.trimStart(), links: links.join('\n') };
 }
 
-function documento({ body, title, desc, canonical, noindex, links = '', siteNome = SITE.nome, comSite = true }) {
+/* Fontes hospedadas no próprio site (out/2026). O <link> do Google Fonts
+   travava a primeira pintura em ~2 s no celular (Lighthouse: "render-blocking")
+   e mandava o IP do visitante ao Google. Agora: dois preloads das fontes do
+   texto e do título, e o @font-face direto no <head>. Só o subconjunto latino,
+   que cobre o português; Archivo e Instrument Sans são variáveis (um arquivo
+   para todos os pesos). Para trocar de fonte, baixar os .woff2 para fonts/. */
+const UR_LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+const FONTES = `<link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'Archivo';font-style:normal;font-weight:500 800;font-display:swap;src:url(/fonts/archivo.woff2) format('woff2');unicode-range:${UR_LATIN}}
+@font-face{font-family:'Instrument Sans';font-style:normal;font-weight:400 600;font-display:swap;src:url(/fonts/instrument-sans.woff2) format('woff2');unicode-range:${UR_LATIN}}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/ibm-plex-mono-400.woff2) format('woff2');unicode-range:${UR_LATIN}}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500;font-display:swap;src:url(/fonts/ibm-plex-mono-500.woff2) format('woff2');unicode-range:${UR_LATIN}}
+</style>`;
+
+/* Imagem de compartilhamento (WhatsApp, Facebook, LinkedIn): uma por página,
+   1200x630, em media/og/. Fundo gerado no Higgsfield (sem texto) e título
+   composto por cima com as fontes e cores do site. Endereço absoluto no
+   domínio canônico da própria página. */
+function documento({ body, title, desc, canonical, noindex, links = '', siteNome = SITE.nome, comSite = true,
+                     og = SITE.url + '/media/og/home.jpg', ogAlt = 'A venda acontece uma vez. A conta do cliente chega todo mês. A Nova Profissão.' }) {
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -101,6 +123,7 @@ function documento({ body, title, desc, canonical, noindex, links = '', siteNome
 ${noindex ? '<meta name="robots" content="noindex,nofollow">' : '<meta name="robots" content="index,follow,max-image-preview:large">'}
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(FAVICON)}">
+${FONTES}
 ${links}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${siteNome}">
@@ -108,11 +131,14 @@ ${links}
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${SITE.url}/og.png">
+<meta property="og:image" content="${og}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${ogAlt}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${desc}">
-<meta name="twitter:image" content="${SITE.url}/og.png">
+<meta name="twitter:image" content="${og}">
 ${noindex ? '' : schemas(body, comSite)}
 <style>
   html{color-scheme:dark}
@@ -228,6 +254,8 @@ fs.writeFileSync(out('integradores', 'index.html'), documento({
   title: 'Quero Vender Carregador | Eletropostos iGreen para integradores',
   desc: 'Para integradores, instaladores e eletricistas: conheça a Conexão Mob, a frente de eletropostos da iGreen Energy, e como ela se encaixa na carteira de quem já trabalha com energia.',
   canonical: QVC + '/', siteNome: 'Quero Vender Carregador', comSite: false,
+  og: QVC + '/media/og/integradores.jpg',
+  ogAlt: 'Quem instala usina vende uma vez. Quem conecta eletroposto participa de cada recarga.',
 }));
 
 /* Página "Transição energética". Servida em /transicao-energetica e, pelo
@@ -270,10 +298,15 @@ fs.writeFileSync(out('transicao-energetica', 'index.html'), documento({
   title: 'Transição energética no Brasil: o que muda e como empreender',
   desc: 'Abertura do mercado livre, geração distribuída e carros elétricos: entenda a transição energética no Brasil e as frentes para empreender nela com o ecossistema da iGreen Energy.',
   canonical: TE + '/', siteNome: 'Transição Energética', comSite: false,
+  og: TE + '/media/og/transicao.jpg',
+  ogAlt: 'A energia do Brasil está mudando de forma. E essa mudança precisa de gente.',
 }));
 
 /* vídeos e capas da página da transição: arquivos estáticos, copiados como estão */
 const MEDIA = path.join(__dirname, 'media');
+// fontes próprias (ver FONTES)
+mkdir(out('fonts'));
+fs.readdirSync(path.join(__dirname, 'fonts')).forEach(f => fs.copyFileSync(path.join(__dirname, 'fonts', f), out('fonts', f)));
 (function copia(dir, rel) {
   if (!fs.existsSync(dir)) return;
   fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
@@ -292,22 +325,50 @@ LEGAIS.forEach(p => {
   }));
 });
 
-fs.writeFileSync(out('robots.txt'),
+/* ---------------- robots.txt e sitemap.xml por domínio ----------------
+   São três domínios no mesmo projeto, e cada um tem o próprio canônico. O
+   Google lê o robots.txt e o sitemap de cada host: por isso os arquivos ficam
+   em dist/seo/<dominio>/ e o vercel.json os entrega por host (na raiz eles
+   ganhariam dos rewrites, como aconteceu com a home).
+   lastmod = data do último commit que mexeu na página (ou nos dados dela);
+   sem histórico do git disponível, cai para a data do build. */
+const { execSync } = require('child_process');
+const hoje = new Date().toISOString().slice(0, 10);
+function ultimaMudanca(...arquivos) {
+  try {
+    const d = execSync(`git log -1 --format=%cs -- ${arquivos.map(a => JSON.stringify(a)).join(' ')}`,
+      { cwd: __dirname, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : hoje;
+  } catch (e) { return hoje; }
+}
+const DOMINIOS = {
+  'anovaprofissao.com.br': [
+    { loc: SITE.url + '/', mod: ultimaMudanca('home.html'), freq: 'weekly', pri: '1.0' },
+    ...LEGAIS.map(p => ({ loc: SITE.url + '/' + p.slug, mod: ultimaMudanca('legal/' + p.slug + '.html'), freq: 'yearly', pri: '0.3' })),
+  ],
+  'querovendercarregador.com.br': [
+    { loc: QVC + '/', mod: ultimaMudanca('integradores.html'), freq: 'weekly', pri: '1.0' },
+  ],
+  'transicaoenergetica.com.br': [
+    { loc: TE + '/', mod: ultimaMudanca('transicao-energetica.html', 'dados/transicao.json'), freq: 'weekly', pri: '1.0' },
+  ],
+};
+Object.entries(DOMINIOS).forEach(([dom, urls]) => {
+  mkdir(out('seo', dom));
+  fs.writeFileSync(out('seo', dom, 'robots.txt'),
 `User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: ${SITE.url}/sitemap.xml
+Sitemap: https://${dom}/sitemap.xml
 `);
-
-const hoje = new Date().toISOString().slice(0, 10);
-fs.writeFileSync(out('sitemap.xml'),
+  fs.writeFileSync(out('seo', dom, 'sitemap.xml'),
 `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${SITE.url}/</loc><lastmod>${hoje}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
-${LEGAIS.map(p => `  <url><loc>${SITE.url}/${p.slug}</loc><lastmod>${hoje}</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>`).join('\n')}
+${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${u.mod}</lastmod><changefreq>${u.freq}</changefreq><priority>${u.pri}</priority></url>`).join('\n')}
 </urlset>
 `);
+});
 
 const faq = faqSchema(home.body);
 const n = faq ? faq.mainEntity.length : 0;
@@ -318,5 +379,5 @@ console.log('dist/integradores/index.html', (fs.statSync(out('integradores', 'in
 const faqTe = faqSchema(te.body);
 console.log('dist/transicao-energetica/index.html', (fs.statSync(out('transicao-energetica', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqTe ? faqTe.mainEntity.length : 0) + ' perguntas · dados de ' + dataBR(teDados.atualizado_em));
 LEGAIS.forEach(p => console.log('dist/' + p.slug + '/index.html'));
-console.log('dist/robots.txt, dist/sitemap.xml');
+console.log('dist/seo/<dominio>/robots.txt e sitemap.xml: ' + Object.keys(DOMINIOS).join(', '));
 console.log('FAQPage schema: ' + n + ' perguntas extraídas da própria página');

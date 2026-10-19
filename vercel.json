@@ -19,6 +19,94 @@
   ],
   "rewrites": [
     {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/seo/querovendercarregador.com.br/robots.txt"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/seo/querovendercarregador.com.br/robots.txt"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "transicaoenergetica.com.br"
+        }
+      ],
+      "destination": "/seo/transicaoenergetica.com.br/robots.txt"
+    },
+    {
+      "source": "/robots.txt",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.transicaoenergetica.com.br"
+        }
+      ],
+      "destination": "/seo/transicaoenergetica.com.br/robots.txt"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/seo/anovaprofissao.com.br/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/seo/querovendercarregador.com.br/sitemap.xml"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/seo/querovendercarregador.com.br/sitemap.xml"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "transicaoenergetica.com.br"
+        }
+      ],
+      "destination": "/seo/transicaoenergetica.com.br/sitemap.xml"
+    },
+    {
+      "source": "/sitemap.xml",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.transicaoenergetica.com.br"
+        }
+      ],
+      "destination": "/seo/transicaoenergetica.com.br/sitemap.xml"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/seo/anovaprofissao.com.br/sitemap.xml"
+    },
+    {
       "source": "/",
       "has": [
         {
@@ -82,6 +170,24 @@
         {
           "key": "Permissions-Policy",
           "value": "geolocation=(), microphone=(), camera=()"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/media/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=2592000"
         }
       ]
     }

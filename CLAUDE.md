@@ -632,3 +632,27 @@ Regras específicas:
   estão mudando a sua vida".
 - Vídeos em `media/transicao/` (720p, ~10 MB cada, capa .jpg), copiados para
   `dist/media/` pelo build e tocados com `<video>` só no toque.
+
+## SEO e Google (out/2026)
+
+- **Search Console**: propriedades de domínio para os três domínios na conta
+  do Jimmy (up.novos.cadastros@gmail.com), criadas em 19/10/2026. Verificação
+  por TXT `google-site-verification=...` na Cloudflare de cada domínio. Os
+  sitemaps são enviados lá depois da verificação.
+- **robots.txt e sitemap.xml por domínio**: o build gera
+  `dist/seo/<dominio>/robots.txt|sitemap.xml` e o `vercel.json` entrega por
+  host (na raiz do dist eles ganhariam dos rewrites). `lastmod` = data do
+  último commit da página (`git log -1 --format=%cs`), não a do build.
+- **Imagem de compartilhamento** por página em `media/og/` (1200x630): fundo
+  gerado no Higgsfield (Nano Banana 2, 2k, 2 créditos cada, sem texto, sem
+  marca) e título composto por cima com HTML + Chrome headless. O build passa
+  `og`/`ogAlt` por página; legal e admin usam a da home.
+- **Fontes próprias** em `fonts/` (woff2, só latino; Archivo e Instrument Sans
+  variáveis). O build tira o `<link>` do Google Fonts de todas as páginas e
+  injeta preload + `@font-face`. Antes, a fonte travava a primeira pintura em
+  ~2 s no celular (LCP 4,2 s na home e 6,0 s em integradores). Cache longo em
+  `/fonts/*` pelo `vercel.json`.
+- **Endereço principal**: `anovaprofissao.com.br` sem www (é o que o canônico,
+  o sitemap e as imagens usam). O www redireciona para ele.
+- O FAQPage schema continua, mas o Google só mostra FAQ expandido para sites de
+  governo e saúde desde 2023: serve para entender a página, não para destaque.
