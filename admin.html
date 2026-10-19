@@ -281,6 +281,12 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <option value="sem_retorno">Sem retorno</option>
         <option value="descartado">Descartado</option>
       </select>
+      <select class="inp" id="f-tipo">
+        <option value="">Todos os tipos</option>
+        <option value="quiz">Quiz (A Nova Profissão)</option>
+        <option value="direto">Cadastro direto</option>
+        <option value="integrador">Integradores</option>
+      </select>
       <select class="inp" id="f-origem"><option value="">Todas as origens</option></select>
       <select class="inp" id="f-periodo">
         <option value="">Desde sempre</option>
@@ -562,7 +568,7 @@ function abrirPainel(){
 }
 
 /* ---------- filtros ---------- */
-["#busca","#f-status","#f-origem","#f-periodo"].forEach(function(s){
+["#busca","#f-status","#f-tipo","#f-origem","#f-periodo"].forEach(function(s){
   $(s).addEventListener("input", render);
   $(s).addEventListener("change", render);
 });
@@ -577,10 +583,12 @@ function montarOrigens(){
 
 function filtrados(){
   var q = $("#busca").value.trim().toLowerCase();
-  var st = $("#f-status").value, or = $("#f-origem").value, pd = $("#f-periodo").value;
+  var st = $("#f-status").value, or = $("#f-origem").value, pd = $("#f-periodo").value, tp = $("#f-tipo").value;
   var corte = pd ? Date.now() - parseInt(pd,10)*86400e3 : 0;
   return leads.filter(function(l){
     if(st && l.status !== st) return false;
+    // integrador pelo mesmo critério do selo (cobre os gravados antes da migração 10)
+    if(tp && (ehInteg(l) ? "integrador" : (l.tipo || "quiz")) !== tp) return false;
     if(or && (l.utm_source || "direto") !== or) return false;
     if(corte && new Date(l.criado_em).getTime() < corte) return false;
     if(q){
