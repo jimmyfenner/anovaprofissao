@@ -199,7 +199,9 @@ Deno.serve(async (req) => {
         L.email ? `E-mail: ${L.email}` : null, "",
         `Atuação: ${L.experiencia ?? "—"}`,
         `Clientes atendidos: ${L.perfil ?? "—"}`,
-        `Interesse: ${L.objetivo ?? "—"}`, "",
+        `Interesse: ${L.objetivo ?? "—"}`,
+        // leads de integrador anteriores a out/2026 não têm momento: some a linha
+        L.momento ? `Momento: ${L.momento}` : null, "",
         `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
         L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];

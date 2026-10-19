@@ -24,7 +24,14 @@ Para alterar o site: edite `home.html`, rode `node build.js` para conferir,
 ## Regras de conteúdo — inegociáveis
 
 0. **O preço da licença está fixo no FAQ de `home.html`** (R$ 1.997 à vista
-   ou 12x R$ 197,41, licença Connect), autorizado pelo Jimmy em set/2026.
+   ou 12x R$ 197,41, licença Connect Full), autorizado pelo Jimmy em set/2026.
+   **A licença é anual: R$ 1.997 por ano, paga todos os anos** (confirmado
+   pelo Jimmy em 19/10/2026). Ele não quer isso escancarado, mas o texto tem
+   que dizer: "R$ 1.997 por ano" no FAQ e "licença anual" no quiz. Nunca
+   escrever "investimento único" ou "custo de entrada único". A Connect Full
+   dá acesso a energia, telecom, seguros e à **Conexão Mob** (vender
+   eletropostos). O vídeo de integradores (tgoz7p85QIY) fala em "R$ 997 por
+   ano", o que está errado para esta licença.
    Fica no código e não no painel de propósito: "quanto custa ser licenciado
    iGreen" é uma das buscas-alvo, e o número precisa estar no HTML servido
    para ranquear — além de entrar no FAQPage schema. Quando mudar, editar ali.
@@ -282,7 +289,7 @@ Regras:
 ## Filtro de investimento no quiz
 
 A penúltima pergunta do quiz (`investimento`) declara o custo da licença
-— R$ 1.997 à vista ou 12x de R$ 197,41 no cartão — antes de pedir o
+— licença anual de R$ 1.997 ou 12x de R$ 197,41 no cartão — antes de pedir o
 contato. Motivo: evitar que alguém chegue ao WhatsApp achando que é
 emprego e só ali descubra que há investimento.
 
@@ -545,6 +552,17 @@ Regras de conteúdo (as mesmas da home, mais estas):
 - O vídeo embutido é a apresentação para integradores (`tgoz7p85QIY`). Ele
   cita médias de ganho por nível: para anúncio do Google, o ideal é um corte
   sem essas falas.
+
+Três momentos (19/10/2026, pedido do Jimmy): a página fala com quem quer
+**somar** um produto ao que já vende, com quem viu **as vendas caírem** e com
+quem pensa em **mudar de ramo** — nunca "quebrado" ou "desesperado". O bloco
+"Em que momento você está?" (`#momento`) leva cada um à sua parte (`#papel`,
+`#orcamentos`, `#transicao`) e marca a resposta no formulário. A dor vai com
+fatos (Fio B da Lei 14.300, inversão de fluxo, kit a preço de custo), sem
+política: nada de governo ou partido, nem em anúncio. A pergunta do formulário
+grava na coluna `momento` (já existia, migração 08); o painel mostra, a
+mensagem pronta do WhatsApp leva, e o aviso `corpoInteg` tem a linha no código
+— só aparece no aviso depois de republicar a Edge Function `whatsapp`.
 
 Leads: mesma tabela `leads`, `tipo = 'integrador'` (migração
 `db/10-integradores.sql`). Mapeamento das respostas: `experiencia` = o que

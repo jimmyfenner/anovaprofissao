@@ -158,6 +158,9 @@ p{margin:0}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.6rem 1.5rem;display:flex;flex-direction:column;gap:.75rem}
 .card__n{font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--credit)}
 .card p{color:var(--muted);font-size:.95rem}
+a.card{color:inherit;text-decoration:none;transition:border-color .2s ease}
+a.card:hover,a.card:focus-visible{border-color:var(--credit)}
+.card__go{margin-top:auto;padding-top:.5rem;font-weight:600;font-size:.92rem;color:var(--credit)}
 
 /* ---------- modelos ---------- */
 .models{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
@@ -189,6 +192,7 @@ p{margin:0}
   display:flex;gap:1rem;align-items:flex-start;color:var(--muted);font-size:.95rem;
 }
 .callout b{color:var(--text);font-weight:600}
+.callout--forte{border-style:solid;background:var(--surface)}
 .callout__tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--credit);flex:none;margin-top:.25em}
 
 /* ---------- linha do tempo ---------- */
@@ -301,7 +305,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   <div class="wrap nav__in">
     <a class="brand" href="#topo">Quero vender <em>carregador</em></a>
     <nav class="nav__links" aria-label="Seções">
-      <a href="#rotina">A rotina</a>
+      <a href="#momento">Seu momento</a>
       <a href="#mob">Conexão Mob</a>
       <a href="#papel">Onde você entra</a>
       <a href="#perguntas">Perguntas</a>
@@ -316,7 +320,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 <section class="hero">
   <div class="wrap hero__grid">
     <div>
-      <p class="eyebrow">Para integradores, instaladores e eletricistas</p>
+      <p class="eyebrow">Para quem vende, instala ou integra energia solar</p>
       <h1>Quem instala usina vende uma vez. Quem conecta eletroposto participa de cada recarga.</h1>
       <p class="lede">A iGreen Energy lança a <b style="color:var(--text);font-weight:600">Conexão Mob</b>, a frente de eletropostos do ecossistema. Para quem já fala de kW, carga e quadro elétrico com empresas, condomínios e comércios, é um produto novo para a mesma carteira — e uma relação comercial que não termina na entrega da obra.</p>
       <p class="selo" id="selo">Lançamento oficial · 20/10, 20h</p>
@@ -340,22 +344,55 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   </div>
 </section>
 
+<!-- MOMENTO -->
+<section id="momento">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Em que momento você está?</p>
+      <h2>Cada um chega aqui por um motivo.</h2>
+      <p class="lede">Uns querem somar um produto ao que já vendem. Outros viram as vendas caírem. Outros pensam em mudar de ramo. Nos três casos, o que você já sabe sobre energia é o ponto de partida.</p>
+    </div>
+    <div class="cards">
+      <a class="card" href="#papel" data-momento="Quero somar ao que já vendo" data-ev="momento_somar">
+        <span class="card__n">01 · Somar</span>
+        <h3>Quero somar ao que já vendo.</h3>
+        <p>Mesma carteira, produto novo: eletroposto, energia e seguro para os clientes que você já tem, sem parar nenhuma obra.</p>
+        <span class="card__go">Ver onde você entra →</span>
+      </a>
+      <a class="card" href="#orcamentos" data-momento="As vendas caíram e busco alternativa" data-ev="momento_vendas">
+        <span class="card__n">02 · Recuperar</span>
+        <h3>As vendas caíram.</h3>
+        <p>A regra mudou e o caixa sentiu. Os orçamentos que não fecharam ainda podem virar clientes de outras soluções.</p>
+        <span class="card__go">Ver o que fazer com eles →</span>
+      </a>
+      <a class="card" href="#transicao" data-momento="Penso em mudar de ramo" data-ev="momento_mudar">
+        <span class="card__n">03 · Mudar</span>
+        <h3>Penso em mudar de ramo.</h3>
+        <p>Sem equipe, sem estoque e sem obra. O que você aprendeu sobre energia vai junto, e a mudança acontece no seu ritmo.</p>
+        <span class="card__go">Ver a transição →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- A ROTINA -->
 <section id="rotina">
   <div class="wrap split">
     <div>
       <p class="eyebrow">Você conhece essa rotina</p>
-      <h2>A venda termina na entrega da usina. A dor de cabeça, não.</h2>
+      <h2>O mercado de placa mudou. O que você sabe de energia, não.</h2>
       <div class="prose" style="margin-top:1.4rem">
-        <p>O cliente liga porque o aplicativo não abre, porque trocou a senha do Wi-Fi, porque a placa suja não gera como antes. Existe recorrência — só que de chamado, não de receita.</p>
+        <p>Para os sistemas novos, o Fio B entra na conta em degraus definidos pela Lei 14.300: 60% em 2026, 75% em 2027 e 90% em 2028. Some a isso pedidos de conexão negados por inversão de fluxo, kit vendido a preço de custo e crédito caro, e vender ficou bem mais difícil do que era.</p>
+        <p>E quando a venda fecha, fecha uma vez. Depois da entrega, o que se repete é o chamado: o aplicativo que não abre, o Wi-Fi que mudou, a placa suja que não gera como antes.</p>
         <p>Não é falta de competência. É o modelo: <strong>a venda acontece uma vez, e você recebe uma vez</strong>. No mês seguinte, tudo começa de novo.</p>
       </div>
     </div>
     <div class="ledger" role="list" aria-label="Custos da integração">
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Fio B maior a cada ano para os sistemas novos</span></div>
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Pedidos negados por inversão de fluxo</span></div>
       <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Homologação e prazos que dependem da concessionária</span></div>
-      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Equipe de instalação, mão de obra e retrabalho</span></div>
       <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Guerra de preço com quem vende kit a preço de custo</span></div>
-      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Aluguel, veículo e estoque: custo fixo todo mês</span></div>
+      <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Equipe, aluguel, veículo e estoque: custo fixo todo mês</span></div>
       <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Todo dia primeiro, o faturamento recomeça do zero</span></div>
       <div class="ledger__row ledger__row--credit" role="listitem"><span class="ledger__sig" aria-hidden="true">+</span><span class="ledger__txt">Na iGreen, a venda acontece uma vez. A conta do cliente chega todo mês.</span></div>
     </div>
@@ -386,6 +423,36 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         <p>Quem já gera a própria energia em casa é o primeiro da fila para o carro elétrico. Os seus clientes de hoje são os motoristas de amanhã.</p>
       </article>
     </div>
+  </div>
+</section>
+
+<!-- ORÇAMENTOS -->
+<section id="orcamentos">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">Se as vendas caíram</p>
+      <h2>Os orçamentos que não fecharam ainda valem.</h2>
+      <p class="lede">Todo mundo que vende solar tem uma pasta de propostas que não viraram obra. Muitas não fecharam por motivos que não impedem as outras soluções do ecossistema.</p>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <span class="card__n">Não tinha onde instalar</span>
+        <h3>Apartamento, telhado ruim, imóvel alugado.</h3>
+        <p>Com a energia por assinatura, o cliente recebe créditos de usinas renováveis com desconto na conta de luz, sem obra e sem placa no imóvel.</p>
+      </article>
+      <article class="card">
+        <span class="card__n">Não tinha como investir</span>
+        <h3>Crédito negado, juros altos, conexão recusada.</h3>
+        <p>A mesma energia por assinatura não pede investimento do cliente nem depende da aprovação de um sistema no telhado dele.</p>
+      </article>
+      <article class="card">
+        <span class="card__n">Era uma empresa</span>
+        <h3>Comércio, indústria, escritório.</h3>
+        <p>Quem é atendido em média e alta tensão já pode escolher o fornecedor no mercado livre. Comércio e indústria em baixa tensão poderão a partir de 25/11/2027. E o estacionamento pode receber um eletroposto.</p>
+      </article>
+    </div>
+    <div class="prose" style="margin-top:1.6rem"><p>E quem fechou com você continua sendo o seu melhor cliente: é o primeiro da fila para o carro elétrico, o seguro e o eletroposto.</p></div>
+    <p class="note" style="margin-top:1rem">Elegibilidade e condições de cada solução são definidas pela iGreen Energy e dependem da distribuidora e do perfil de consumo.</p>
   </div>
 </section>
 
@@ -451,9 +518,9 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         <p>Energia por assinatura, mercado livre de energia, seguro de carro e moto — inclusive para carro elétrico — e telefonia. Cada solução que o mesmo cliente contrata tem a sua própria recorrência.</p>
       </div>
     </div>
-    <div class="callout">
-      <span class="callout__tag">Instalador?</span>
-      <p><b>A iGreen está abrindo espaço para licenciados instaladores</b> se candidatarem às instalações dos eletropostos. Os critérios são apresentados na nossa conversa.</p>
+    <div class="callout callout--forte">
+      <span class="callout__tag">Tem equipe?</span>
+      <p><b>A iGreen está abrindo espaço para licenciados que já instalam</b> se candidatarem às instalações dos eletropostos. Para quem tem equipe e ferramenta, é uma forma de colocar a estrutura que já existe para trabalhar. Os critérios técnicos e comerciais são da empresa, apresentados na nossa conversa, e não há garantia de volume.</p>
     </div>
     <p class="note" style="margin-top:1.4rem">Percentuais, critérios e elegibilidade são definidos pela iGreen Energy, podem mudar e são apresentados com o material oficial na nossa conversa. Não existe renda garantida.</p>
   </div>
@@ -463,14 +530,14 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 <section id="transicao">
   <div class="wrap">
     <div class="head">
-      <p class="eyebrow">Sem parar a sua integradora</p>
+      <p class="eyebrow">Somar ou mudar de ramo</p>
       <h2>Uma transição no seu ritmo.</h2>
     </div>
     <div class="steps">
       <div class="step">
         <span class="step__when">Agora</span>
         <h3>Mesma carteira, produto novo.</h3>
-        <p>Você oferece eletroposto, energia e seguro para os clientes que já tem, sem parar nenhuma obra em andamento.</p>
+        <p>Você oferece eletroposto, energia e seguro para os clientes que já tem, com ou sem obra em andamento.</p>
       </div>
       <div class="step">
         <span class="step__when">Próximos meses</span>
@@ -480,10 +547,14 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       <div class="step">
         <span class="step__when">Médio prazo</span>
         <h3>Você decide o desenho.</h3>
-        <p>Seguir com a integradora, reduzir a obra ou concentrar na carteira recorrente. A escolha passa a ser sua, não do mês.</p>
+        <p>Seguir com a integradora, reduzir a obra ou mudar de vez para a carteira recorrente. A escolha passa a ser sua, não do mês.</p>
       </div>
     </div>
     <p class="note" style="margin-top:1.6rem">Exemplo de trajetória, não de resultado. O ritmo e o tamanho da carteira dependem da sua atuação.</p>
+    <div class="callout callout--forte" style="margin-top:2rem">
+      <span class="callout__tag">E se a regra mudar?</span>
+      <p><b>É a pergunta certa para quem já viu uma regra mudar o próprio negócio.</b> Risco regulatório existe em qualquer atividade de energia, inclusive aqui. A diferença é não depender de um produto só: energia por assinatura, mercado livre, seguros, telefonia e recarga seguem regras diferentes, e uma mudança numa delas não zera a carteira inteira.</p>
+    </div>
   </div>
 </section>
 
@@ -530,6 +601,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         <p>Leva menos de um minuto. Eu recebo as suas respostas e te chamo no WhatsApp com o <strong>material oficial</strong>: modelos, valores e regras vigentes da Conexão Mob.</p>
         <p>Se não fizer sentido para o seu momento, eu também te digo.</p>
       </div>
+      <p class="note" style="margin-top:1.2rem">Para atuar como licenciado, a licença Connect Full custa R$ 1.997 por ano, ou 12x de R$ 197,41 no cartão. Os valores dos eletropostos vêm no material oficial.</p>
     </div>
 
     <form class="form" id="form" novalidate>
@@ -552,9 +624,20 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         </div>
 
         <fieldset class="field">
+          <legend>Em que momento você está?</legend>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="momento" value="Quero somar ao que já vendo"><span>Somar ao que já vendo</span></label>
+            <label class="chip"><input type="radio" name="momento" value="As vendas caíram e busco alternativa"><span>As vendas caíram</span></label>
+            <label class="chip"><input type="radio" name="momento" value="Penso em mudar de ramo"><span>Mudar de ramo</span></label>
+            <label class="chip"><input type="radio" name="momento" value="Ainda estou avaliando"><span>Ainda avaliando</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
           <legend>O que você faz hoje?</legend>
           <div class="chips">
             <label class="chip"><input type="radio" name="atuacao" value="Integrador de energia solar"><span>Integrador solar</span></label>
+            <label class="chip"><input type="radio" name="atuacao" value="Vendedor ou consultor de energia solar"><span>Vendedor de solar</span></label>
             <label class="chip"><input type="radio" name="atuacao" value="Instalador ou eletricista"><span>Instalador ou eletricista</span></label>
             <label class="chip"><input type="radio" name="atuacao" value="Manutenção de sistemas elétricos"><span>Manutenção</span></label>
             <label class="chip"><input type="radio" name="atuacao" value="Engenharia ou projetos"><span>Engenharia ou projetos</span></label>
@@ -609,13 +692,15 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     </div>
     <div class="faq">
 <details><summary>Preciso parar a minha integradora?</summary><div>Não. A ideia é justamente o contrário: oferecer eletroposto, energia e seguro para a carteira que você já tem, sem parar nenhuma obra. Com o tempo, você decide quanto da sua atuação quer concentrar na carteira recorrente.</div></details>
+<details><summary>Já fechei, ou estou pensando em fechar, a integradora. Faz sentido?</summary><div>Faz. A atuação como licenciado não exige equipe, estoque, obra nem ponto físico. O que pesa é o que você já sabe sobre energia e as relações que construiu com clientes, e isso continua com você. Dá para começar pelas soluções sem obra, como energia por assinatura e seguros, e pelos eletropostos para as empresas que você já conhece.</div></details>
+<details><summary>E se mudarem a regra de novo?</summary><div>Risco regulatório existe em qualquer atividade de energia, e seria desonesto dizer que aqui não existe. O que muda é a dependência: a carteira de um licenciado reúne energia por assinatura, mercado livre, seguros, telefonia e recarga, que seguem regras diferentes. Uma mudança numa delas não zera as outras.</div></details>
 <details><summary>Preciso comprar um eletroposto para participar?</summary><div>Não. Você pode conectar quem vai comprar o eletroposto e conectar motoristas à iGreen sem ter máquina própria. Se quiser ter o seu, também pode — e existe uma condição específica para licenciados cadastrados até o lançamento. Explico na conversa.</div></details>
 <details><summary>O que exatamente eu vendo?</summary><div>A <strong>Licença Mob</strong>, que é o eletroposto completo — equipamento, instalação, pintura e Licença iGreen —, para quem quer instalar um ponto de recarga. Além dela, todo o ecossistema da iGreen: energia por assinatura, mercado livre de energia, seguro de carro e moto e telefonia.</div></details>
-<details><summary>Quanto custa para começar?</summary><div>Para atuar como licenciado, a licença Connect custa <strong>R$ 1.997 à vista, ou 12 parcelas de R$ 197,41 no cartão</strong>. Ela dá acesso a energia, telecom e seguros.<br><br>A Licença Mob — o eletroposto em si — é outro produto, comprado por quem vai operar o ponto. Os valores de cada modelo são definidos e divulgados pela iGreen Energy.<br><br>Valores, formas de pagamento e o que está incluso podem mudar. Confirmo as condições vigentes na nossa conversa.</div></details>
+<details><summary>Quanto custa para começar?</summary><div>Para atuar como licenciado, a licença Connect Full custa <strong>R$ 1.997 por ano, à vista, ou 12 parcelas de R$ 197,41 no cartão</strong>. Ela dá acesso a energia, telecom, seguros e à Conexão Mob: é com ela que você vende eletropostos.<br><br>A Licença Mob — o eletroposto em si — é outro produto, comprado por quem vai operar o ponto. Os valores de cada modelo são definidos e divulgados pela iGreen Energy.<br><br>Valores, formas de pagamento e o que está incluso podem mudar. Confirmo as condições vigentes na nossa conversa.</div></details>
 <details><summary>Quanto dá para ganhar?</summary><div>Não existe salário, piso nem renda garantida. A remuneração vem de clientes reais pagando por serviços que usam — recargas, contas de energia, seguros, planos de telefonia — conforme as regras vigentes da iGreen Energy, que incluem percentuais e critérios específicos por produto. Esses números podem mudar, e eu os apresento com o material oficial na nossa conversa.</div></details>
 <details><summary>O motorista que eu trouxer fica comigo?</summary><div>Sim. Quem já é cliente iGreen continua com o licenciado que o conectou à primeira solução, mesmo quando recarrega no eletroposto de outra pessoa. É essa regra que protege a carteira que você constrói.</div></details>
 <details><summary>Sou instalador. Posso fazer as instalações dos eletropostos?</summary><div>A iGreen está abrindo espaço para que licenciados que já trabalham com instalação se candidatem às instalações. Os critérios técnicos e comerciais são definidos pela empresa e apresentados na conversa.</div></details>
-<details><summary>Quando começa?</summary><div>O lançamento oficial da Conexão Mob é em <strong>20 de outubro de 2026, às 20h</strong>. Quem entende o modelo antes chega ao lançamento preparado para conversar com os próprios clientes.</div></details>
+<details><summary>Quando começa?</summary><div id="faq-quando">O lançamento oficial da Conexão Mob é em <strong>20 de outubro de 2026, às 20h</strong>. Quem entende o modelo antes chega ao lançamento preparado para conversar com os próprios clientes.</div></details>
 <details><summary>Isso é pirâmide?</summary><div>Não. A remuneração vem de clientes finais pagando por serviços que usam: a recarga do carro, a conta de luz, o seguro, o plano de celular. Não é a entrada de pessoas. Escrevi uma resposta completa, com os documentos públicos de quem está por trás da empresa, em <a href="https://anovaprofissao.com.br/#piramide" target="_blank" rel="noopener">anovaprofissao.com.br</a>.</div></details>
 <details><summary>Preciso abrir empresa?</summary><div>Depende do seu caso e do volume da sua atuação. Se você já tem uma integradora, muitas vezes a estrutura existente resolve. É um ponto que vale conversar considerando a sua situação específica.</div></details>
     </div>
@@ -670,6 +755,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       <p><b>Site independente.</b> Esta página é mantida por Jimmy Fenner, licenciado independente da iGreen Energy. Não é o site oficial da iGreen Energy e não representa a empresa. Marcas e nomes de produtos citados pertencem aos seus respectivos titulares.</p>
       <p><b>Resultados.</b> Não existe garantia de renda. Os resultados dependem de desempenho individual, dedicação, mercado, produtos comercializados, regras comerciais vigentes e demais circunstâncias aplicáveis. Nenhuma informação desta página constitui promessa, projeção ou garantia de remuneração.</p>
       <p><b>Conexão Mob.</b> Modelos, capacidades e regras descritos com base no material de lançamento da iGreen Energy. Valores de licença, percentuais de comissão, elegibilidade e demais condições são definidos pela empresa e podem ser alterados a qualquer momento, sem aviso prévio.</p>
+      <p><b>Fontes.</b> Fio B: <a href="https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2022/lei/l14300.htm" target="_blank" rel="noopener">Lei nº 14.300/2022</a>, art. 27. Mercado livre: <a href="https://www.gov.br/mme/pt-br/acesso-a-informacao/legislacao/portarias/2022/portaria-normativa-n-50-gm-mme-2022.pdf" target="_blank" rel="noopener">Portaria MME nº 50/2022</a> e <a href="https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/D13097.htm" target="_blank" rel="noopener">Decreto nº 13.097/2026</a>.</p>
       <p style="padding-top:.4rem">© <span id="yr">2026</span> Jimmy Fenner · Balneário Camboriú, SC</p>
     </div>
   </div>
@@ -709,6 +795,8 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   /* ---- selo do lançamento: muda sozinho depois do dia 20 ---- */
   if(Date.now() >= LANCAMENTO.getTime()){
     $("#selo").textContent = "Conexão Mob · lançada em 20/10/2026";
+    var fq = $("#faq-quando");
+    if(fq) fq.innerHTML = "A Conexão Mob foi lançada oficialmente em <strong>20 de outubro de 2026</strong>. Quem entende o modelo agora chega antes da maioria à conversa com os próprios clientes.";
   }
 
   /* ---- origem / UTM ---- */
@@ -861,6 +949,14 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     erro.textContent = "";
   });
 
+  /* ---- o cartão de momento escolhido já chega marcado no formulário ---- */
+  document.querySelectorAll("[data-momento]").forEach(function(a){
+    a.addEventListener("click", function(){
+      var alvo = form.querySelector('input[name="momento"][value="' + a.getAttribute("data-momento") + '"]');
+      if(alvo) alvo.checked = true;
+    });
+  });
+
   function radio(nome){ var el = form.querySelector('input[name="'+nome+'"]:checked'); return el ? el.value : null; }
   function txt(id){ return ($(id).value || "").trim(); }
 
@@ -871,6 +967,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       (L.experiencia ? "Atuação: " + L.experiencia + "\n" : "") +
       (L.perfil ? "Clientes atendidos: " + L.perfil + "\n" : "") +
       (L.objetivo ? "Interesse: " + L.objetivo + "\n" : "") +
+      (L.momento ? "Momento: " + L.momento + "\n" : "") +
       "\nQuero entender a Conexão Mob para integradores.";
   }
 
@@ -883,9 +980,12 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       // tipo. Grava de novo sem ele para o lead nunca se perder: a origem
       // continua identificada por landing e solucao.
       return r.text().then(function(t){
-        if(/tipo|check/i.test(t)){
-          var semTipo = Object.assign({}, L); delete semTipo.tipo;
-          return post("leads", semTipo).then(function(r2){ return r2.ok; });
+        // Mesma ideia para a coluna momento: se o banco recusar, o lead vai sem ela.
+        if(/tipo|check|momento/i.test(t)){
+          var reduzido = Object.assign({}, L);
+          if(/tipo|check/i.test(t)) delete reduzido.tipo;
+          if(/momento/i.test(t)) delete reduzido.momento;
+          return post("leads", reduzido).then(function(r2){ return r2.ok; });
         }
         console.error("lead não gravado:", r.status, t);
         return false;
@@ -917,6 +1017,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       experiencia: radio("atuacao"),
       perfil: radio("carteira"),
       objetivo: radio("interesse"),
+      momento: radio("momento"),
       solucao: "Eletroposto (Conexão Mob) — página de integradores",
       utm_source: origem.utm_source || null,
       utm_medium: origem.utm_medium || null,
