@@ -394,10 +394,8 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-- `db/12-visitas-transicao.sql` — terceira página no contador (ver a seção da
-  página da transição).
-
-10 (tipo integrador) e 11 (visitas por página) aplicadas em
+Nenhuma. 12 (terceira página no contador, transição energética) aplicada e
+testada em 19/out/2026. 10 (tipo integrador) e 11 (visitas por página) aplicadas em
 17/out/2026, junto com o deploy da Edge Function com `corpoInteg`, e testadas.
 07 e 08 foram aplicadas em 30/set/2026 (e a Edge Function
 `whatsapp` publicada no mesmo dia já com `investimento` e `momento`); 09
