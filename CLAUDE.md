@@ -30,8 +30,9 @@ Para alterar o site: edite `home.html`, rode `node build.js` para conferir,
    que dizer: "R$ 1.997 por ano" no FAQ e "licença anual" no quiz. Nunca
    escrever "investimento único" ou "custo de entrada único". A Connect Full
    dá acesso a energia, telecom, seguros e à **Conexão Mob** (vender
-   eletropostos). O vídeo de integradores (tgoz7p85QIY) fala em "R$ 997 por
-   ano", o que está errado para esta licença.
+   eletropostos). O vídeo de integradores (tgoz7p85QIY) diz certo
+   "R$ 1.997 por ano" aos 12:58; a legenda automática do YouTube escreve
+   "R$997" porque come o "mil". Conferir pelo áudio, não pela legenda.
    Fica no código e não no painel de propósito: "quanto custa ser licenciado
    iGreen" é uma das buscas-alvo, e o número precisa estar no HTML servido
    para ranquear — além de entrar no FAQPage schema. Quando mudar, editar ali.
@@ -563,6 +564,11 @@ política: nada de governo ou partido, nem em anúncio. A pergunta do formulári
 grava na coluna `momento` (já existia, migração 08); o painel mostra, a
 mensagem pronta do WhatsApp leva, e o aviso `corpoInteg` tem a linha no código
 — só aparece no aviso depois de republicar a Edge Function `whatsapp`.
+
+Corte do Carlos Evangelista (fundador da ABGD, sócio da Vértice) liberado
+pelo Jimmy para esta página em 19/10/2026: seção `#carlos`, logo depois da
+dor, com o mesmo arquivo da transição (`/media/transicao/te-34-fundador-abgd.mp4`)
+e a nota de correção das datas (ele diz "15 de novembro").
 
 Leads: mesma tabela `leads`, `tipo = 'integrador'` (migração
 `db/10-integradores.sql`). Mapeamento das respostas: `experiencia` = o que

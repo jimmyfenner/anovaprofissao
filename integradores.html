@@ -193,6 +193,23 @@ a.card:hover,a.card:focus-visible{border-color:var(--credit)}
 }
 .callout b{color:var(--text);font-weight:600}
 .callout--forte{border-style:solid;background:var(--surface)}
+
+/* corte do Carlos (mesmo player da página de transição) */
+.carlos__vid{width:100%;max-width:320px;justify-self:center;display:flex;flex-direction:column;gap:.7rem}
+.corte__vid{
+  position:relative;display:block;width:100%;aspect-ratio:9/16;border-radius:12px;overflow:hidden;
+  border:1px solid var(--line);background:var(--surface) center/cover no-repeat;cursor:pointer;padding:0;
+}
+.corte__vid::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,13,12,0) 55%,rgba(10,13,12,.85))}
+.corte__play{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;
+  width:3.6rem;height:3.6rem;border-radius:50%;display:grid;place-items:center;
+  background:var(--credit);color:var(--on-credit);transition:transform .18s;
+}
+.corte__vid:hover .corte__play{transform:translate(-50%,-50%) scale(1.06)}
+.corte__dur{position:absolute;right:.8rem;bottom:.8rem;z-index:1;font-family:var(--mono);font-size:.72rem;color:var(--text);background:rgba(10,13,12,.7);padding:.2em .5em;border-radius:4px}
+.corte__vid video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;background:#000}
+.corte__leg{color:var(--muted-dim);font-size:.82rem;font-family:var(--mono)}
 .callout__tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--credit);flex:none;margin-top:.25em}
 
 /* ---------- linha do tempo ---------- */
@@ -395,6 +412,28 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Equipe, aluguel, veículo e estoque: custo fixo todo mês</span></div>
       <div class="ledger__row" role="listitem"><span class="ledger__sig" aria-hidden="true">−</span><span class="ledger__txt">Todo dia primeiro, o faturamento recomeça do zero</span></div>
       <div class="ledger__row ledger__row--credit" role="listitem"><span class="ledger__sig" aria-hidden="true">+</span><span class="ledger__txt">Na iGreen, a venda acontece uma vez. A conta do cliente chega todo mês.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CARLOS -->
+<section id="carlos">
+  <div class="wrap split">
+    <div>
+      <p class="eyebrow">Quem conhece o setor por dentro</p>
+      <h2>O fundador da ABGD também escolheu esse caminho.</h2>
+      <div class="prose" style="margin-top:1.4rem">
+        <p>Carlos Evangelista fundou e presidiu a ABGD, a Associação Brasileira de Geração Distribuída, que reúne as empresas de energia solar e geração distribuída do país. Hoje é licenciado da iGreen Energy.</p>
+        <p>Neste trecho da nossa conversa, ele conta por que fez essa escolha e o que a abertura do mercado de energia muda para quem já trabalha no setor.</p>
+      </div>
+      <p class="note" style="margin-top:1.2rem">Na conversa, as datas citadas são 15 de novembro. As datas oficiais, fixadas pelo Decreto nº 13.097/2026, são 25/11/2027 e 25/11/2028.</p>
+    </div>
+    <div class="carlos__vid">
+      <button class="corte__vid" type="button" data-src="/media/transicao/te-34-fundador-abgd.mp4" data-poster="/media/transicao/te-34-fundador-abgd.jpg" data-ev="video_fundador_abgd" aria-label="Assistir: por que o fundador da ABGD virou licenciado iGreen">
+        <span class="corte__play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></span>
+        <span class="corte__dur">2:02</span>
+      </button>
+      <p class="corte__leg">Carlos Evangelista · por que o fundador da ABGD virou licenciado iGreen</p>
     </div>
   </div>
 </section>
@@ -947,6 +986,22 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   form.addEventListener("input", function(){
     if(!iniciou){ iniciou = true; track("form_inicio"); }
     erro.textContent = "";
+  });
+
+  /* ---- corte do Carlos: capa primeiro, o arquivo só carrega no toque ---- */
+  $$(".corte__vid").forEach(function(btn){
+    btn.style.backgroundImage = "url(" + btn.getAttribute("data-poster") + ")";
+    btn.addEventListener("click", function(){
+      if(btn.querySelector("video")) return;
+      var v = document.createElement("video");
+      v.src = btn.getAttribute("data-src");
+      v.poster = btn.getAttribute("data-poster");
+      v.controls = true; v.autoplay = true; v.playsInline = true;
+      v.setAttribute("playsinline", "");
+      v.addEventListener("ended", function(){ track("video_fim", {video: btn.getAttribute("data-ev")}); });
+      btn.appendChild(v);
+      var p = v.play(); if(p && p.catch) p.catch(function(){});
+    });
   });
 
   /* ---- o cartão de momento escolhido já chega marcado no formulário ---- */
