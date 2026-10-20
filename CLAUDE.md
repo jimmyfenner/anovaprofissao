@@ -637,8 +637,11 @@ Regras específicas:
 
 - **Search Console**: propriedades de domínio para os três domínios na conta
   do Jimmy (up.novos.cadastros@gmail.com), criadas em 19/10/2026. Verificação
-  por TXT `google-site-verification=...` na Cloudflare de cada domínio. Os
-  sitemaps são enviados lá depois da verificação.
+  por TXT `google-site-verification=...` na Cloudflare de cada domínio (não
+  apagar esses TXT: sem eles a verificação cai). Verificadas, sitemaps
+  enviados e processados (4, 1 e 1 páginas) e indexação das três páginas
+  principais solicitada em 19/10/2026. Nesse dia a home e o querovender já
+  constavam como indexados; a transição ainda não.
 - **robots.txt e sitemap.xml por domínio**: o build gera
   `dist/seo/<dominio>/robots.txt|sitemap.xml` e o `vercel.json` entrega por
   host (na raiz do dist eles ganhariam dos rewrites). `lastmod` = data do
@@ -653,6 +656,9 @@ Regras específicas:
   ~2 s no celular (LCP 4,2 s na home e 6,0 s em integradores). Cache longo em
   `/fonts/*` pelo `vercel.json`.
 - **Endereço principal**: `anovaprofissao.com.br` sem www (é o que o canônico,
-  o sitemap e as imagens usam). O www redireciona para ele.
+  o sitemap e as imagens usam). O www redireciona para ele desde 19/10/2026
+  (antes era o contrário e contradizia o canônico). Trocado pelo Jimmy no
+  painel da Vercel. Conferir que o redirecionamento do www é **308
+  (permanente)**, não 307.
 - O FAQPage schema continua, mas o Google só mostra FAQ expandido para sites de
   governo e saúde desde 2023: serve para entender a página, não para destaque.
