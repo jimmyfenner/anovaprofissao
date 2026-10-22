@@ -550,9 +550,11 @@ Regras de conteúdo (as mesmas da home, mais estas):
   participação em SCP com projeção de retorno chama atenção da CVM.
 - Nenhuma marca de carregador (nem a que o Jimmy representa) e nenhum
   concorrente.
-- O vídeo embutido é a apresentação para integradores (`tgoz7p85QIY`). Ele
-  cita médias de ganho por nível: para anúncio do Google, o ideal é um corte
-  sem essas falas.
+- O vídeo embutido, desde 22/10/2026, é "Como ganhar com eletroposto sem ter
+  carregador" (Vimeo 1238447338, 9:35), com capa e player que só carrega no
+  clique (`dnt=1`). Se trocar o vídeo, ajustar também o título da seção e a
+  duração na legenda. O antigo (YouTube `tgoz7p85QIY`, 15:47) citava médias
+  de ganho por nível e saiu da página.
 
 Três momentos (19/10/2026, pedido do Jimmy): a página fala com quem quer
 **somar** um produto ao que já vende, com quem viu **as vendas caírem** e com

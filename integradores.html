@@ -601,13 +601,13 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 <section id="apresentacao">
   <div class="wrap" style="max-width:920px">
     <div class="head">
-      <p class="eyebrow">A apresentação completa</p>
-      <h2>Quinze minutos, direto para quem integra.</h2>
-      <p class="lede">Gravei esta apresentação especificamente para integradores: o que muda com os eletropostos na iGreen e como ela se encaixa no dia a dia de quem já trabalha com energia.</p>
+      <p class="eyebrow">A apresentação</p>
+      <h2>Menos de dez minutos, direto ao ponto.</h2>
+      <p class="lede">Gravei esta apresentação para quem já trabalha com energia: como participar dos eletropostos sem ter um carregador próprio, onde você entra na Conexão Mob e como ela se encaixa no seu dia a dia.</p>
     </div>
-    <button class="vid" type="button" id="vid" data-yt="tgoz7p85QIY" data-ev="video_play" aria-label="Assistir à apresentação para integradores">
+    <button class="vid" type="button" id="vid" data-vimeo="1238447338" data-capa="https://i.vimeocdn.com/video/2215601461-f94bd98412632546d7cd34d0625f5f7f380f4f61abafcdfaf7585d7517b3e3e3-d_1280?region=us" data-ev="video_play" aria-label="Assistir à apresentação: como ganhar com eletroposto sem ter carregador">
       <span class="vid__play" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></span>
-      <span class="vid__cap">Integrador, pare de brigar por preço de kit · 15:47</span>
+      <span class="vid__cap">Como ganhar com eletroposto sem ter carregador · 9:35</span>
     </button>
   </div>
 </section>
@@ -954,29 +954,16 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   }
   $("#float-wa").href = waLink("Olá " + NOME + "! Sou da área de energia, vi a página Quero Vender Carregador e quero entender a Conexão Mob." + rastro());
 
-  /* ---- vídeo: miniatura primeiro, o player só carrega no clique ---- */
+  /* ---- vídeo (Vimeo): capa primeiro, o player só carrega no clique ----
+     dnt=1 desliga o rastreamento de visitante do Vimeo. */
   var vid = $("#vid");
-  // Nem todo vídeo tem a capa em alta: quando falta, o YouTube devolve uma
-  // imagem cinza de 120×90 em vez de erro. Testa da maior para a menor e usa a
-  // primeira de verdade (hqdefault é 4:3 com faixas pretas, que o cover corta).
-  (function capa(qs){
-    if(!qs.length) return;
-    var url = "https://i.ytimg.com/vi/" + vid.getAttribute("data-yt") + "/" + qs[0] + ".jpg";
-    var im = new Image();
-    im.onload = function(){
-      if(im.naturalWidth > 120) vid.style.backgroundImage = "url(" + url + ")";
-      else capa(qs.slice(1));
-    };
-    im.onerror = function(){ capa(qs.slice(1)); };
-    im.src = url;
-  })(["maxresdefault", "sddefault", "hqdefault"]);
+  vid.style.backgroundImage = "url(" + vid.getAttribute("data-capa") + ")";
   vid.addEventListener("click", function(){
     if(vid.querySelector("iframe")) return;
     var f = document.createElement("iframe");
-    f.src = "https://www.youtube-nocookie.com/embed/" + vid.getAttribute("data-yt") + "?autoplay=1&rel=0&modestbranding=1";
+    f.src = "https://player.vimeo.com/video/" + vid.getAttribute("data-vimeo") + "?autoplay=1&dnt=1&title=0&byline=0&portrait=0";
     f.title = "Apresentação para integradores";
     f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-    f.allowFullscreen = true;
     vid.appendChild(f);
   });
 
