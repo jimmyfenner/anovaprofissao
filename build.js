@@ -407,6 +407,9 @@ function homeDoLicenciado(src, lic) {
   h = trocaExato(h, '"Jimmy, isso é pirâmide?"', `"${nc}, isso é pirâmide?"`);
   h = trocaExato(h, '<span>Falar com Jimmy</span>', `<span>Falar com ${nc}</span>`);
   h = h.replace(/vídeo do Jimmy/g, `vídeo do ${nc}`);
+  // a âncora aparece na barra de endereço de quem clica em "Quem acompanha"
+  h = h.replace(/href="#jimmy"/g, 'href="#quem-acompanha"').replace('<section id="jimmy">', '<section id="quem-acompanha">')
+       .replace('<!-- JIMMY -->', '<!-- QUEM ACOMPANHA -->');
   // configuração do script: nem o número nem o ID do Jimmy ficam no espelho
   h = h.replace(/var WHATSAPP = "\d+";/, `var WHATSAPP = "${lic.whatsapp}";`)
        .replace(/var NOME {5}= "Jimmy";/, `var NOME     = "${lic.nome_curto}";`)
