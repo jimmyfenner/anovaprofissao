@@ -110,7 +110,7 @@ const FONTES = `<link rel="preload" href="/fonts/instrument-sans.woff2" as="font
    composto por cima com as fontes e cores do site. Endereço absoluto no
    domínio canônico da própria página. */
 function documento({ body, title, desc, canonical, noindex, links = '', siteNome = SITE.nome, comSite = true,
-                     og = SITE.url + '/media/og/home.jpg', ogAlt = 'A venda acontece uma vez. A conta do cliente chega todo mês. A Nova Profissão.' }) {
+                     autor = SITE.autor, og = SITE.url + '/media/og/home.jpg', ogAlt = 'A venda acontece uma vez. A conta do cliente chega todo mês. A Nova Profissão.' }) {
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -119,7 +119,7 @@ function documento({ body, title, desc, canonical, noindex, links = '', siteNome
 <title>${title}</title>
 <meta name="description" content="${desc}">
 <meta name="theme-color" content="${SITE.theme}">
-<meta name="author" content="${SITE.autor}">
+<meta name="author" content="${autor}">
 ${noindex ? '<meta name="robots" content="noindex,nofollow">' : '<meta name="robots" content="index,follow,max-image-preview:large">'}
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(FAVICON)}">
@@ -199,24 +199,30 @@ a:hover{color:#4BEA9C}
 .aviso{color:var(--muted-dim);font-size:.82rem;line-height:1.55;margin-top:1.4rem}
 `;
 
-function paginaLegal(p) {
-  const miolo = fs.readFileSync(path.join(__dirname, 'legal', p.arq), 'utf8');
+function paginaLegal(p, lic = null) {
+  let miolo = fs.readFileSync(path.join(__dirname, 'legal', p.arq), 'utf8');
+  if (lic) miolo = legalDoLicenciado(miolo, lic);
+  const base = lic ? '/' + lic.slug : '';
   const outros = LEGAIS.filter(x => x.slug !== p.slug);
+  const contato = lic
+    ? `<a href="https://wa.me/${lic.whatsapp}" target="_blank" rel="noopener">WhatsApp ${lic.whatsapp_exibir}</a>`
+    : '<a href="mailto:contato@jimmyfenner.com.br">contato@jimmyfenner.com.br</a>';
+  const dono = lic ? lic.nome_completo : 'Jimmy Fenner';
   return `<style>${CSS_LEGAL}</style>
 <header class="topo"><div class="wrap">
-  <a class="marca" href="/">A Nova <b>Profissão</b></a>
-  <a class="voltar" href="/">← Voltar ao site</a>
+  <a class="marca" href="${base || '/'}">A Nova <b>Profissão</b></a>
+  <a class="voltar" href="${base || '/'}">← Voltar ao site</a>
 </div></header>
 <main><div class="wrap">
 ${miolo}
 <p class="selo">Última atualização: ${ATUALIZADO}</p>
 </div></main>
 <footer class="rodape"><div class="wrap">
-  <a href="/">Início</a>
-  ${outros.map(o => `<a href="/${o.slug}">${o.title.split(' | ')[0]}</a>`).join('\n  ')}
-  <a href="mailto:contato@jimmyfenner.com.br">contato@jimmyfenner.com.br</a>
+  <a href="${base || '/'}">Início</a>
+  ${outros.map(o => `<a href="${base}/${o.slug}">${o.title.split(' | ')[0]}</a>`).join('\n  ')}
+  ${contato}
 </div>
-<div class="wrap"><p class="aviso">Site mantido por Jimmy Fenner, licenciado independente da iGreen Energy. Não é o site oficial da iGreen Energy e não representa a empresa.</p></div>
+<div class="wrap"><p class="aviso">Site mantido por ${dono}, licenciado independente da iGreen Energy. Não é o site oficial da iGreen Energy e não representa a empresa.</p></div>
 </footer>`;
 }
 
@@ -325,6 +331,131 @@ LEGAIS.forEach(p => {
   }));
 });
 
+/* ---------------- espelhos para licenciados ----------------
+   anovaprofissao.com.br/<slug>: a home com o contato, o link de cadastro, a
+   apresentação e as páginas jurídicas do licenciado (dados/licenciados.json).
+   Os blocos que pertencem ao Jimmy estão marcados na home.html com
+   <!--lic:nome-->...<!--/lic:nome-->; o resto é igual para todos.
+   noindex: o espelho é quase idêntico à home e não pode disputar a busca com
+   ela. Ao final, o build PARA se sobrar no espelho qualquer coisa do Jimmy
+   (nome visível, WhatsApp, ID de cadastro) — é a trava contra uma edição da
+   home que esqueça de marcar um bloco novo. */
+const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
+  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog']);
+const LICS = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'licenciados.json'), 'utf8')).licenciados;
+const esc = escHtml;
+
+function trocaBloco(html, nome, novo) {
+  const re = new RegExp(`<!--lic:${nome}-->[\\s\\S]*?<!--\\/lic:${nome}-->`, 'g');
+  if (!re.test(html)) { console.error(`ERRO: bloco <!--lic:${nome}--> não encontrado na home.html`); process.exit(1); }
+  return html.replace(re, novo);
+}
+function trocaExato(html, de, para) {
+  if (!html.includes(de)) { console.error(`ERRO: trecho esperado não encontrado na home.html: ${de.slice(0, 60)}`); process.exit(1); }
+  return html.split(de).join(para);
+}
+function legalDoLicenciado(miolo, lic) {
+  const zap = `<a href="https://wa.me/${lic.whatsapp}" target="_blank" rel="noopener">${lic.whatsapp_exibir}</a>`;
+  const operador = ` A página é hospedada e operada tecnicamente por Jimmy Fenner, também licenciado independente da iGreen Energy, que atua como operador: armazena os dados em nome do responsável, apenas para viabilizar o funcionamento do site e o aviso de novos contatos.`;
+  return miolo
+    .replace(/<strong>Jimmy Fenner<\/strong>, licenciado independente da iGreen Energy, estabelecido em Balneário Camboriú, Santa Catarina\./,
+      `<strong>${esc(lic.nome_completo)}</strong>, licenciado independente da iGreen Energy, estabelecido em ${esc(lic.cidade)}, ${esc(lic.estado)}.${operador}`)
+    .replace(/use o e-mail <a href="mailto:contato@jimmyfenner\.com\.br">contato@jimmyfenner\.com\.br<\/a> ou o WhatsApp <a[^>]*>[^<]*<\/a>/,
+      `use o WhatsApp ${zap}`)
+    .replace(/basta escrever para <a href="mailto:contato@jimmyfenner\.com\.br">contato@jimmyfenner\.com\.br<\/a>/,
+      `basta mandar mensagem para o WhatsApp ${zap}`)
+    .replace(/Dúvidas sobre estes termos: <a href="mailto:contato@jimmyfenner\.com\.br">contato@jimmyfenner\.com\.br<\/a>/,
+      `Dúvidas sobre estes termos: WhatsApp ${zap}`)
+    .replace(/comarca de Balneário Camboriú, Santa Catarina/, `comarca de ${esc(lic.cidade)}, ${esc(lic.estado)}`)
+    .replace(/Jimmy Fenner(?!, também licenciado)/g, esc(lic.nome_completo));
+}
+function homeDoLicenciado(src, lic) {
+  const n = esc(lic.nome), nc = esc(lic.nome_curto);
+  const zapMsg = encodeURIComponent(`Olá ${lic.nome_curto}! Vi a sua página A Nova Profissão e quero entender melhor a oportunidade.`);
+  const redes = [
+    lic.instagram && `<a href="https://instagram.com/${esc(lic.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener" data-ev="instagram_rodape">Instagram</a>`,
+    lic.youtube && `<a href="${esc(lic.youtube)}" target="_blank" rel="noopener" data-ev="youtube_rodape">YouTube</a>`,
+  ].filter(Boolean).join('\n          ');
+  const pessoa = `<div class="person">
+      <div class="person__photo reveal">
+        <img src="${esc(lic.foto)}" alt="${esc(lic.foto_alt)}" width="760" height="950" decoding="async" loading="lazy">
+      </div>
+      <div class="reveal">
+        <h3 style="font-size:clamp(1.35rem,3vw,1.9rem);font-weight:700">${esc(lic.nome_completo)}</h3>
+        <div class="creds">
+          <span class="chip">Licenciado desde ${esc(lic.desde_curto)}</span>
+          <span class="chip">Qualificação ${esc(lic.qualificacao)}</span>
+          <span class="chip">${esc(lic.cidade)}, ${esc(lic.uf)}${lic.regiao ? ' · ' + esc(lic.regiao) : ''}</span>
+        </div>
+        <div class="prose" style="margin-top:1.6rem">
+          ${lic.bio.map(t => `<p>${esc(t)}</p>`).join('\n          ')}
+          <div class="verme">
+            <p>Se preferir conversar antes de fazer a avaliação, me chame no WhatsApp.</p>
+            <div class="btn-row">
+              <a class="btn btn--ghost" href="https://wa.me/${lic.whatsapp}?text=${zapMsg}" target="_blank" rel="noopener" data-ev="whatsapp_licenciado">WhatsApp ${esc(lic.whatsapp_exibir)}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  let h = src;
+  h = trocaBloco(h, 'ctx', `<p class="hero__ctx">Uma oportunidade profissional desenvolvida através do modelo de licenciamento da <b>iGreen Energy</b>.<br>Esta página é de <a href="#jimmy" style="color:var(--muted);font-weight:500;text-decoration:none;border-bottom:1px solid var(--line)">${n}</a>, licenciado independente da iGreen Energy em ${esc(lic.cidade)}/${esc(lic.uf)}.</p>`);
+  h = trocaBloco(h, 'pessoa', pessoa);
+  h = trocaBloco(h, 'redes', redes);
+  h = trocaBloco(h, 'dono', esc(lic.nome_completo));
+  h = trocaBloco(h, 'cidade', `${esc(lic.cidade)}, ${esc(lic.uf)}`);
+  h = trocaExato(h, '"Jimmy, isso é pirâmide?"', `"${nc}, isso é pirâmide?"`);
+  h = trocaExato(h, '<span>Falar com Jimmy</span>', `<span>Falar com ${nc}</span>`);
+  h = h.replace(/vídeo do Jimmy/g, `vídeo do ${nc}`);
+  // configuração do script: nem o número nem o ID do Jimmy ficam no espelho
+  h = h.replace(/var WHATSAPP = "\d+";/, `var WHATSAPP = "${lic.whatsapp}";`)
+       .replace(/var NOME {5}= "Jimmy";/, `var NOME     = "${lic.nome_curto}";`)
+       .replace(/var LINK_CADASTRO = "[^"]*";/, `var LINK_CADASTRO = "${lic.link_cadastro}";`);
+  // páginas jurídicas do próprio licenciado
+  h = h.replace(/href="\/(privacidade|termos|aviso-legal)"/g, `href="/${lic.slug}/$1"`);
+  const dados = { slug: lic.slug, nome: lic.nome, nome_curto: lic.nome_curto, whatsapp: lic.whatsapp,
+                  link_cadastro: lic.link_cadastro, link_grupo: lic.link_grupo || '', meta_pixel: lic.meta_pixel || '' };
+  return `<script>window.ANP_LIC=${JSON.stringify(dados)};</script>\n` + h;
+}
+function conferirEspelho(html, slug) {
+  const visivel = html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ');
+  const restos = [];
+  if (/Jimmy|Fenner/.test(visivel)) restos.push('nome do Jimmy no texto: ' + (visivel.match(/.{0,40}(Jimmy|Fenner).{0,40}/) || [''])[0].trim());
+  if (/5548991067007|99106-7007/.test(html)) restos.push('WhatsApp do Jimmy');
+  if (/[?&]id=1971\b/.test(html)) restos.push('ID de cadastro do Jimmy');
+  if (/jimmyfenner|minerandoosol/.test(html)) restos.push('rede social do Jimmy');
+  if (restos.length) { console.error(`ERRO: o espelho /${slug} ainda tem coisas do Jimmy: ` + restos.join(' | ')); process.exit(1); }
+}
+
+const espelhos = [];
+Object.entries(LICS).forEach(([slug, l]) => {
+  if (!l.ativo) return;
+  if (!/^[a-z0-9-]{3,40}$/.test(slug) || RESERVADOS.has(slug)) {
+    console.error(`ERRO: "${slug}" não pode ser endereço de licenciado (formato inválido ou nome reservado).`); process.exit(1);
+  }
+  const lic = Object.assign({ slug }, l);
+  const corpo = homeDoLicenciado(home.body, lic);
+  conferirEspelho(corpo, slug);
+  mkdir(out(slug));
+  fs.writeFileSync(out(slug, 'index.html'), documento({
+    body: corpo, links: home.links,
+    title: `${lic.nome} · A Nova Profissão | Licenciamento iGreen Energy`,
+    desc: SITE.desc, canonical: SITE.url + '/' + slug, noindex: true, autor: lic.nome_completo,
+    ogAlt: `A venda acontece uma vez. A conta do cliente chega todo mês. ${lic.nome}, licenciado independente iGreen Energy.`,
+  }));
+  LEGAIS.forEach(p => {
+    const corpoLegal = paginaLegal(p, lic);
+    const sobra = corpoLegal.replace(/operada tecnicamente por Jimmy Fenner/, '').match(/Jimmy|jimmyfenner|99106|Balneário/);
+    if (sobra) { console.error(`ERRO: /${slug}/${p.slug} ainda cita o Jimmy (${sobra[0]}).`); process.exit(1); }
+    mkdir(out(slug, p.slug));
+    fs.writeFileSync(out(slug, p.slug, 'index.html'), documento({
+      body: corpoLegal, title: p.title.replace(SITE.nome, `${SITE.nome} · ${lic.nome}`), desc: p.desc,
+      canonical: SITE.url + '/' + slug + '/' + p.slug, noindex: true, autor: lic.nome_completo,
+    }));
+  });
+  espelhos.push(slug);
+});
+
 /* ---------------- robots.txt e sitemap.xml por domínio ----------------
    São três domínios no mesmo projeto, e cada um tem o próprio canônico. O
    Google lê o robots.txt e o sitemap de cada host: por isso os arquivos ficam
@@ -379,5 +510,6 @@ console.log('dist/integradores/index.html', (fs.statSync(out('integradores', 'in
 const faqTe = faqSchema(te.body);
 console.log('dist/transicao-energetica/index.html', (fs.statSync(out('transicao-energetica', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqTe ? faqTe.mainEntity.length : 0) + ' perguntas · dados de ' + dataBR(teDados.atualizado_em));
 LEGAIS.forEach(p => console.log('dist/' + p.slug + '/index.html'));
+console.log('espelhos de licenciados: ' + (espelhos.length ? espelhos.map(s => '/' + s).join(', ') : 'nenhum'));
 console.log('dist/seo/<dominio>/robots.txt e sitemap.xml: ' + Object.keys(DOMINIOS).join(', '));
 console.log('FAQPage schema: ' + n + ' perguntas extraídas da própria página');

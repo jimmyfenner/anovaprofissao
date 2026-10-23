@@ -402,7 +402,8 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 12 (terceira página no contador, transição energética) aplicada e
+Nenhuma. 13 (espelhos de licenciados) aplicada e testada em 23/out/2026.
+12 (terceira página no contador, transição energética) aplicada e
 testada em 19/out/2026. 10 (tipo integrador) e 11 (visitas por página) aplicadas em
 17/out/2026, junto com o deploy da Edge Function com `corpoInteg`, e testadas.
 07 e 08 foram aplicadas em 30/set/2026 (e a Edge Function
@@ -664,3 +665,42 @@ Regras específicas:
   (permanente)**, não 307.
 - O FAQPage schema continua, mas o Google só mostra FAQ expandido para sites de
   governo e saúde desde 2023: serve para entender a página, não para destaque.
+
+## Espelhos para licenciados — anovaprofissao.com.br/<slug> (out/2026)
+
+Pedido do Jimmy em 23/10/2026: licenciados podem usar o site com os próprios
+contatos. Primeiro espelho: **/mariogomes** (Mario Henrique Gomes da Silva,
+Santos/SP, licenciado desde dez/2025, qualificação Sênior, ID iGreen 114882).
+
+- **Ficha** em `dados/licenciados.json` (nome, WhatsApp, link de cadastro, foto
+  em `media/licenciados/<slug>.jpg` 760x950, apresentação, redes, pixel). O
+  **e-mail não fica na ficha** (o site é público): fica só na tabela
+  `licenciados` do Supabase, que recebe os avisos. Para criar um espelho:
+  ficha + foto + linha na tabela `licenciados` (migração 13 tem o modelo).
+- **Build**: gera `dist/<slug>/` a partir da home, trocando os blocos
+  marcados `<!--lic:ctx|pessoa|redes|dono|cidade-->` e alguns trechos exatos
+  ("Jimmy, isso é pirâmide?", "Falar com Jimmy"), troca a configuração do
+  script e injeta `window.ANP_LIC`. Gera também as três páginas jurídicas do
+  licenciado em `/<slug>/privacidade|termos|aviso-legal` (responsável pelos
+  dados = o licenciado; Jimmy aparece como operador técnico; contato público
+  = WhatsApp; foro = cidade dele). O build **para** se sobrar no espelho nome
+  visível, WhatsApp, ID de cadastro ou rede social do Jimmy. Ao editar a home,
+  qualquer bloco novo que fale do Jimmy precisa de marcador, senão o build
+  trava (é a intenção).
+- **Na home**, `LIC = window.ANP_LIC`: com ele, nada do painel (`site_config`)
+  sobrepõe WhatsApp, link de cadastro, canal ou Pixel; o Pixel do Jimmy não
+  carrega (usa o do licenciado, se houver); depoimentos não aparecem; o lead
+  sai com `licenciado = <slug>`. Vídeos: os mesmos da home (decisão padrão,
+  o Jimmy não se opôs).
+- **noindex** em todos os espelhos: são quase iguais à home e não podem
+  disputar a busca com ela. Slugs reservados no build (`RESERVADOS`).
+- **Banco** (`db/13-licenciados.sql`, aplicada e testada em 23/10/2026):
+  `leads.licenciado` com chave estrangeira para `licenciados(slug)` (slug
+  inventado é recusado), `licenciados` só legível com login,
+  `visita_pagina` e `lead_pagina` classificam como `licenciados`.
+- **Aviso**: a Edge Function `whatsapp` manda o lead do espelho para o
+  WhatsApp/e-mail do licenciado (linha "Via a sua pagina ..."), não para os
+  destinatários do Jimmy. Licenciado inativo ou sem cadastro: cai para o Jimmy.
+  O WhatsApp sai pela instância conectada do Jimmy.
+- **Painel**: selo "Via <nome>", filtro "Espelhos de licenciados" em tipos,
+  opção na aba Visitas e linha "Espelho" no detalhe do lead.

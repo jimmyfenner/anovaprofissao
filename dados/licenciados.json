@@ -1,0 +1,32 @@
+{
+  "_leia": "Espelhos da home para licenciados em anovaprofissao.com.br/<slug>. O build gera uma página por item ativo, troca os blocos marcados com <!--lic:...--> na home.html e injeta window.ANP_LIC. O e-mail que recebe os avisos NÃO fica aqui (o site é público): fica na tabela licenciados do Supabase (db/13). Slugs reservados: os nomes das páginas que já existem no site.",
+  "licenciados": {
+    "mariogomes": {
+      "ativo": true,
+      "nome": "Mario Henrique",
+      "nome_curto": "Mario",
+      "nome_completo": "Mario Henrique Gomes da Silva",
+      "cidade": "Santos",
+      "uf": "SP",
+      "estado": "São Paulo",
+      "regiao": "Baixada Santista",
+      "whatsapp": "5513981602345",
+      "whatsapp_exibir": "(13) 98160-2345",
+      "link_cadastro": "https://expansao.igreenenergy.com.br/?id=114882&checkout=true",
+      "link_grupo": "",
+      "meta_pixel": "",
+      "desde": "dezembro de 2025",
+      "desde_curto": "dez/2025",
+      "qualificacao": "Sênior",
+      "foto": "/media/licenciados/mariogomes.jpg",
+      "foto_alt": "Mario Henrique Gomes da Silva, licenciado iGreen Energy em Santos, SP",
+      "bio": [
+        "Sou Mario Henrique, de Santos, na Baixada Santista, e atuo como licenciado iGreen desde dezembro de 2025, exercendo a função de consultor sênior na empresa.",
+        "Atendo clientes em todo o Brasil, oferecendo soluções para economizar na conta de luz, além de energia solar, eletropostos, telecomunicações e oportunidades de negócios.",
+        "Meu objetivo é ajudar pessoas e empresas a conhecerem essas soluções e aproveitarem seus benefícios."
+      ],
+      "instagram": "",
+      "youtube": ""
+    }
+  }
+}

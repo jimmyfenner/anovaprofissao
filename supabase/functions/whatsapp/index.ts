@@ -169,7 +169,18 @@ Deno.serve(async (req) => {
         L = achado?.[0] ?? {};
       }
 
-      const dest = await db("notificacao_destinatarios?ativo=eq.true&select=numero,email,nome");
+      // Lead de espelho (anovaprofissao.com.br/<slug>): o aviso vai para o
+      // licenciado dono da página, não para os destinatários do Jimmy. Se o
+      // licenciado estiver inativo ou sem cadastro, o aviso cai para o Jimmy,
+      // para o lead nunca ficar sem dono.
+      let lic: any = null;
+      if (L.licenciado) {
+        const achadoLic = await db(`licenciados?slug=eq.${encodeURIComponent(L.licenciado)}&ativo=eq.true&select=slug,nome,whatsapp,email`);
+        lic = achadoLic?.[0] ?? null;
+      }
+      const dest = lic
+        ? [{ numero: lic.whatsapp, email: lic.email, nome: lic.nome }].filter((d) => d.numero || d.email)
+        : await db("notificacao_destinatarios?ativo=eq.true&select=numero,email,nome");
       if (!dest?.length) return json({ error: "Nenhum destinatário ativo" }, 400);
 
       const ehTeste = acao === "teste";
@@ -231,11 +242,13 @@ Deno.serve(async (req) => {
       ];
 
       // null = linha opcional ausente; "" = linha em branco proposital (Boolean apagaria as duas)
-      const texto = ehTeste
+      const corpo = ehTeste
         ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
         : (ehDireto ? corpoDireto : ehInteg ? corpoInteg : corpoQuiz).filter((l) => l !== null).join("\n");
+      // no espelho, a primeira linha diz de qual página o lead veio
+      const texto = lic && !ehTeste ? `Via a sua pagina anovaprofissao.com.br/${lic.slug}\n\n${corpo}` : corpo;
 
-      const assunto = ehTeste
+      const assuntoBase = ehTeste
         ? "Teste de aviso — A Nova Profissao"
         : ehDireto
           ? `🔴 CADASTRO DIRETO: ${L.nome ?? "?"} foi para o cadastro agora`
@@ -244,6 +257,7 @@ Deno.serve(async (req) => {
           : semInvestir
             ? `Lead novo (sem investimento agora): ${L.nome ?? "?"} — ${onde}`
             : `Lead novo: ${L.nome ?? "?"} — ${onde}`;
+      const assunto = lic && !ehTeste ? `[anovaprofissao.com.br/${lic.slug}] ${assuntoBase}` : assuntoBase;
 
       const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
       const inst = cfg?.[0]?.instancia;

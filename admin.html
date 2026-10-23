@@ -110,6 +110,7 @@ p{margin:0}
 .dl__edit:focus{outline:0;border-color:var(--credit);background:var(--surface)}
 .pill--direto{color:#04120B;border-color:#E0A83C;background:#E0A83C;font-weight:600}
 .pill--integ{color:#04120B;border-color:#34DB8B;background:#34DB8B;font-weight:600}
+.pill--lic{color:#E0A83C;border-color:rgba(224,168,60,.45);background:rgba(224,168,60,.1);font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
 .src{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.28em .55em;white-space:nowrap}
@@ -286,6 +287,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <option value="quiz">Quiz (A Nova Profissão)</option>
         <option value="direto">Cadastro direto</option>
         <option value="integrador">Integradores</option>
+        <option value="licenciado">Espelhos de licenciados</option>
       </select>
       <select class="inp" id="f-origem"><option value="">Todas as origens</option></select>
       <select class="inp" id="f-periodo">
@@ -307,6 +309,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
           <option value="home">A Nova Profissão (anovaprofissao.com.br)</option>
           <option value="integradores">Integradores (querovendercarregador.com.br)</option>
           <option value="transicao">Transição energética (transicaoenergetica.com.br)</option>
+          <option value="licenciados">Espelhos de licenciados (anovaprofissao.com.br/nome)</option>
         </select>
       </div>
       <dl class="stats">
@@ -552,8 +555,13 @@ $("#btn-sair").addEventListener("click", function(){
   sb.auth.signOut().then(function(){ location.reload(); });
 });
 
+var LICS = {};   // slug -> nome (tabela licenciados, db/13). Sem a migração, fica vazio e o painel segue normal.
 function carregar(){
   try{ localStorage.setItem("anp_admin","1"); }catch(e){}  // o site não conta as visitas deste navegador
+  sb.from("licenciados").select("slug,nome").then(function(r){
+    (r.data || []).forEach(function(x){ LICS[x.slug] = x.nome; });
+    if(r.data && r.data.length && leads.length) render();
+  });
   sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000)
     .then(function(r){
       if(r.error){ console.error(r.error); return; }
@@ -589,7 +597,8 @@ function filtrados(){
   return leads.filter(function(l){
     if(st && l.status !== st) return false;
     // integrador pelo mesmo critério do selo (cobre os gravados antes da migração 10)
-    if(tp && (ehInteg(l) ? "integrador" : (l.tipo || "quiz")) !== tp) return false;
+    if(tp === "licenciado"){ if(!l.licenciado) return false; }
+    else if(tp && (l.licenciado || (ehInteg(l) ? "integrador" : (l.tipo || "quiz")) !== tp)) return false;
     if(or && (l.utm_source || "direto") !== or) return false;
     if(corte && new Date(l.criado_em).getTime() < corte) return false;
     if(q){
@@ -625,6 +634,7 @@ function render(){
         '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
         (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
         (ehInteg(l) ? '<span class="pill pill--integ">Integrador</span>' : '')+
+        (l.licenciado ? '<span class="pill pill--lic">'+esc(nomeLic(l.licenciado))+'</span>' : '')+
         '<span class="src">'+esc(l.utm_source||"direto")+'</span>'+
         '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
         '<span class="lead__when">'+quando(l.criado_em)+'</span>'+
@@ -674,12 +684,14 @@ function render(){
 
 // lead da página de integradores; o segundo teste cobre os gravados antes da migração 10
 function ehInteg(l){ return l.tipo==="integrador" || /página de integradores/.test(l.solucao||""); }
+function nomeLic(slug){ return "Via " + ((LICS[slug] || "").split(" ")[0] || slug); }
 
 function detalhe(l){
   return '<div class="detail">'+
     '<dl class="dl">'+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
       (ehInteg(l) ? linha("Veio por", "Página de integradores (querovendercarregador.com.br) — Atuação, Perfil e Objetivo abaixo são as respostas de lá") : "")+
+      (l.licenciado ? linha("Espelho", (LICS[l.licenciado] || l.licenciado) + " — anovaprofissao.com.br/" + l.licenciado + ". O aviso deste lead foi para ele.") : "")+
       campo(l.id, "nome", "Nome", l.nome)+
       campo(l.id, "whatsapp", "WhatsApp", l.whatsapp)+
       campo(l.id, "email", "E-mail", l.email)+
@@ -872,7 +884,7 @@ function carregarVisitas(){
       }).join("") : '<p class="sub">Nenhuma visita registrada ainda.</p>';
     };
     $("#v-origens").innerHTML = lista(d.origens || [], "origem", function(o){ return o === "direto" ? "Acesso direto ou link sem origem" : o; });
-    var NOME_PAG = {home: "A Nova Profissão", integradores: "Integradores (querovendercarregador)", transicao: "Transição energética"};
+    var NOME_PAG = {home: "A Nova Profissão", integradores: "Integradores (querovendercarregador)", transicao: "Transição energética", licenciados: "Espelhos de licenciados"};
     $("#v-paginas").innerHTML = d.paginas
       ? lista(d.paginas, "pagina", function(o){ return NOME_PAG[o] || o; })
       : '<p class="sub">Disponível depois de rodar o SQL db/11-visitas-por-pagina.sql.</p>';
