@@ -21,6 +21,8 @@ const SITE = {
 /* Data de revisão dos textos jurídicos. É fixa de propósito: ela diz quando o
    texto mudou, não quando o site foi publicado. Atualize ao alterar legal/*. */
 const ATUALIZADO = '19 de outubro de 2026';
+/* Idem para as páginas do Publicador (publicador/*). */
+const ATUALIZADO_PUBLICADOR = '25 de outubro de 2026';
 
 const out = (...p) => path.join(__dirname, 'dist', ...p);
 const mkdir = d => fs.mkdirSync(d, { recursive: true });
@@ -331,6 +333,52 @@ LEGAIS.forEach(p => {
   }));
 });
 
+/* ---------------- Publicador do YouTube ----------------
+   Páginas públicas que o Google exige para o app OAuth "Publicador Jimmy
+   Fenner" (projeto publicador-youtube-jimmy, studio/tools/publicar_youtube_api.py)
+   e que a auditoria da API do YouTube confere: página inicial, privacidade e
+   termos. Fontes só com o miolo em publicador/, no shell das páginas
+   jurídicas. noindex: não têm nada a ver com o recrutamento. */
+const PUBLICADOR = [
+  { slug:'', arq:'index.html', nome:'Início',
+    title:'Publicador Jimmy Fenner',
+    desc:'Ferramenta pessoal que publica e agenda os vídeos do canal de YouTube do Jimmy Fenner.' },
+  { slug:'privacidade', arq:'privacidade.html', nome:'Política de Privacidade',
+    title:'Política de Privacidade | Publicador Jimmy Fenner',
+    desc:'Quais dados do YouTube o Publicador acessa, onde eles ficam e como revogar o acesso.' },
+  { slug:'termos', arq:'termos.html', nome:'Termos de Uso',
+    title:'Termos de Uso | Publicador Jimmy Fenner',
+    desc:'As condições de uso do Publicador, a ferramenta pessoal de publicação no YouTube do Jimmy Fenner.' },
+];
+
+function paginaPublicador(p) {
+  const miolo = fs.readFileSync(path.join(__dirname, 'publicador', p.arq), 'utf8');
+  return `<style>${CSS_LEGAL}</style>
+<header class="topo"><div class="wrap">
+  <a class="marca" href="/publicador">Publicador <b>Jimmy Fenner</b></a>
+  <a class="voltar" href="https://www.youtube.com/@jimmyfenner" target="_blank" rel="noopener">Canal no YouTube →</a>
+</div></header>
+<main><div class="wrap">
+${miolo}
+<p class="selo">Última atualização: ${ATUALIZADO_PUBLICADOR}</p>
+</div></main>
+<footer class="rodape"><div class="wrap">
+  ${PUBLICADOR.map(o => `<a href="/publicador${o.slug && '/' + o.slug}">${o.nome}</a>`).join('\n  ')}
+  <a href="mailto:contato@jimmyfenner.com.br">contato@jimmyfenner.com.br</a>
+</div>
+<div class="wrap"><p class="aviso">Ferramenta pessoal de Jimmy Fenner. Usa os Serviços de API do YouTube.</p></div>
+</footer>`;
+}
+
+PUBLICADOR.forEach(p => {
+  const dir = p.slug ? ['publicador', p.slug] : ['publicador'];
+  mkdir(out(...dir));
+  fs.writeFileSync(out(...dir, 'index.html'), documento({
+    body: paginaPublicador(p), title: p.title, desc: p.desc,
+    canonical: SITE.url + '/' + dir.join('/'), noindex: true, autor: 'Jimmy Fenner',
+  }));
+});
+
 /* ---------------- espelhos para licenciados ----------------
    anovaprofissao.com.br/<slug>: a home com o contato, o link de cadastro, a
    apresentação e as páginas jurídicas do licenciado (dados/licenciados.json).
@@ -341,7 +389,7 @@ LEGAIS.forEach(p => {
    (nome visível, WhatsApp, ID de cadastro) — é a trava contra uma edição da
    home que esqueça de marcar um bloco novo. */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
-  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog']);
+  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador']);
 const LICS = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'licenciados.json'), 'utf8')).licenciados;
 const esc = escHtml;
 

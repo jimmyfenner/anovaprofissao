@@ -704,3 +704,21 @@ Santos/SP, licenciado desde dez/2025, qualificação Sênior, ID iGreen 114882).
   O WhatsApp sai pela instância conectada do Jimmy.
 - **Painel**: selo "Via <nome>", filtro "Espelhos de licenciados" em tipos,
   opção na aba Visitas e linha "Espelho" no detalhe do lead.
+
+## Publicador do YouTube — anovaprofissao.com.br/publicador (out/2026)
+
+Três páginas públicas exigidas pelo Google para o app OAuth "Publicador Jimmy
+Fenner" (projeto Google Cloud `publicador-youtube-jimmy`, script
+`studio/tools/publicar_youtube_api.py`) e conferidas na auditoria da API do
+YouTube: `/publicador` (página inicial do app), `/publicador/privacidade` e
+`/publicador/termos`. Fontes só com o miolo em `publicador/`, no shell das
+páginas jurídicas (`paginaPublicador` no build.js), em português e inglês,
+`noindex` (não têm nada a ver com o recrutamento). Data de revisão própria:
+`ATUALIZADO_PUBLICADOR`. `publicador` está nos slugs reservados.
+
+A política descreve o tratamento real do script: lê nome e estatísticas do
+canal (`channels.list`), envia vídeos (`videos.insert`) e muda status/horário
+(`videos.update`); token e registro das publicações só no Mac do Jimmy. Se o
+script passar a usar outra chamada da API ou guardar dados de outro jeito, a
+política muda junto, antes, e a data também. Nada de script, pixel ou
+contador nessas páginas: a política diz que não há cookies.
