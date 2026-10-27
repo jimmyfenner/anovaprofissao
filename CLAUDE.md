@@ -722,3 +722,30 @@ canal (`channels.list`), envia vídeos (`videos.insert`) e muda status/horário
 script passar a usar outra chamada da API ou guardar dados de outro jeito, a
 política muda junto, antes, e a data também. Nada de script, pixel ou
 contador nessas páginas: a política diz que não há cookies.
+
+## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
+
+Deck HTML animado (25 slides, 16:9, setas/passador) que o Jimmy usa ao vivo
+e manda por link. Pedido dele em 27/10/2026. A fonte **não é deste repo**: o
+original fica em `/Volumes/Sandisk/Claude/apresentacao-igreen-2026/` (HTML de
+arquivo único, com fonte Montserrat e imagens embutidas, e o PDF gerado por
+Chrome headless). `apresentacao/index.html` e `apresentacao/iGreen-2026-apresentacao.pdf`
+são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
+
+- O build copia a pasta como está (`APRES` no build.js) e só injeta `noindex`
+  + Open Graph + canonical no HTML. Não entra no sitemap. `apresentacao` está
+  nos slugs reservados.
+- **Exceção consciente às regras de conteúdo deste site**: o deck traz
+  percentuais de comissão, simulações de ganho ("simulação ilustrativa, não
+  constitui promessa de ganho" em todas), preços dos modelos Mob e a divisão
+  da recarga (82% investidor / 10% software / 8% comercial). É material de
+  apresentação fechada, publicado só para ser aberto por link — por isso
+  `noindex` e nada de link para ele na home. Quem for linkar a partir das
+  páginas públicas precisa reabrir essa decisão com o Jimmy (CVM/SCP na
+  Licença Mob, ver "Transição energética").
+- A capa traz o aviso de licenciado independente, como a home.
+- Slides de campanha (11 "Bônus Extra Garantido" e 22 "Campanhas do mês",
+  mais as etiquetas "Out/26" em Seguros e Livre) vencem em 31/10/2026 e são
+  refeitos a cada export novo do Academy; os valores de GP são de licenciado
+  PRO (regra por vertical). Pendências e histórico do deck: memória
+  `apresentacao-plano-negocios-igreen` do Claude.

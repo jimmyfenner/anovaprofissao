@@ -389,7 +389,7 @@ PUBLICADOR.forEach(p => {
    (nome visível, WhatsApp, ID de cadastro) — é a trava contra uma edição da
    home que esqueça de marcar um bloco novo. */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
-  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador']);
+  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao']);
 const LICS = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'licenciados.json'), 'utf8')).licenciados;
 const esc = escHtml;
 
@@ -507,6 +507,30 @@ Object.entries(LICS).forEach(([slug, l]) => {
   espelhos.push(slug);
 });
 
+/* ---------------- /apresentacao: deck do Plano de Negócios ----------------
+   Arquivo único já com <head> (fonte e imagens embutidas), copiado como está
+   de apresentacao/. Só ganha noindex — é material de apoio compartilhado por
+   link, não página de recrutamento — e Open Graph para a prévia no WhatsApp.
+   O PDF ao lado é servido no mesmo caminho. */
+const APRES = path.join(__dirname, 'apresentacao');
+if (fs.existsSync(APRES)) {
+  mkdir(out('apresentacao'));
+  fs.readdirSync(APRES).forEach(f => {
+    if (f === 'index.html') {
+      const html = fs.readFileSync(path.join(APRES, f), 'utf8').replace('<head>', `<head>
+<meta name="robots" content="noindex,nofollow">
+<meta property="og:title" content="Plano de Negócios iGreen 2026 — apresentação">
+<meta property="og:description" content="Energia, telecom, seguros e eletropostos: como funciona o licenciamento iGreen, produto a produto.">
+<meta property="og:url" content="${SITE.url}/apresentacao">
+<meta property="og:type" content="website">
+<link rel="canonical" href="${SITE.url}/apresentacao">`);
+      fs.writeFileSync(out('apresentacao', 'index.html'), html);
+    } else if (!f.startsWith('.')) {
+      fs.copyFileSync(path.join(APRES, f), out('apresentacao', f));
+    }
+  });
+}
+
 /* ---------------- robots.txt e sitemap.xml por domínio ----------------
    São três domínios no mesmo projeto, e cada um tem o próprio canônico. O
    Google lê o robots.txt e o sitemap de cada host: por isso os arquivos ficam
@@ -563,4 +587,5 @@ console.log('dist/transicao-energetica/index.html', (fs.statSync(out('transicao-
 LEGAIS.forEach(p => console.log('dist/' + p.slug + '/index.html'));
 console.log('espelhos de licenciados: ' + (espelhos.length ? espelhos.map(s => '/' + s).join(', ') : 'nenhum'));
 console.log('dist/seo/<dominio>/robots.txt e sitemap.xml: ' + Object.keys(DOMINIOS).join(', '));
+if (fs.existsSync(APRES)) console.log('dist/apresentacao: deck do Plano de Negócios (noindex)');
 console.log('FAQPage schema: ' + n + ' perguntas extraídas da própria página');
