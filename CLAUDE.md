@@ -749,3 +749,13 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   refeitos a cada export novo do Academy; os valores de GP são de licenciado
   PRO (regra por vertical). Pendências e histórico do deck: memória
   `apresentacao-plano-negocios-igreen` do Claude.
+- **Mapa de cobertura (slide 9)**: SVG dos 27 estados (malha do IBGE, a mesma
+  de `mapa-conexao-green/componente/geometria-ufs.js`) com as distribuidoras
+  por estado vindas de `mapa-conexao-green/regras.json` (gerado do backup do
+  Academy) mais as exceções que o Jimmy passou em 27/10/2026: sem cobertura em
+  AC, AM, AP, DF, RO e RR; em SP não atende Enel SP, EDP São Paulo e CPFL
+  Piratininga; no RJ não atende Light. Dica ao passar o mouse/tocar; clique
+  fixa. Para atualizar: regerar `regras.json` com o backup novo e rodar
+  `patch_mapa.py` (fica junto do deck) ou editar `MAPA_DADOS` no HTML.
+- Avisos estilo push (canto superior direito, aleatórios, rotulados
+  "exemplo"): tecla N liga/desliga; `?semavisos` abre sem eles.
