@@ -1048,13 +1048,14 @@ body.clean .ui,body.clean .prog{display:none}
     <div class="row r" style="--i:7;gap:14px;justify-content:center;margin-top:26px"><span class="pill"><svg class="i" style="width:20px;height:20px"><use href="#globe"/></svg>igreenenergy.com.br</span><span class="pill">@igreen.energy</span><span class="pill">Dúvidas? Fale com o Jimmy antes de decidir</span></div>
   </section>
 
+  <div class="notif" id="notif" role="status" aria-live="polite"><div class="ic"><i></i></div><div class="tx"><div class="h"><span class="t"></span><span class="when">exemplo</span></div><div class="b"></div></div></div>
 </div></div>
 
 <div class="prog" id="prog"></div>
 <div class="ui">
   <button id="prev" aria-label="Anterior"><svg class="i"><use href="#left"/></svg></button>
   <button id="next" aria-label="Próximo"><svg class="i"><use href="#right"/></svg></button>
-  <span class="count" id="count">01 / 22</span>
+  <span class="count" id="count">01 / 25</span>
   <div class="dots" id="dots"></div>
   <span class="hint">← → navegar · F tela cheia · N avisos</span>
   <button id="fs" aria-label="Tela cheia"><svg class="i"><use href="#full"/></svg></button>
@@ -1167,6 +1168,13 @@ body.clean .ui,body.clean .prog{display:none}
   let tx=null; addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
   addEventListener('touchend',e=>{ if(tx==null)return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>40) go(cur+(dx<0?1:-1)); tx=null; });
 
+  // o slide inicial abre aqui, antes de qualquer módulo opcional (avisos, mapa, medição):
+  // um erro neles nunca pode deixar a apresentação em branco
+  const start=parseInt(location.hash.slice(1))-1;
+  go(isNaN(start)?0:start);
+
+  try {
+
   // ---- avisos estilo push: simulação aleatória de como o app avisa cada ganho ----
   const NOMES=['EBER','ALLAN','ALEXANDRE','DIEGO','FREDSON','GENESIA','IDENILCE','MARCOS','JULIANA','RAFAEL','PATRÍCIA','CARLOS','FERNANDA','TIAGO','LUCIANA','ANDERSON','MARIA','PAULO','RENATA','BRUNO','VANESSA','RODRIGO','CAMILA','JOSÉ','ALINE','GUSTAVO','SIMONE','LEANDRO','ROSANA','FÁBIO','EDUARDO','TATIANE'];
   const brl=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1196,13 +1204,16 @@ body.clean .ui,body.clean .prog{display:none}
     clearTimeout(nHide); nHide=setTimeout(()=>{ notif.classList.remove('on'); notif.classList.add('off'); },6500);
     agendar();
   }
-  if(AVISOS_ON){
+  if(AVISOS_ON && notif){
     notif.style.setProperty('--logo',`url("${document.querySelector('.orb img').src}")`);
     if(location.search.includes('demo=aviso')){ notif.classList.add('noanim'); setTimeout(()=>mostrarAviso(true),300); }
     else nTimer=setTimeout(mostrarAviso, 12000+Math.random()*8000);
   }
   addEventListener('keydown',e=>{ if(e.key==='n'||e.key==='N'){ nOn=!nOn; if(nOn) agendar(); else { clearTimeout(nTimer); notif.classList.remove('on'); notif.classList.add('off'); } } });
 
+  } catch(e){ console.error('avisos:',e); }
+
+  try {
   // ---- mapa de cobertura: dica por estado ----
   const MAPA_DADOS={"AC": {"n": "Acre", "s": "nao", "d": [["Energisa Acre", false]]}, "AL": {"n": "Alagoas", "s": "ok", "d": [["Equatorial", true]]}, "AP": {"n": "Amapá", "s": "nao", "d": [["CEA Equatorial", false]]}, "AM": {"n": "Amazonas", "s": "nao", "d": [["Amazonas Energia", false]]}, "BA": {"n": "Bahia", "s": "ok", "d": [["Coelba Neoenergia", true]]}, "CE": {"n": "Ceará", "s": "ok", "d": [["Enel Ceará", true]]}, "DF": {"n": "Distrito Federal", "s": "nao", "d": [["Neoenergia Brasília", false]]}, "ES": {"n": "Espírito Santo", "s": "ok", "d": [["EDP Espírito Santo", true]]}, "GO": {"n": "Goiás", "s": "ok", "d": [["Equatorial", true]]}, "MA": {"n": "Maranhão", "s": "ok", "d": [["Equatorial", true]]}, "MT": {"n": "Mato Grosso", "s": "ok", "d": [["Energisa", true]]}, "MS": {"n": "Mato Grosso do Sul", "s": "ok", "d": [["Elektro", true], ["Energisa", true]]}, "MG": {"n": "Minas Gerais", "s": "ok", "d": [["CEMIG", true], ["CPFL Santa Cruz", true], ["Energisa Minas Rio", true], ["Energisa Sul Sudeste", true]]}, "PA": {"n": "Pará", "s": "ok", "d": [["Equatorial", true]]}, "PB": {"n": "Paraíba", "s": "ok", "d": [["Energisa", true]]}, "PR": {"n": "Paraná", "s": "ok", "d": [["CPFL Santa Cruz", true], ["Celesc", true], ["Copel", true], ["Energisa Sul Sudeste", true]]}, "PE": {"n": "Pernambuco", "s": "ok", "d": [["Neoenergia Celpe", true]]}, "PI": {"n": "Piauí", "s": "ok", "d": [["Equatorial", true]]}, "RJ": {"n": "Rio de Janeiro", "s": "parcial", "d": [["Enel Rio", true], ["Energisa Minas Rio", true], ["Light", false]]}, "RN": {"n": "Rio Grande do Norte", "s": "ok", "d": [["Cosern Neoenergia", true]]}, "RS": {"n": "Rio Grande do Sul", "s": "ok", "d": [["CEEE Equatorial", true], ["RGE", true]]}, "RO": {"n": "Rondônia", "s": "nao", "d": [["Energisa Rondônia", false]]}, "RR": {"n": "Roraima", "s": "nao", "d": [["Roraima Energia", false]]}, "SC": {"n": "Santa Catarina", "s": "ok", "d": [["Celesc", true], ["Copel", true]]}, "SP": {"n": "São Paulo", "s": "parcial", "d": [["CPFL Paulista", true], ["CPFL Santa Cruz", true], ["Elektro Neoenergia", true], ["Energisa Sul Sudeste", true], ["CPFL Piratininga", false], ["EDP São Paulo", false], ["Enel SP", false]]}, "SE": {"n": "Sergipe", "s": "ok", "d": [["Energisa", true]]}, "TO": {"n": "Tocantins", "s": "ok", "d": [["Energisa", true]]}};
   (function(){
@@ -1233,12 +1244,12 @@ body.clean .ui,body.clean .prog{display:none}
     if(location.search.includes('demo=mapa')){ const alvo=svg.querySelector('[data-uf="'+(new URLSearchParams(location.search).get('uf')||'SP')+'"]'); setTimeout(()=>{ fixo=alvo; alvo.classList.add('sel'); mostrar(alvo); },600); }
   })();
 
+  } catch(e){ console.error('mapa:',e); }
+
   // ?medir: grava no título os retângulos dos links do último slide (usado para o PDF)
   if(location.search.includes('medir')){ setTimeout(()=>{ const st=stage.getBoundingClientRect(), k=parseFloat(stage.style.getPropertyValue('--s'))||1;
     document.title='MEDIDAS '+JSON.stringify([...document.querySelectorAll('a.cta')].map(a=>{const r=a.getBoundingClientRect();return {cta:a.dataset.cta,href:a.href,x:Math.round((r.left-st.left)/k),y:Math.round((r.top-st.top)/k),w:Math.round(r.width/k),h:Math.round(r.height/k)};})); },1200); }
 
-  const start=parseInt(location.hash.slice(1))-1;
-  go(isNaN(start)?0:start);
 })();
 </script>
 </body>
