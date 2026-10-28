@@ -725,7 +725,7 @@ contador nessas páginas: a política diz que não há cookies.
 
 ## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
 
-Deck HTML animado (25 slides, 16:9, setas/passador) que o Jimmy usa ao vivo
+Deck HTML animado (26 slides, 16:9, setas/passador) que o Jimmy usa ao vivo
 e manda por link. Pedido dele em 27/10/2026. A fonte **não é deste repo**: o
 original fica em `/Volumes/Sandisk/Claude/apresentacao-igreen-2026/` (HTML de
 arquivo único, com fonte Montserrat e imagens embutidas, e o PDF gerado por
@@ -770,6 +770,18 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   regerar `regras.json` com o backup novo, ajustar `BONUS`/`BONUS_VIGENCIA`
   e rodar `patch_mapa.py` (idempotente: refaz só o slide 9, o CSS e o JS do
   mapa).
+- **Teste do estado final dos números**: `?static&pop#N` renderiza o slide
+  com a classe `pop` (fim da contagem) aplicada. Em 28/10/2026 o pulso do
+  número virava o `.big` em `inline-block` e ele subia para a linha da
+  etiqueta, empurrando o texto para fora da caixa (slide Seguros); o render
+  estático comum não mostra isso porque não conta. Hoje só `span.pop` vira
+  inline-block.
+- **Slide 18 "Na prática"**: os exemplos do treinamento da Conexão Mob
+  (Manual de Negócio + Academy: Gestor Base vendendo um Mob Fast, liberação
+  por etapa, royalty pela diferença, requisito das recargas, fidelidade de 90
+  dias, troca de bandeira e carteira). A projeção de retorno do investidor
+  fica de fora de propósito (CVM/SCP); ela mora na apresentação do investidor
+  em querocarregador.com.br/apresentacao e /simulador.
 - **Teste de boot obrigatório**: `verificar_boot.sh` (junto do deck) abre o
   HTML sem `?static`, como o público vê, e falha se o slide 1 não ativar; o
   `gerar_pdf.sh` roda esse teste antes de tudo. Motivo: em 28/10/2026 o deck

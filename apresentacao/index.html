@@ -222,7 +222,9 @@ body.static .batt .lvl{width:82%}
 
 /* números */
 [data-to]{font-variant-numeric:tabular-nums}
-.pop{display:inline-block;animation:pop .7s var(--spring) both}
+.pop{animation:pop .7s var(--spring) both}
+span.pop{display:inline-block}
+div.pop{transform-origin:0 50%}
 @keyframes pop{0%{transform:scale(1)}35%{transform:scale(1.07);text-shadow:0 0 40px rgba(0,226,107,.55)}100%{transform:scale(1)}}
 /* luz que segue o cursor nos cards */
 .card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .4s;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(0,226,107,.13),transparent 60%)}
@@ -887,7 +889,24 @@ body.clean .ui,body.clean .prog{display:none}
     <div class="disc">Comissão da venda liberada conforme o pagamento do investidor (Mob: 7 dias; Fast e Ultra Fast: por etapa) · royalties por graduação (teto 8% na venda, 1% nas recargas) · Manual de Negócio iGreen.</div>
   </section>
 
-  <!-- 18 SIMULAÇÃO CONSOLIDADA -->
+  <!-- 18 MOB · NA PRÁTICA -->
+  <section class="slide">
+    <div class="k r">Conexão Mob · os exemplos do treinamento</div>
+    <h2 class="r" style="--i:1;font-size:62px">Na prática: <span class="hl">como o dinheiro aparece</span>.</h2>
+    <div class="prod" style="grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px">
+      <div class="card hot r zoom shine" style="--i:2;padding:22px 26px"><div class="tag">Venda · Gestor Base vende um Mob Fast</div><div class="big" style="font-size:54px;margin-top:12px" data-to="10601.65" data-dec="2" data-pre="R$ ">0</div><p>R$ 8.999,70 de GP (10%) + R$ 1.601,95 de royalties (1,78% da graduação). O teto de royalties na venda é 8%, do Fundador.</p></div>
+      <div class="card r zoom" style="--i:3;padding:22px 26px"><div class="tag">Quando cai · Mob Fast</div>
+        <div class="lines" style="margin-top:10px"><div class="vrow" style="font-size:19px;padding:9px 0"><span>Validação técnica</span><b style="white-space:nowrap">R$ 2.999,70</b></div><div class="vrow" style="font-size:19px;padding:9px 0"><span>NF de envio</span><b>R$ 2.000</b></div><div class="vrow" style="font-size:19px;padding:9px 0"><span>Entrega</span><b>R$ 2.000</b></div><div class="vrow" style="font-size:19px;padding:9px 0"><span>1ª recarga</span><b>R$ 2.000</b></div></div>
+        <p style="font-size:18px;margin-top:8px">Total do seu GP: <b style="color:#fff">R$ 8.999,70</b> (+ 10 mil kWh e 5 mil Green Points na validação). No Mob, tudo 7 dias após o pagamento.</p></div>
+      <div class="card r zoom" style="--i:4;padding:22px 26px"><div class="tag">Equipe · royalty pela diferença</div><p style="margin-top:12px">Você é Executivo Base (2,96%) e um Sênior Base (0,59%) da sua linha vende um Mob Fast:</p><div class="row" style="gap:10px;margin-top:14px;flex-wrap:wrap"><span class="pill">ele <b class="hl">&nbsp;R$ 530,98</b></span><span class="pill g">você <b>&nbsp;R$ 2.132,93</b></span></div><p style="font-size:18px;margin-top:12px">2,96% − 0,59% = 2,37% para você. Ninguém recebe royalty duplicado sobre a mesma venda.</p></div>
+      <div class="card r zoom" style="--i:5;padding:22px 26px"><div class="tag">Requisito das recargas</div><p style="margin-top:12px"><b style="color:#fff">Carla</b> tem clientes Green que recarregam, mas nunca vendeu nem tem Licença Mob: não recebe das recargas (da venda feita pela equipe dela, recebe GI, royalties e equiparação).</p><p style="margin-top:8px"><b style="color:#fff">João</b> cancelou o único eletroposto que tinha: para de receber das recargas até ter outro ativo como direto.</p></div>
+      <div class="card r zoom" style="--i:6;padding:22px 26px"><div class="tag">Fidelidade · 90 dias</div><p style="margin-top:12px"><b style="color:#fff">Fernando</b> nunca foi cliente iGreen. Cadastra-se e recarrega no eletroposto da Maria: fica vinculado a ela por 90 dias; cada recarga renova o prazo. Contratou a Conexão Green nesse período? Vira cliente da Maria em definitivo.</p><p style="margin-top:8px"><b style="color:#fff">Ana</b> já era cliente Green do Pedro: continua do Pedro, mesmo recarregando na Maria.</p></div>
+      <div class="card r zoom" style="--i:7;padding:22px 26px"><div class="tag">Troca de bandeira · carteira</div><p style="margin-top:12px">Carregador de outra marca que entra na rede: você recebe GP 2% + GI 0,5% + royalties até 1% + EQ 0,25% de todas as recargas dele, e conta como venda para o requisito e para o PRO 360.</p><p style="margin-top:8px">Motoristas cadastrados no seu ponto que contratam energia, seguro ou telecom: a comissão é sua, pelas regras de cada conexão.</p></div>
+    </div>
+    <div class="disc">Exemplos do treinamento da Conexão Mob (Academy e Manual de Negócio, out/2026) · royalties por graduação e faixa Base/Elite · GI, royalties e equiparação exigem PRO · valores ilustrativos, não constituem promessa de ganho.</div>
+  </section>
+
+  <!-- 19 SIMULAÇÃO CONSOLIDADA -->
   <section class="slide">
     <div class="k r">★ A soma dos três produtos</div>
     <h2 class="r" style="--i:1">10 Green + 10 Telecom + 10 Seguros<br><span class="hl">todo mês.</span></h2>
@@ -1072,7 +1091,7 @@ body.clean .ui,body.clean .prog{display:none}
 <div class="ui">
   <button id="prev" aria-label="Anterior"><svg class="i"><use href="#left"/></svg></button>
   <button id="next" aria-label="Próximo"><svg class="i"><use href="#right"/></svg></button>
-  <span class="count" id="count">01 / 25</span>
+  <span class="count" id="count">01 / 26</span>
   <div class="dots" id="dots"></div>
   <span class="hint">← → navegar · F tela cheia · N avisos</span>
   <button id="fs" aria-label="Tela cheia"><svg class="i"><use href="#full"/></svg></button>
@@ -1142,7 +1161,7 @@ body.clean .ui,body.clean .prog{display:none}
   const fmt = (v,dec)=> v.toLocaleString('pt-BR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
   function countUp(el){
     const to=parseFloat(el.dataset.to), dec=+(el.dataset.dec||0), pre=el.dataset.pre||'', suf=el.dataset.suf||'';
-    if(STATIC){el.textContent=pre+fmt(to,dec)+suf;return;}
+    if(STATIC){el.textContent=pre+fmt(to,dec)+suf; if(location.search.includes('pop')) el.classList.add('pop'); return;}
     const dur=1700, t0=performance.now()+350;
     cancelAnimationFrame(el._raf);
     el.classList.remove('pop');
