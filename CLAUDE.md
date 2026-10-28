@@ -760,8 +760,23 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   Academy) mais as exceções que o Jimmy passou em 27/10/2026: sem cobertura em
   AC, AM, AP, DF, RO e RR; em SP não atende Enel SP, EDP São Paulo e CPFL
   Piratininga; no RJ não atende Light. Dica ao passar o mouse/tocar; clique
-  fixa. Para atualizar: regerar `regras.json` com o backup novo e rodar
-  `patch_mapa.py` (fica junto do deck) ou editar `MAPA_DADOS` no HTML.
+  fixa. **Marcadores ⚡ (âmbar)** = distribuidoras da campanha Bônus Extra
+  Green do mês (tabela `BONUS` no `patch_mapa.py`, tirada do regulamento no
+  export do Academy; `2` = só com troca de titularidade). É o padrão visual
+  combinado em 28/10/2026 para mostrar onde uma campanha vale: marcador no
+  mapa + chip na dica + legenda. **Zoom só no mapa**: roda do mouse aproxima
+  no ponto do cursor (até 7×), arrasto move, pinça no toque, duplo clique ou
+  o botão "Brasil inteiro" volta; a página não dá zoom. Para atualizar:
+  regerar `regras.json` com o backup novo, ajustar `BONUS`/`BONUS_VIGENCIA`
+  e rodar `patch_mapa.py` (idempotente: refaz só o slide 9, o CSS e o JS do
+  mapa).
+- **Teste de boot obrigatório**: `verificar_boot.sh` (junto do deck) abre o
+  HTML sem `?static`, como o público vê, e falha se o slide 1 não ativar; o
+  `gerar_pdf.sh` roda esse teste antes de tudo. Motivo: em 28/10/2026 o deck
+  foi ao ar em branco porque a caixa dos avisos push tinha sido removida junto
+  com o último slide e o script parava num erro antes de ativar o slide 1 —
+  os testes com `?static` não pegam isso, porque nesse modo os avisos nem
+  iniciam. Toda publicação do deck passa por esse teste.
 - Avisos estilo push (canto superior direito, aleatórios, rotulados
   "exemplo"): tecla N liga/desliga; `?semavisos` abre sem eles.
 - **Último slide = chamada com dois caminhos** (pedido de 28/10/2026): "Como
