@@ -739,10 +739,15 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   percentuais de comissão, simulações de ganho ("simulação ilustrativa, não
   constitui promessa de ganho" em todas), preços dos modelos Mob e a divisão
   da recarga (82% investidor / 10% software / 8% comercial). É material de
-  apresentação fechada, publicado só para ser aberto por link — por isso
-  `noindex` e nada de link para ele na home. Quem for linkar a partir das
-  páginas públicas precisa reabrir essa decisão com o Jimmy (CVM/SCP na
-  Licença Mob, ver "Transição energética").
+  apresentação fechada, por isso `noindex`. **Desde 28/10/2026 a home tem
+  link para ele**, pedido do Jimmy: botão "Ver a apresentação em slides"
+  logo abaixo do vídeo da seção `#apresentacao` (abre em aba nova, evento
+  `apresentacao_slides`). Continua fora do Google e do sitemap. Os espelhos
+  de licenciados herdam o botão: o deck não pode ganhar WhatsApp, link de
+  cadastro ou rede social do Jimmy, senão o visitante do espelho cai no
+  contato dele (o `conferirEspelho` do build não olha o deck). Linkar das
+  outras páginas (integradores, transição) segue sendo decisão a reabrir com
+  o Jimmy (CVM/SCP na Licença Mob, ver "Transição energética").
 - A capa traz o aviso de licenciado independente, como a home.
 - Slides de campanha (11 "Bônus Extra Garantido" e 22 "Campanhas do mês",
   mais as etiquetas "Out/26" em Seguros e Livre) vencem em 31/10/2026 e são
