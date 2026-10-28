@@ -775,7 +775,10 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   número virava o `.big` em `inline-block` e ele subia para a linha da
   etiqueta, empurrando o texto para fora da caixa (slide Seguros); o render
   estático comum não mostra isso porque não conta. Hoje só `span.pop` vira
-  inline-block.
+  inline-block, e o cartão do 300% tem coluna de texto que encolhe e pílulas
+  que quebram linha — as métricas de fonte variam um pouco entre navegadores
+  (no Chromium do app sobravam 45 px para fora), então nada ali é `nowrap`
+  rígido.
 - **Slide 18 "Na prática"**: os exemplos do treinamento da Conexão Mob
   (Manual de Negócio + Academy: Gestor Base vendendo um Mob Fast, liberação
   por etapa, royalty pela diferença, requisito das recargas, fidelidade de 90
