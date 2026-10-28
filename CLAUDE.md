@@ -764,3 +764,11 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   `patch_mapa.py` (fica junto do deck) ou editar `MAPA_DADOS` no HTML.
 - Avisos estilo push (canto superior direito, aleatórios, rotulados
   "exemplo"): tecla N liga/desliga; `?semavisos` abre sem eles.
+- **Último slide = chamada com dois caminhos** (pedido de 28/10/2026): "Como
+  você quer começar?" → Licença Mob (igreenmob.com.br com o `ref` do Jimmy) ou
+  Connect FULL (expansao.igreenenergy.com.br, `id=1971&checkout=true&tipolicenca=CONNECT`),
+  com o selo "Ao clicar, você se cadastra com o licenciado Jimmy Fenner · ID
+  1971". Os dois cartões são `<a target="_blank">`; no PDF viram anotações de
+  link (o `gerar_pdf.sh` do deck mede os cartões com `?medir` e sobrepõe `<a>`
+  nas páginas antes do `--print-to-pdf`). Se os links mudarem, trocar no HTML
+  do deck e regerar o PDF com o script; nunca editar só o `index.html` daqui.
