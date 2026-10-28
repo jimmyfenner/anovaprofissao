@@ -573,6 +573,18 @@ pelo Jimmy para esta página em 19/10/2026: seção `#carlos`, logo depois da
 dor, com o mesmo arquivo da transição (`/media/transicao/te-34-fundador-abgd.mp4`)
 e a nota de correção das datas (ele diz "15 de novembro").
 
+Apresentação assistida (28/10/2026, pedido do Jimmy): a página mede quantos
+segundos da apresentação do Vimeo a pessoa realmente tocou (pulos não contam;
+`player.js` do Vimeo carregado só no clique) e grava a porcentagem em
+`leads.video_pct` junto com o formulário (migração `db/14-video-assistido.sql`).
+90% ou mais = "assistiu completo": selo "Viu o vídeo" na lista do painel, linha
+"Apresentação" no detalhe e no aviso `corpoInteg` (este só depois de republicar
+a Edge Function). Os segundos vistos ficam no localStorage (`qvc_video_<id>`),
+então quem assistiu num dia e preenche no outro continua contando no mesmo
+navegador. Sem a API (bloqueador), `video_pct` vai null, nunca 0. Marcos
+25/50/75/90 viram eventos `video_NN` do Pixel. Se trocar o vídeo, atualizar
+`data-vimeo`, `data-duracao` e a capa. Política de Privacidade: itens 2 e 8.
+
 Leads: mesma tabela `leads`, `tipo = 'integrador'` (migração
 `db/10-integradores.sql`). Mapeamento das respostas: `experiencia` = o que
 faz hoje, `perfil` = quantos clientes já atendeu, `objetivo` = interesse,

@@ -212,7 +212,11 @@ Deno.serve(async (req) => {
         `Clientes atendidos: ${L.perfil ?? "—"}`,
         `Interesse: ${L.objetivo ?? "—"}`,
         // leads de integrador anteriores a out/2026 não têm momento: some a linha
-        L.momento ? `Momento: ${L.momento}` : null, "",
+        L.momento ? `Momento: ${L.momento}` : null,
+        // quanto da apresentação assistiu (migração 14); null = sem medição
+        typeof L.video_pct === "number"
+          ? `Apresentação: ${L.video_pct >= 90 ? "assistiu completo" : L.video_pct > 0 ? "assistiu parte" : "não assistiu"} (${L.video_pct}%)`
+          : null, "",
         `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
         L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];

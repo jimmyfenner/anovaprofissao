@@ -605,7 +605,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       <h2>Menos de dez minutos, direto ao ponto.</h2>
       <p class="lede">Gravei esta apresentação para quem já trabalha com energia: como participar dos eletropostos sem ter um carregador próprio, onde você entra na Conexão Mob e como ela se encaixa no seu dia a dia.</p>
     </div>
-    <button class="vid" type="button" id="vid" data-vimeo="1238447338" data-capa="https://i.vimeocdn.com/video/2215601461-f94bd98412632546d7cd34d0625f5f7f380f4f61abafcdfaf7585d7517b3e3e3-d_1280?region=us" data-ev="video_play" aria-label="Assistir à apresentação: como ganhar com eletroposto sem ter carregador">
+    <button class="vid" type="button" id="vid" data-vimeo="1238447338" data-duracao="575" data-capa="https://i.vimeocdn.com/video/2215601461-f94bd98412632546d7cd34d0625f5f7f380f4f61abafcdfaf7585d7517b3e3e3-d_1280?region=us" data-ev="video_play" aria-label="Assistir à apresentação: como ganhar com eletroposto sem ter carregador">
       <span class="vid__play" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l8-4.5-8-4.5z"/></svg></span>
       <span class="vid__cap">Como ganhar com eletroposto sem ter carregador · 9:35</span>
     </button>
@@ -965,7 +965,55 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     f.title = "Apresentação para integradores";
     f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
     vid.appendChild(f);
+    medirVideo(f);
   });
+
+  /* ---- quanto da apresentação a pessoa assistiu (vai junto com o formulário) ----
+     Conta os segundos realmente tocados: arrastar para o fim não conta como visto.
+     Os segundos ficam no localStorage, então quem assistiu ontem e preenche hoje
+     continua contando. Sem a API do Vimeo (bloqueador), o dado vai vazio (null),
+     nunca como "não assistiu". */
+  var VIDEO_KEY = "qvc_video_" + vid.getAttribute("data-vimeo");
+  var duracao = Number(vid.getAttribute("data-duracao")) || 0;
+  var visto = {}, apiOk = false;
+  try{ (JSON.parse(localStorage.getItem(VIDEO_KEY) || "[]") || []).forEach(function(seg){ visto[seg] = 1; }); }catch(e){}
+
+  function videoPct(){
+    var n = Object.keys(visto).length;
+    if(!n) return (apiOk || !vid.querySelector("iframe")) ? 0 : null;
+    return duracao ? Math.min(100, Math.round(n / Math.floor(duracao) * 100)) : null;
+  }
+  function guardarVisto(){ try{ localStorage.setItem(VIDEO_KEY, JSON.stringify(Object.keys(visto).map(Number))); }catch(e){} }
+
+  function medirVideo(iframe){
+    var api = window.Vimeo && window.Vimeo.Player ? Promise.resolve() : new Promise(function(ok, falha){
+      var sc = document.createElement("script");
+      sc.src = "https://player.vimeo.com/api/player.js";
+      sc.onload = ok; sc.onerror = falha;
+      document.head.appendChild(sc);
+    });
+    api.then(function(){
+      var pl = new window.Vimeo.Player(iframe), ultimo = null, marcos = {}, salvoEm = 0;
+      apiOk = true;
+      pl.on("timeupdate", function(d){
+        if(d.duration) duracao = d.duration;
+        var t = d.seconds;
+        // só soma reprodução contínua (até 2 s entre um aviso e outro, cobre 2x)
+        if(ultimo !== null && t >= ultimo && t - ultimo < 2){
+          for(var seg = Math.floor(ultimo); seg <= Math.floor(t); seg++) visto[seg] = 1;
+        }
+        ultimo = t;
+        var pct = videoPct() || 0;
+        [25, 50, 75, 90].forEach(function(m){
+          if(pct >= m && !marcos[m]){ marcos[m] = 1; track("video_" + m, {video: "apresentacao"}); }
+        });
+        if(Date.now() - salvoEm > 3000){ salvoEm = Date.now(); guardarVisto(); }
+      });
+      pl.on("seeked", function(d){ ultimo = d.seconds; });
+      pl.on("pause", guardarVisto);
+      pl.on("ended", function(){ guardarVisto(); track("video_fim", {video: "apresentacao"}); });
+    }).catch(function(){ /* sem API: o vídeo toca igual, só não mede */ });
+  }
 
   /* ---- formulário ---- */
   var form = $("#form"), erro = $("#form-erro"), go = $("#form-go"), iniciou = false;
@@ -1022,11 +1070,13 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       // tipo. Grava de novo sem ele para o lead nunca se perder: a origem
       // continua identificada por landing e solucao.
       return r.text().then(function(t){
-        // Mesma ideia para a coluna momento: se o banco recusar, o lead vai sem ela.
-        if(/tipo|check|momento/i.test(t)){
+        // Mesma ideia para as colunas momento e video_pct (migração 14): se o
+        // banco recusar, o lead vai sem elas.
+        if(/tipo|check|momento|video_pct/i.test(t)){
           var reduzido = Object.assign({}, L);
           if(/tipo|check/i.test(t)) delete reduzido.tipo;
           if(/momento/i.test(t)) delete reduzido.momento;
+          if(/video_pct/i.test(t)) delete reduzido.video_pct;
           return post("leads", reduzido).then(function(r2){ return r2.ok; });
         }
         console.error("lead não gravado:", r.status, t);
@@ -1060,6 +1110,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       perfil: radio("carteira"),
       objetivo: radio("interesse"),
       momento: radio("momento"),
+      video_pct: videoPct(),
       solucao: "Eletroposto (Conexão Mob) — página de integradores",
       utm_source: origem.utm_source || null,
       utm_medium: origem.utm_medium || null,

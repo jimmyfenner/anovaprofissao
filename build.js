@@ -20,7 +20,7 @@ const SITE = {
 
 /* Data de revisão dos textos jurídicos. É fixa de propósito: ela diz quando o
    texto mudou, não quando o site foi publicado. Atualize ao alterar legal/*. */
-const ATUALIZADO = '19 de outubro de 2026';
+const ATUALIZADO = '28 de outubro de 2026';
 /* Idem para as páginas do Publicador (publicador/*). */
 const ATUALIZADO_PUBLICADOR = '25 de outubro de 2026';
 

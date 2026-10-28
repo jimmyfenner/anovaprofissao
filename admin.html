@@ -110,6 +110,7 @@ p{margin:0}
 .dl__edit:focus{outline:0;border-color:var(--credit);background:var(--surface)}
 .pill--direto{color:#04120B;border-color:#E0A83C;background:#E0A83C;font-weight:600}
 .pill--integ{color:#04120B;border-color:#34DB8B;background:#34DB8B;font-weight:600}
+.pill--video{color:#34DB8B;border-color:#34DB8B;background:transparent}
 .pill--lic{color:#E0A83C;border-color:rgba(224,168,60,.45);background:rgba(224,168,60,.1);font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
@@ -634,6 +635,7 @@ function render(){
         '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
         (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
         (ehInteg(l) ? '<span class="pill pill--integ">Integrador</span>' : '')+
+        (l.video_pct >= 90 ? '<span class="pill pill--video">Viu o vídeo</span>' : '')+
         (l.licenciado ? '<span class="pill pill--lic">'+esc(nomeLic(l.licenciado))+'</span>' : '')+
         '<span class="src">'+esc(l.utm_source||"direto")+'</span>'+
         '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
@@ -704,6 +706,7 @@ function detalhe(l){
       linha("Perfil", l.perfil)+
       linha("Investimento", l.investimento)+
       linha("Momento", l.momento)+
+      (l.video_pct != null ? linha("Apresentação", textoVideo(l.video_pct)) : "")+
       linha("Recebido", new Date(l.criado_em).toLocaleString("pt-BR"))+
       linha("Origem", [l.utm_source,l.utm_medium,l.utm_campaign].filter(Boolean).join(" / ") || "direto")+
       linha("Veio de", l.referrer || "—")+
@@ -731,6 +734,12 @@ function detalhe(l){
       '<p class="apaga-nota">Excluir apaga o contato e as respostas na hora, sem desfazer.</p>'+
     '</div>'+
   '</div>';
+}
+// quanto da apresentação de integradores a pessoa assistiu (migração 14)
+function textoVideo(p){
+  if(p >= 90) return "Assistiu completo (" + p + "%)";
+  if(p > 0) return "Assistiu " + p + "% do vídeo";
+  return "Não assistiu";
 }
 function linha(k,v){ return '<div class="dl__r"><dt>'+k+'</dt><dd>'+esc(v||"—")+'</dd></div>'; }
 
