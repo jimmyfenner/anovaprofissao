@@ -883,10 +883,15 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         var h = new URL(document.referrer).hostname.replace(/^(www|m|l|lm|web)\./, "");
         if(h && h !== location.hostname.replace(/^www\./, "")) ref = h.slice(0, 200);
       }
-      post("visitas", {
+      var visita = {
         vid: vid, landing: origem.landing, referrer: ref,
         utm_source: origem.utm_source || null, utm_medium: origem.utm_medium || null,
-        utm_campaign: origem.utm_campaign || null, device: origem.device || null
+        utm_campaign: origem.utm_campaign || null, utm_term: origem.utm_term || null,
+        utm_content: origem.utm_content || null, device: origem.device || null
+      };
+      // sem a migração 15 o banco recusa conjunto e anúncio: a visita vai sem eles
+      post("visitas", visita).then(function(r){
+        if(!r.ok){ delete visita.utm_term; delete visita.utm_content; return post("visitas", visita); }
       }).catch(function(){});
     }catch(e){}
   })();
@@ -920,10 +925,29 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   }
   if(REAL) carregarGoogleAds();
 
+  /* ---- etapas do funil no banco (painel: "Onde as pessoas param") ----
+     Uma linha por etapa por sessão, com o mesmo código anônimo das visitas. */
+  var ETAPAS_FUNIL = {video_play:1, video_25:1, video_50:1, video_75:1, video_90:1, video_fim:1, video_fundador_abgd:1, form_inicio:1, lead_integrador:1, whatsapp_click:1, whatsapp_pos_form:1, momento_somar:1, momento_vendas:1, momento_mudar:1};
+  function marcarFunil(evento){
+    try{
+      if(!REAL || localStorage.getItem("anp_admin") || navigator.webdriver) return;
+      var vid = localStorage.getItem("anp_vid"), chave = "anp_ev_" + evento;
+      if(!vid || sessionStorage.getItem(chave)) return;
+      sessionStorage.setItem(chave, "1");
+      fetch(SUPABASE_URL + "/rest/v1/eventos_funil", {
+        method: "POST", keepalive: true,
+        headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY,
+                  "Content-Type": "application/json", "Prefer": "return=minimal"},
+        body: JSON.stringify({vid: vid, landing: origem.landing, evento: evento})
+      }).catch(function(){});
+    }catch(e){}
+  }
+
   function track(name, params){
     var payload = Object.assign({event:name}, origem, params||{});
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(payload);
+    if(ETAPAS_FUNIL[name]) marcarFunil(name);
     if(typeof window.fbq === "function"){
       window.fbq("trackCustom", name, payload);
       if(EVENTO_META[name]) window.fbq("track", EVENTO_META[name]);

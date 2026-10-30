@@ -402,6 +402,10 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
+**Pendentes desde 30/out/2026:** `db/14-video-assistido.sql` e `db/15-resultados.sql`.
+A ferramenta `npx supabase` desta máquina alcança o projeto, mas o modo automático
+do Claude não aplica migração em produção sem autorização.
+
 Nenhuma. 13 (espelhos de licenciados) aplicada e testada em 23/out/2026.
 12 (terceira página no contador, transição energética) aplicada e
 testada em 19/out/2026. 10 (tipo integrador) e 11 (visitas por página) aplicadas em
@@ -476,6 +480,35 @@ uma linha `— vim de: <utm ou referrer> · <página> · <device>`, lida de
 Se algum dia o botão precisar virar lead de verdade, aí sim entra
 formulário antes — e aí ele deixa de ser o atalho de baixo atrito que é
 hoje. Decisão consciente: mantido sem formulário.
+
+## Painel de resultados (30/out/2026)
+
+Pedido do Jimmy, tomando o painel do igreencel.com.br como régua. No topo da
+tela de leads do `/admin`, valendo para home, integradores, transição e espelhos:
+
+- **Período** (Hoje, 7, 30, Tudo; padrão 30) e **página**. Valem para números e
+  lista; a busca procura em todas as datas.
+- **Fila:** "N leads esperando contato · o mais antigo há X", de qualquer data;
+  o botão filtra status novo, mais antigos primeiro.
+- **Seis números:** visitantes, leads, visita → lead, chamados, ganhos e mediana
+  do 1º contato. Os de leads são somados na tela, para mudarem com o status.
+- **Onde as pessoas param:** etapas por página (`ETAPAS`, `A_PARTE` em admin.html),
+  com o selo "maior queda" (a partir de 5 pessoas na etapa anterior).
+- **Por anúncio:** visitas e leads pela chave fonte + campanha + conjunto + anúncio.
+- **Chamar** em cada lead: mensagem pronta (`linkChamar`) e, se o status é novo,
+  passa para contatado e grava `contatado_em`. Sem isso o número de chamados não
+  reflete o trabalho: em 30/out os 16 leads estavam todos como novo.
+- Atualiza sozinho a cada minuto, menos com anotação em edição.
+
+Banco: `db/15-resultados.sql` (`visitas.utm_term/utm_content`, tabela
+`eventos_funil`, função `resumo_resultados`). Os sites marcam etapas por
+`marcarFunil`, uma por sessão, só dos eventos em `ETAPAS_FUNIL`; o nome do evento
+é a mesma coisa que o `track` usa. Sem a migração: a visita grava sem os campos
+novos e o painel usa `resumo_visitas`, sem etapas nem anúncios.
+
+Comparar com cuidado: chip grátis e licença de R$ 1.997 não convertem igual.
+Linha de base de 30/out/2026: igreencel 260 visitas e 49 leads (18,8%);
+integradores 251 e 8 (3,2%); home ~3.900 e 6 (0,15%, quase tudo anúncio frio).
 
 ## Como retomar no Claude Code
 

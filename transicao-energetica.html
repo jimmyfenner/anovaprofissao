@@ -714,15 +714,23 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         var h = new URL(document.referrer).hostname.replace(/^(www|m|l|lm|web)\./, "");
         if(h && h !== location.hostname.replace(/^www\./, "")) ref = h.slice(0, 200);
       }
-      fetch(SUPABASE_URL + "/rest/v1/visitas", {
-        method: "POST", keepalive: true,
-        headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY,
-                  "Content-Type": "application/json", "Prefer": "return=minimal"},
-        body: JSON.stringify({
-          vid: vid, landing: origem.landing, referrer: ref,
-          utm_source: origem.utm_source || null, utm_medium: origem.utm_medium || null,
-          utm_campaign: origem.utm_campaign || null, device: origem.device || null
-        })
+      var visita = {
+        vid: vid, landing: origem.landing, referrer: ref,
+        utm_source: origem.utm_source || null, utm_medium: origem.utm_medium || null,
+        utm_campaign: origem.utm_campaign || null, utm_term: origem.utm_term || null,
+        utm_content: origem.utm_content || null, device: origem.device || null
+      };
+      var gravarVisita = function(){
+        return fetch(SUPABASE_URL + "/rest/v1/visitas", {
+          method: "POST", keepalive: true,
+          headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY,
+                    "Content-Type": "application/json", "Prefer": "return=minimal"},
+          body: JSON.stringify(visita)
+        });
+      };
+      // sem a migração 15 o banco recusa conjunto e anúncio: a visita vai sem eles
+      gravarVisita().then(function(r){
+        if(!r.ok){ delete visita.utm_term; delete visita.utm_content; return gravarVisita(); }
       }).catch(function(){});
     }catch(e){}
   })();
@@ -740,10 +748,29 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     window.fbq("init", id);
     window.fbq("track", "PageView");
   }
+  /* ---- etapas do funil no banco (painel: "Onde as pessoas param") ----
+     Uma linha por etapa por sessão, com o mesmo código anônimo das visitas. */
+  var ETAPAS_FUNIL = {hero_frentes:1, hero_videos:1, nav_cta:1, closing_avaliacao:1, closing_profissao:1, orbita_integradores:1, orbita_querocarregador:1, video_fundador_abgd:1, video_portabilidade:1, video_eletrico:1, whatsapp_click:1};
+  function marcarFunil(evento){
+    try{
+      if(!REAL || localStorage.getItem("anp_admin") || navigator.webdriver) return;
+      var vid = localStorage.getItem("anp_vid"), chave = "anp_ev_" + evento;
+      if(!vid || sessionStorage.getItem(chave)) return;
+      sessionStorage.setItem(chave, "1");
+      fetch(SUPABASE_URL + "/rest/v1/eventos_funil", {
+        method: "POST", keepalive: true,
+        headers: {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY,
+                  "Content-Type": "application/json", "Prefer": "return=minimal"},
+        body: JSON.stringify({vid: vid, landing: origem.landing, evento: evento})
+      }).catch(function(){});
+    }catch(e){}
+  }
+
   function track(name, params){
     var payload = Object.assign({event:name, pagina:"transicao"}, origem, params||{});
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(payload);
+    if(ETAPAS_FUNIL[name]) marcarFunil(name);
     if(typeof window.fbq === "function") window.fbq("trackCustom", name, payload);
   }
   document.addEventListener("click", function(e){

@@ -111,6 +111,42 @@ p{margin:0}
 .pill--direto{color:#04120B;border-color:#E0A83C;background:#E0A83C;font-weight:600}
 .pill--integ{color:#04120B;border-color:#34DB8B;background:#34DB8B;font-weight:600}
 .pill--video{color:#34DB8B;border-color:#34DB8B;background:transparent}
+
+/* resultados: período, fila, números, funil e anúncios */
+.res{margin-block:clamp(1.2rem,3vw,2rem)}
+.res .stats{margin-block:1rem}
+.res .wa{margin-block:1rem 0}
+.res__fil{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.res__fil .inp{width:auto;max-width:100%}
+.chips{display:flex;gap:.35rem;flex-wrap:wrap}
+.chip{font-family:var(--body);font-size:.85rem;font-weight:500;padding:.42em .95em;border-radius:99px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer}
+.chip:hover{color:var(--text)}
+.chip.is-on{background:var(--credit);border-color:var(--credit);color:#04120B;font-weight:600}
+.fila{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .8rem;width:100%;margin-top:1rem;padding:.8rem 1rem;border:1px solid #C4785A;border-radius:10px;background:rgba(196,120,90,.09);color:var(--text);font-family:var(--body);font-size:.92rem;text-align:left;cursor:pointer}
+.fila:hover{background:rgba(196,120,90,.16)}
+.fila b{font-weight:700}
+.fila span{color:var(--muted)}
+.fila em{margin-left:auto;font-style:normal;font-weight:600;color:#E0A48C;white-space:nowrap}
+@media(min-width:720px){.stats--6{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1040px){.stats--6{grid-template-columns:repeat(6,1fr)}}
+.stats--6 .stat dd{font-size:1.65rem}
+.stat dd small{font-size:.5em;font-weight:500;color:var(--muted-dim);letter-spacing:0}
+.tb-wrap{overflow-x:auto}
+.tb{width:100%;border-collapse:collapse;font-size:.88rem}
+.tb th{font-family:var(--mono);font-size:.66rem;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-dim);text-align:right;padding:.3rem .5rem .5rem}
+.tb th:first-child,.tb td:first-child{text-align:left;padding-left:0}
+.tb td{border-top:1px solid var(--line-soft);padding:.55rem .5rem;text-align:right;font-variant-numeric:tabular-nums;vertical-align:top}
+.tb td:last-child,.tb th:last-child{padding-right:0}
+.tb td small{display:block;color:var(--muted-dim);font-size:.76rem;overflow-wrap:anywhere}
+.tb .is-queda{color:#E0A48C}
+.tb__tag{display:inline-block;margin-left:.45rem;font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:#E0A48C;border:1px solid rgba(196,120,90,.6);border-radius:4px;padding:.05em .4em;white-space:nowrap}
+.tb--parte{margin-top:1.1rem}
+
+.lead__linha{display:flex;align-items:center}
+.lead__linha .lead__head{flex:1;min-width:0}
+.lead__chamar{flex:none;margin-right:.9rem}
+.lead__when.is-espera{color:#E0A48C}
+@media(max-width:719px){.lead__who strong{white-space:normal;overflow:visible;overflow-wrap:anywhere}}
 .pill--lic{color:#E0A83C;border-color:rgba(224,168,60,.45);background:rgba(224,168,60,.1);font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
@@ -265,12 +301,45 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
   </header>
 
   <main class="wrap">
-    <dl class="stats">
-      <div class="stat stat--hi"><dt>Novos</dt><dd id="s-novos">0</dd></div>
-      <div class="stat"><dt>Hoje</dt><dd id="s-hoje">0</dd></div>
-      <div class="stat"><dt>Últimos 7 dias</dt><dd id="s-semana">0</dd></div>
-      <div class="stat"><dt>Total</dt><dd id="s-total">0</dd></div>
-    </dl>
+    <section class="res" id="res">
+      <div class="res__fil">
+        <div class="chips" role="group" aria-label="Período">
+          <button class="chip" type="button" data-per="1">Hoje</button>
+          <button class="chip" type="button" data-per="7">7 dias</button>
+          <button class="chip is-on" type="button" data-per="30">30 dias</button>
+          <button class="chip" type="button" data-per="0">Tudo</button>
+        </div>
+        <select class="inp" id="res-pag" aria-label="Página">
+          <option value="">Todas as páginas</option>
+          <option value="home">A Nova Profissão</option>
+          <option value="integradores">Quero Vender Carregador</option>
+          <option value="transicao">Transição energética</option>
+          <option value="licenciados">Espelhos de licenciados</option>
+        </select>
+      </div>
+      <button class="fila hidden" type="button" id="res-fila"></button>
+      <dl class="stats stats--6">
+        <div class="stat"><dt>Visitantes</dt><dd id="r-vis">—</dd></div>
+        <div class="stat stat--hi"><dt>Leads</dt><dd id="r-leads">0</dd></div>
+        <div class="stat"><dt>Visita → lead</dt><dd id="r-conv">—</dd></div>
+        <div class="stat"><dt>Chamados</dt><dd id="r-cham">0</dd></div>
+        <div class="stat"><dt>Ganhos</dt><dd id="r-ganho">0</dd></div>
+        <div class="stat"><dt>1º contato (mediana)</dt><dd id="r-tempo">—</dd></div>
+      </dl>
+      <div class="wa">
+        <div class="box">
+          <h2>Onde as pessoas param</h2>
+          <p class="sub" id="r-sub">Escolha uma página para ver as etapas dela.</p>
+          <div class="tb-wrap"><table class="tb" id="r-funil"></table></div>
+          <div class="tb-wrap"><table class="tb tb--parte" id="r-parte"></table></div>
+        </div>
+        <div class="box">
+          <h2>Por anúncio</h2>
+          <p class="sub">Visitas e leads de cada anúncio ou origem, no período escolhido.</p>
+          <div class="tb-wrap"><table class="tb" id="r-anuncios"></table></div>
+        </div>
+      </div>
+    </section>
 
     <div class="filters">
       <input class="inp" id="busca" type="search" placeholder="Buscar por nome, cidade ou telefone">
@@ -291,11 +360,9 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <option value="licenciado">Espelhos de licenciados</option>
       </select>
       <select class="inp" id="f-origem"><option value="">Todas as origens</option></select>
-      <select class="inp" id="f-periodo">
-        <option value="">Desde sempre</option>
-        <option value="1">Hoje</option>
-        <option value="7">Últimos 7 dias</option>
-        <option value="30">Últimos 30 dias</option>
+      <select class="inp" id="f-ordem" aria-label="Ordem">
+        <option value="recentes">Mais recentes primeiro</option>
+        <option value="antigos">Mais antigos primeiro</option>
       </select>
       <span class="count" id="contador"></span>
     </div>
@@ -529,7 +596,7 @@ function hrAtras(h){ return new Date(Date.now()-h*3600e3).toISOString(); }
 if(DEMO){
   $("#demo-banner").classList.remove("hidden");
   leads = EXEMPLOS.slice();
-  abrirPainel();
+  setTimeout(abrirPainel, 0);
 }else{
   sb = window.supabase.createClient(CFG.url, CFG.anonKey);
   sb.auth.getSession().then(function(r){
@@ -568,6 +635,7 @@ function carregar(){
       if(r.error){ console.error(r.error); return; }
       leads = r.data || [];
       abrirPainel();
+      carregarResumo();
     });
 }
 
@@ -578,7 +646,7 @@ function abrirPainel(){
 }
 
 /* ---------- filtros ---------- */
-["#busca","#f-status","#f-tipo","#f-origem","#f-periodo"].forEach(function(s){
+["#busca","#f-status","#f-tipo","#f-origem","#f-ordem"].forEach(function(s){
   $(s).addEventListener("input", render);
   $(s).addEventListener("change", render);
 });
@@ -593,9 +661,12 @@ function montarOrigens(){
 
 function filtrados(){
   var q = $("#busca").value.trim().toLowerCase();
-  var st = $("#f-status").value, or = $("#f-origem").value, pd = $("#f-periodo").value, tp = $("#f-tipo").value;
-  var corte = pd ? Date.now() - parseInt(pd,10)*86400e3 : 0;
+  var st = $("#f-status").value, or = $("#f-origem").value, tp = $("#f-tipo").value, pag = $("#res-pag").value;
+  var sentido = $("#f-ordem").value === "antigos" ? 1 : -1;
+  // o período vale para os números e a lista; a busca procura em todas as datas
+  var corte = q ? 0 : (inicioPeriodo(periodo) || 0);
   return leads.filter(function(l){
+    if(pag && paginaDoLead(l) !== pag) return false;
     if(st && l.status !== st) return false;
     // integrador pelo mesmo critério do selo (cobre os gravados antes da migração 10)
     if(tp === "licenciado"){ if(!l.licenciado) return false; }
@@ -607,16 +678,191 @@ function filtrados(){
       if(alvo.indexOf(q) === -1) return false;
     }
     return true;
+  }).sort(function(a,b){ return sentido * (new Date(a.criado_em) - new Date(b.criado_em)); });
+}
+
+/* ---------- resultados ---------- */
+var periodo = 30, resumo = null, semMigracao = false, pedidoResumo = 0;
+
+// etapas de cada página, na ordem em que a pessoa passa por elas (eventos_funil, db/15)
+var ETAPAS_QUIZ = [["quiz_start","Chegaram à avaliação"],["quiz_p1","Responderam a 1ª pergunta"],["quiz_p5","Chegaram à pergunta do investimento"],["quiz_p6","Responderam sobre o investimento"]];
+var ETAPAS = {
+  home: ETAPAS_QUIZ, licenciados: ETAPAS_QUIZ,
+  integradores: [["video_play","Deram play na apresentação"],["video_90","Assistiram 90% ou mais"],["form_inicio","Começaram o formulário"]],
+  transicao: [["video_fundador_abgd","Viram o corte do fundador da ABGD"],["closing_avaliacao","Clicaram para a avaliação"]]
+};
+// o que não é etapa, mas vale saber
+var A_PARTE = {
+  home: [["whatsapp_click","Clicaram no WhatsApp"],["cadastro_direto_abriu","Abriram o cadastro direto"],["cadastro_click","Foram ao cadastro oficial"],["video_start","Deram play em um vídeo"]],
+  integradores: [["whatsapp_click","Clicaram no WhatsApp"],["momento_somar","Cartão: somar ao que já vende"],["momento_vendas","Cartão: as vendas caíram"],["momento_mudar","Cartão: mudar de ramo"],["video_fundador_abgd","Viram o corte do Carlos"]],
+  transicao: [["whatsapp_click","Clicaram no WhatsApp"],["orbita_integradores","Foram para integradores"],["orbita_querocarregador","Foram para o QueroCarregador"]]
+};
+A_PARTE.licenciados = A_PARTE.home;
+
+// Início do período em ms, no horário de Brasília (o dia começa às 00h de -03:00); 0 dias = tudo.
+function inicioPeriodo(dias){
+  if(!dias) return null;
+  var hoje = new Date().toLocaleDateString("en-CA", {timeZone: "America/Sao_Paulo"});
+  return Date.parse(hoje + "T00:00:00-03:00") - (dias - 1) * 86400e3;
+}
+function paginaDoLead(l){
+  if(l.licenciado) return "licenciados";
+  if(ehInteg(l)) return "integradores";
+  if(l.utm_source === "transicaoenergetica") return "transicao";
+  return "home";
+}
+function fonteDoLead(l){
+  if(l.utm_source) return l.utm_source;
+  var r = String(l.referrer || "").replace(/^https?:\/\//, "").replace(/^(www|m|l|lm|web)\./, "").split("/")[0];
+  return r && r !== "direto" ? r : "direto";
+}
+function pct(parte, total){ return total ? (100 * parte / total).toLocaleString("pt-BR", {maximumFractionDigits: 1}) + "%" : "—"; }
+function duracao(ms){
+  var h = ms / 3600e3;
+  if(h < 1) return Math.max(1, Math.round(h * 60)) + " min";
+  if(h < 48) return Math.round(h) + " h";
+  return Math.round(h / 24) + " d";
+}
+
+function carregarResumo(){
+  if(DEMO){ renderResultados(); return; }
+  var pag = $("#res-pag").value || null, ini = inicioPeriodo(periodo), meu = ++pedidoResumo;
+  sb.rpc("resumo_resultados", {pagina: pag, desde: ini ? new Date(ini).toISOString() : null}).then(function(r){
+    if(meu !== pedidoResumo) return;
+    if(!r.error){ semMigracao = false; resumo = r.data; renderResultados(); return; }
+    // sem a migração 15: visitantes do resumo antigo, sem etapas nem anúncios
+    semMigracao = true;
+    sb.rpc("resumo_visitas", pag ? {pagina: pag} : {}).then(function(r2){
+      if(meu !== pedidoResumo) return;
+      var d = r2.data || {}, b = periodo === 1 ? d.hoje : periodo === 7 ? d.d7 : periodo === 30 ? d.d30 : d.total;
+      resumo = {visitas: b ? b.visitas : 0, visitantes: b ? b.visitantes : 0, eventos: {}, anuncios: []};
+      renderResultados();
+    });
   });
+}
+
+function renderResultados(){
+  var pag = $("#res-pag").value, ini = inicioPeriodo(periodo) || 0;
+  var daPagina = leads.filter(function(l){ return !pag || paginaDoLead(l) === pag; });
+  var base = daPagina.filter(function(l){ return new Date(l.criado_em).getTime() >= ini; });
+  var chamados = base.filter(function(l){ return l.status !== "novo"; }).length;
+  var ganhos = base.filter(function(l){ return l.status === "ganho"; }).length;
+  var vis = resumo ? resumo.visitantes : null, ev = (resumo && resumo.eventos) || {};
+  var n = function(x){ return (x || 0).toLocaleString("pt-BR"); };
+
+  $("#r-vis").textContent = vis == null ? "—" : n(vis);
+  $("#r-leads").textContent = n(base.length);
+  $("#r-conv").textContent = vis ? pct(base.length, vis) : "—";
+  $("#r-cham").innerHTML = n(chamados) + (base.length ? ' <small>de ' + n(base.length) + '</small>' : "");
+  $("#r-ganho").innerHTML = n(ganhos) + (ganhos ? ' <small>' + pct(ganhos, base.length) + '</small>' : "");
+  var tempos = base.filter(function(l){ return l.contatado_em; })
+    .map(function(l){ return new Date(l.contatado_em) - new Date(l.criado_em); })
+    .sort(function(a,b){ return a - b; });
+  $("#r-tempo").textContent = tempos.length ? duracao(tempos[Math.floor(tempos.length / 2)]) : "—";
+
+  // fila: quem ainda não foi chamado, de qualquer data
+  var fila = daPagina.filter(function(l){ return l.status === "novo"; });
+  var fb = $("#res-fila");
+  fb.classList.toggle("hidden", !fila.length);
+  if(fila.length){
+    var velho = Math.min.apply(null, fila.map(function(l){ return new Date(l.criado_em).getTime(); }));
+    fb.innerHTML = "<b>" + n(fila.length) + (fila.length === 1 ? " lead esperando" : " leads esperando") + " contato</b>" +
+      "<span>o mais antigo há " + duracao(Date.now() - velho) + "</span><em>Ver a fila →</em>";
+  }
+
+  // funil
+  var linhas = [["Entraram na página", vis]];
+  (ETAPAS[pag] || []).forEach(function(e){ if(!semMigracao) linhas.push([e[1], ev[e[0]] || 0]); });
+  linhas.push(["Deixaram contato", base.length], ["Foram chamados", chamados], ["Ganhos", ganhos]);
+  var queda = -1, maior = 0;
+  linhas.forEach(function(l, i){
+    if(!i || !linhas[i-1][1] || linhas[i-1][1] < 5) return;
+    var perda = (linhas[i-1][1] - l[1]) / linhas[i-1][1];
+    if(perda > maior){ maior = perda; queda = i; }
+  });
+  $("#r-funil").innerHTML = '<thead><tr><th>Etapa</th><th>Pessoas</th><th>Das visitas</th></tr></thead><tbody>' +
+    linhas.map(function(l, i){
+      return '<tr' + (i === queda ? ' class="is-queda"' : '') + '><td>' + esc(l[0]) +
+        (i === queda ? '<span class="tb__tag">maior queda</span>' : '') + '</td><td>' +
+        (l[1] == null ? "—" : n(l[1])) + '</td><td>' + (vis ? pct(l[1] || 0, vis) : "—") + '</td></tr>';
+    }).join("") + '</tbody>';
+  var parte = semMigracao ? [] : (A_PARTE[pag] || []).filter(function(e){ return ev[e[0]]; });
+  $("#r-parte").innerHTML = parte.length
+    ? '<thead><tr><th>À parte</th><th>Pessoas</th></tr></thead><tbody>' + parte.map(function(e){
+        return '<tr><td>' + esc(e[1]) + '</td><td>' + n(ev[e[0]]) + '</td></tr>';
+      }).join("") + '</tbody>'
+    : "";
+  $("#r-sub").textContent = semMigracao
+    ? "Falta rodar a migração db/15-resultados.sql para contar as etapas e os anúncios."
+    : pag ? "Cada pessoa conta uma vez por etapa. As etapas são contadas desde 30/10/2026."
+          : "Escolha uma página acima para ver as etapas dela.";
+
+  // por anúncio: visitas do banco + leads da tela, na mesma chave
+  var grupos = {};
+  var grupo = function(fonte, campanha, conjunto, anuncio){
+    var k = [fonte, campanha || "", conjunto || "", anuncio || ""].join("|");
+    return grupos[k] || (grupos[k] = {fonte: fonte, campanha: campanha, conjunto: conjunto, anuncio: anuncio, visitas: 0, leads: 0, ganhos: 0});
+  };
+  ((resumo && resumo.anuncios) || []).forEach(function(a){ grupo(a.fonte, a.campanha, a.conjunto, a.anuncio).visitas += a.visitas; });
+  base.forEach(function(l){
+    var g = grupo(fonteDoLead(l), l.utm_campaign || null, l.utm_term || null, l.utm_content || null);
+    g.leads++;
+    if(l.status === "ganho") g.ganhos++;
+  });
+  var lista = Object.keys(grupos).map(function(k){ return grupos[k]; })
+    .sort(function(a,b){ return b.leads - a.leads || b.visitas - a.visitas; }).slice(0, 25);
+  $("#r-anuncios").innerHTML = lista.length
+    ? '<thead><tr><th>Anúncio ou origem</th><th>Visitas</th><th>Leads</th><th>Taxa</th><th>Ganhos</th></tr></thead><tbody>' +
+      lista.map(function(g){
+        var titulo = g.anuncio || g.campanha || g.fonte;
+        var det = [g.fonte, g.campanha, g.conjunto].filter(function(x){ return x && x !== titulo; }).join(" · ");
+        return '<tr><td>' + esc(titulo) + (det ? '<small>' + esc(det) + '</small>' : "") + '</td><td>' +
+          n(g.visitas) + '</td><td>' + n(g.leads) + '</td><td>' + (g.visitas ? pct(g.leads, g.visitas) : "—") + '</td><td>' + n(g.ganhos) + '</td></tr>';
+      }).join("") + '</tbody>'
+    : '<tbody><tr><td>Nada no período.</td></tr></tbody>';
+}
+
+$$("[data-per]").forEach(function(b){
+  b.addEventListener("click", function(){
+    periodo = parseInt(b.getAttribute("data-per"), 10);
+    $$("[data-per]").forEach(function(o){ o.classList.toggle("is-on", o === b); });
+    render(); carregarResumo();
+  });
+});
+$("#res-pag").addEventListener("change", function(){ render(); carregarResumo(); });
+$("#res-fila").addEventListener("click", function(){
+  periodo = 0;
+  $$("[data-per]").forEach(function(o){ o.classList.toggle("is-on", o.getAttribute("data-per") === "0"); });
+  $("#f-status").value = "novo";
+  $("#f-ordem").value = "antigos";
+  render(); carregarResumo();
+  $("#lista").scrollIntoView({behavior: "smooth", block: "start"});
+});
+
+// Atualiza sozinho a cada minuto, menos quando a pessoa está escrevendo numa anotação.
+setInterval(function(){
+  if(DEMO || !sb || document.hidden || vista !== "leads") return;
+  var foco = document.activeElement && document.activeElement.tagName;
+  if(foco === "TEXTAREA" || (foco === "INPUT" && document.activeElement.id !== "busca")) return;
+  sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000).then(function(r){
+    if(!r.error){ leads = r.data || []; render(); }
+  });
+  carregarResumo();
+}, 60000);
+
+// Chamar: mensagem pronta no WhatsApp. Quem é chamado sai da fila sozinho, para o número refletir o trabalho.
+function linkChamar(l){
+  var nome = String(l.nome).split(" ")[0];
+  return "https://wa.me/" + (l.whatsapp_e164 || "") + "?text=" + encodeURIComponent(ehInteg(l)
+    ? "Olá " + nome + "! Aqui é o Jimmy. Recebi suas respostas na página para integradores — posso te mostrar como a Conexão Mob se encaixa no seu trabalho?"
+    : l.tipo === "direto"
+    ? "Olá " + nome + "! Aqui é o Jimmy, do site A Nova Profissão. Vi que você foi para o cadastro — estou aqui para te ajudar em qualquer passo."
+    : "Olá " + nome + "! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?");
 }
 
 /* ---------- render ---------- */
 function render(){
-  var hoje = Date.now()-86400e3, semana = Date.now()-7*86400e3;
-  $("#s-novos").textContent  = leads.filter(function(l){return l.status==="novo"}).length;
-  $("#s-hoje").textContent   = leads.filter(function(l){return new Date(l.criado_em).getTime()>hoje}).length;
-  $("#s-semana").textContent = leads.filter(function(l){return new Date(l.criado_em).getTime()>semana}).length;
-  $("#s-total").textContent  = leads.length;
+  renderResultados();
 
   var fs = filtrados(), lista = $("#lista");
   $("#contador").textContent = fs.length + (fs.length===1?" lead":" leads");
@@ -629,7 +875,9 @@ function render(){
 
   lista.innerHTML = fs.map(function(l){
     var aberta = aberto === l.id;
+    var espera = l.status === "novo" && Date.now() - new Date(l.criado_em).getTime() > 86400e3;
     return '<div class="lead '+(l.status==="novo"?"is-novo ":"")+(aberta?"is-open":"")+'" data-id="'+l.id+'">'+
+      '<div class="lead__linha">'+
       '<button class="lead__head" type="button" aria-expanded="'+aberta+'">'+
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
@@ -639,8 +887,10 @@ function render(){
         (l.licenciado ? '<span class="pill pill--lic">'+esc(nomeLic(l.licenciado))+'</span>' : '')+
         '<span class="src">'+esc(l.utm_source||"direto")+'</span>'+
         '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
-        '<span class="lead__when">'+quando(l.criado_em)+'</span>'+
+        '<span class="lead__when'+(espera?' is-espera" title="Sem contato há mais de 24 horas':'')+'">'+quando(l.criado_em)+'</span>'+
       '</button>'+
+      (l.whatsapp_e164 ? '<a class="btn btn--primary btn--sm lead__chamar" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Chamar</a>' : '')+
+      '</div>'+
       (aberta ? detalhe(l) : "")+
     '</div>';
   }).join("");
@@ -654,6 +904,13 @@ function render(){
   });
   $$("[data-status]").forEach(function(s){
     s.addEventListener("change", function(){ mudarStatus(s.getAttribute("data-status"), s.value); });
+  });
+  $$("[data-chamar]").forEach(function(a){
+    a.addEventListener("click", function(){
+      var id = a.getAttribute("data-chamar"), l = leads.find(function(x){ return x.id === id; });
+      // depois do clique: refazer a lista antes disso cancelaria a abertura do link
+      if(l && l.status === "novo") setTimeout(function(){ mudarStatus(id, "contatado"); }, 300);
+    });
   });
   $$("[data-campo]").forEach(function(i){
     i.addEventListener("blur", function(){ salvarCampo(i.getAttribute("data-lead"), i.getAttribute("data-campo"), i.value); });
@@ -722,11 +979,7 @@ function detalhe(l){
       '<div><h3>Anotações</h3>'+
         '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
       '<div class="acts">'+
-        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" href="https://wa.me/'+esc(l.whatsapp_e164||"")+'?text='+encodeURIComponent(ehInteg(l)
-          ? "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy. Recebi suas respostas na página para integradores — posso te mostrar como a Conexão Mob se encaixa no seu trabalho?"
-          : l.tipo==="direto"
-          ? "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você foi para o cadastro — estou aqui para te ajudar em qualquer passo."
-          : "Olá "+String(l.nome).split(" ")[0]+"! Aqui é o Jimmy, do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?")+'">Abrir conversa</a>'+
+        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Abrir conversa</a>'+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
         '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
         '<button class="btn btn--sm btn--perigo" type="button" data-excluir="'+l.id+'">Excluir</button>'+
@@ -771,7 +1024,7 @@ function mudarStatus(id, valor){
   l.status = valor;
   if(!DEMO){
     var patch = {status:valor};
-    if(valor!=="novo" && !l.contatado_em){ patch.contatado_em = new Date().toISOString(); }
+    if(valor!=="novo" && !l.contatado_em){ patch.contatado_em = l.contatado_em = new Date().toISOString(); }
     sb.from("leads").update(patch).eq("id",id).then(function(r){ if(r.error) console.error(r.error); });
   }
   render();
@@ -806,7 +1059,7 @@ function salvarNota(id, texto){
 
 /* ---------- CSV ---------- */
 $("#btn-csv").addEventListener("click", function(){
-  var cols = ["criado_em","nome","whatsapp","cidade","uf","status","objetivo","tempo","experiencia","solucao","perfil","utm_source","utm_medium","utm_campaign","referrer","device","anotacoes"];
+  var cols = ["criado_em","nome","whatsapp","cidade","uf","status","objetivo","tempo","experiencia","solucao","perfil","momento","video_pct","contatado_em","utm_source","utm_medium","utm_campaign","utm_term","utm_content","referrer","device","anotacoes"];
   var linhas = [cols.join(";")].concat(filtrados().map(function(l){
     return cols.map(function(c){ return '"'+String(l[c]==null?"":l[c]).replace(/"/g,'""')+'"'; }).join(";");
   }));
@@ -826,7 +1079,7 @@ function mostrar(v){
   $("#tela-cont").classList.toggle("hidden", v !== "cont");
   $("#tela-vis").classList.toggle("hidden",  v !== "vis");
   $("#lista").classList.toggle("hidden",     v !== "leads");
-  $(".stats").classList.toggle("hidden",     v !== "leads");
+  $("#res").classList.toggle("hidden",       v !== "leads");
   $(".filters").classList.toggle("hidden",   v !== "leads");
   $("#btn-wa").textContent   = v === "wa"   ? "Ver leads" : "Notificações";
   $("#btn-cont").textContent = v === "cont" ? "Ver leads" : "Conteúdo";
