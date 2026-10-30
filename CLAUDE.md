@@ -406,7 +406,7 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 A ferramenta `npx supabase` desta máquina alcança o projeto, mas o modo automático
 do Claude não aplica migração em produção sem autorização.
 
-Nenhuma. 13 (espelhos de licenciados) aplicada e testada em 23/out/2026.
+13 (espelhos de licenciados) aplicada e testada em 23/out/2026.
 12 (terceira página no contador, transição energética) aplicada e
 testada em 19/out/2026. 10 (tipo integrador) e 11 (visitas por página) aplicadas em
 17/out/2026, junto com o deploy da Edge Function com `corpoInteg`, e testadas.
