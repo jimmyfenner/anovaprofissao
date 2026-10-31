@@ -590,6 +590,11 @@ Regras de conteúdo (as mesmas da home, mais estas):
   duração na legenda. O antigo (YouTube `tgoz7p85QIY`, 15:47) citava médias
   de ganho por nível e saiu da página.
 
+Termos com cara de serviço financeiro ficam fora desta página (crédito, juros,
+investimento, B3/código de ação, relações com investidores, "como ganhar",
+"carteira recorrente"): em out/2026 o Google Ads limitou um anúncio por
+"Verificação de serviços financeiros", e ele lê texto e destino.
+
 Três momentos (19/10/2026, pedido do Jimmy): a página fala com quem quer
 **somar** um produto ao que já vende, com quem viu **as vendas caírem** e com
 quem pensa em **mudar de ramo** — nunca "quebrado" ou "desesperado". O bloco
