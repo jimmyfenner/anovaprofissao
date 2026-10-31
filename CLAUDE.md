@@ -387,12 +387,14 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 | Notificações | Supabase Edge Function `whatsapp` → Evolution API + Resend |
 | Painel de leads | `anovaprofissao.com.br/admin` (login Supabase do Jimmy) |
 | Pixel da Meta | ID `1752542589367351`, chave `meta_pixel` no `site_config` |
+| API de Conversões da Meta | Supabase Edge Function `conversao-meta`, só lead de integrador |
 
 ## Segredos — o que nunca circula
 
-- `service_role` do Supabase, API key da Evolution e API key do Resend
-  vivem **só** nos Secrets do Supabase. Nunca no repositório, nunca no
-  chat, nem para o Jimmy.
+- `service_role` do Supabase, API key da Evolution, API key do Resend e
+  `META_CAPI_TOKEN` vivem **só** nos Secrets do Supabase. Nunca no repositório,
+  nunca no chat, nem para o Jimmy. O token da Meta é ele quem gera, no
+  Gerenciador de Eventos, e cola direto nos Secrets.
 - A `anon key` do Supabase é pública por projeto — está no código do site
   de propósito e isso é seguro; quem protege os dados é a RLS + os grants
   por coluna.
@@ -402,8 +404,9 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 14 (vídeo assistido) e 15 (resultados) aplicadas e testadas em 30/out/2026,
-com a Edge Function `whatsapp` publicada na versão 14. A CLI do Supabase desta máquina
+Nenhuma. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
+`conversao-meta` publicada na versão 1. 14 (vídeo assistido) e 15 (resultados)
+aplicadas e testadas em 30/out/2026, com a Edge Function `whatsapp` publicada na versão 14. A CLI do Supabase desta máquina
 alcança o projeto: `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f arquivo`
 e `supabase functions deploy whatsapp --project-ref buapklmgdjcoyzrmhhcd --use-api`
 (sem Docker; manter `verify_jwt`). Instale a CLI uma vez numa pasta: `npx --yes` a cada
@@ -424,6 +427,12 @@ Verificar antes de qualquer coisa:
 
 ## Outras pendências
 
+- **Cadastro em etapas nos integradores** (nome e WhatsApp primeiro, rascunho, aviso
+  único depois de 10 min parado, selo "Incompleto", como no igreencel): pedido e adiado
+  em 30/out/2026 por falta de dado. As etapas só começaram a contar nesse dia, com
+  `eventos_funil` em 0 linhas, ~17 visitas/dia e 8 leads no total. Reabrir com o
+  "Onde as pessoas param" do painel, quando houver pelo menos 30 `form_inicio`: só vale
+  mudar o formulário se muita gente começa e não envia.
 - **Anúncios da Meta parados desde 14/10/2026** (as visitas caíram de
   ~350/dia para ~3). E de 11 a 13/10 vieram ~1.000 visitas de anúncio e
   nenhum lead — o quiz e a gravação foram testados e funcionam, então a
@@ -646,6 +655,43 @@ contagem "Uma", criada em 18/10/2026. Tag `AW-10947392047`, rótulo
 script; a tag só carrega nos domínios reais e a conversão só dispara depois que
 o banco confirma a gravação do lead. A Política de Privacidade (item 8) descreve
 a tag; `ATUALIZADO` foi para 18/10/2026.
+
+## API de Conversões da Meta — lead de integrador (30/out/2026)
+
+Pedido do Jimmy, tomando o igreencel.com.br como régua: o lead chega à Meta mesmo
+quando o navegador bloqueia o pixel. Vale só para `tipo = 'integrador'`; quiz e
+cadastro direto da home continuam só no pixel.
+
+- **Sem contar em dobro:** a página gera o id do lead (`novoId`) e manda o mesmo id
+  ao banco e ao pixel (`eventID`). A função usa esse id como `event_id`.
+- **Caminho:** gatilho `envia_conversao_meta` em `leads` (`db/16-conversao-meta.sql`)
+  → `net.http_post` → função `conversao-meta`, como no aviso de lead. Se o lead foi
+  gravado, a conversão sai; se o envio falha, o lead fica. A página não chama a função
+  e o gatilho captura qualquer erro.
+- **Dados enviados:** WhatsApp, e-mail, nome, cidade e estado em SHA-256; `fbp` e `fbc`
+  como vêm (`leads.meta_fbp`, `meta_fbc`; sem cookie `_fbc`, a página monta o valor com
+  o `fbclid` guardado em `qvc_fbc`); IP e navegador lidos dos cabeçalhos da gravação
+  (`cf-connecting-ip`, conferido em produção com o IP real), sem ficar em coluna nenhuma.
+- **Pixel:** a função lê `meta_pixel` do `site_config`, então trocar no painel troca os
+  dois. O token só envia eventos: ler o pixel com ele dá "Missing Permission", é normal.
+- **Registro:** toda tentativa vira linha em `notificacoes_log`, canal `meta`, e aparece
+  na aba Notificações (o detalhe, só quando falha). `leads.meta_conversao_enviada`:
+  vazio = não tentou, `false` = falhou, `true` = enviado. Só a função escreve nessa
+  coluna, e ela não reenvia lead já `true`.
+- **Quem pode chamar:** a verificação de JWT da plataforma também aceita a chave anon,
+  que é pública. Por isso a função confere `role = service_role`. Chamadas sem chave e
+  com a chave anon voltam 401 (conferido em produção).
+- **Reenviar um lead que falhou** (sem IP e navegador, que não ficam guardados):
+  `select net.http_post(url := 'https://buapklmgdjcoyzrmhhcd.supabase.co/functions/v1/conversao-meta', headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || (select valor from private_config where chave='service_key')), body := jsonb_build_object('lead_id','<id>'));`
+- **Testar sem sujar:** o mesmo comando com `body` `{"action":"teste","test_event_code":"<código>"}`,
+  usando o código da aba **Testar eventos** com ela aberta. Código de sessão fechada é
+  processado como conversão real. Lead fictício, sem linha em `leads`.
+- **Testar a gravação:** `begin; set local role anon; insert ...; rollback`. O rollback
+  também desfaz a chamada do `pg_net`, então não sai aviso nem conversão. Formulário no
+  ar: abrir com `?naocontar=1` e substituir `fetch`, `fbq` e `gtag` antes de enviar, ou
+  sai conversão falsa no Google Ads e na Meta.
+- Se o banco recusar as colunas novas, a página grava de novo sem `id`, `meta_fbp` e
+  `meta_fbc`. A Política de Privacidade descreve o envio nos itens 2, 5 e 8.
 
 ## Página "Transição energética" — transicaoenergetica.com.br (out/2026)
 
