@@ -852,7 +852,24 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     if(!origem.referrer){ origem.referrer = document.referrer || "direto"; got = true; }
     if(!origem.device){ origem.device = matchMedia("(max-width:760px)").matches ? "mobile" : "desktop"; got = true; }
     if(got){ try{ sessionStorage.setItem("qvc_origem", JSON.stringify(origem)); }catch(e){} }
+    // clique de anúncio da Meta: a API de Conversões usa quando o pixel está bloqueado e
+    // o cookie _fbc nunca chegou a ser criado (fica junto do lead, ver db/16)
+    if(p.get("fbclid")){ try{ localStorage.setItem("qvc_fbc", "fb.1." + Date.now() + "." + p.get("fbclid")); }catch(e){} }
   })();
+
+  function cookie(nome){
+    var m = document.cookie.match(new RegExp("(?:^|; )" + nome + "=([^;]*)"));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function fbcGuardado(){ try{ return localStorage.getItem("qvc_fbc"); }catch(e){ return null; } }
+  // o id do lead nasce aqui para ir igual ao banco e ao pixel: é o que evita conversão em dobro
+  function novoId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
+      var r = Math.random() * 16 | 0;
+      return (c === "x" ? r : (r & 3 | 8)).toString(16);
+    });
+  }
 
   function post(tabela, dados){
     return fetch(SUPABASE_URL + "/rest/v1/" + tabela, {
@@ -943,14 +960,14 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     }catch(e){}
   }
 
-  function track(name, params){
+  function track(name, params, eventID){
     var payload = Object.assign({event:name}, origem, params||{});
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push(payload);
     if(ETAPAS_FUNIL[name]) marcarFunil(name);
     if(typeof window.fbq === "function"){
       window.fbq("trackCustom", name, payload);
-      if(EVENTO_META[name]) window.fbq("track", EVENTO_META[name]);
+      if(EVENTO_META[name]) window.fbq("track", EVENTO_META[name], {}, eventID ? {eventID: eventID} : {});
     }
   }
   document.addEventListener("click", function(e){
@@ -1094,13 +1111,14 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
       // tipo. Grava de novo sem ele para o lead nunca se perder: a origem
       // continua identificada por landing e solucao.
       return r.text().then(function(t){
-        // Mesma ideia para as colunas momento e video_pct (migração 14): se o
-        // banco recusar, o lead vai sem elas.
-        if(/tipo|check|momento|video_pct/i.test(t)){
+        // Mesma ideia para as colunas momento, video_pct (migração 14) e as da
+        // API de Conversões (migração 16): se o banco recusar, o lead vai sem elas.
+        if(/tipo|check|momento|video_pct|meta_|permission denied/i.test(t)){
           var reduzido = Object.assign({}, L);
           if(/tipo|check/i.test(t)) delete reduzido.tipo;
           if(/momento/i.test(t)) delete reduzido.momento;
           if(/video_pct/i.test(t)) delete reduzido.video_pct;
+          if(/meta_|permission denied/i.test(t)){ delete reduzido.id; delete reduzido.meta_fbp; delete reduzido.meta_fbc; }
           return post("leads", reduzido).then(function(r2){ return r2.ok; });
         }
         console.error("lead não gravado:", r.status, t);
@@ -1123,6 +1141,9 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
     if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ erro.textContent = "Esse e-mail parece incompleto. Pode deixar em branco, se preferir."; $("#f-email").focus(); return; }
 
     var L = {
+      id: novoId(),
+      meta_fbp: cookie("_fbp"),
+      meta_fbc: cookie("_fbc") || fbcGuardado(),
       tipo: "integrador",
       nome: nome.slice(0,120),
       whatsapp: zap.slice(0,40),
@@ -1148,7 +1169,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 
     go.disabled = true; go.textContent = "Enviando…";
     gravar(L).then(function(ok){
-      track("lead_integrador", {gravado: ok});
+      track("lead_integrador", {gravado: ok}, L.id);
       if(ok && REAL && GADS_ID && GADS_LABEL && typeof window.gtag === "function"){
         window.gtag("event", "conversion", {send_to: GADS_ID + "/" + GADS_LABEL});
       }
