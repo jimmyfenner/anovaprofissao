@@ -117,8 +117,9 @@ Tabelas `site_config` (chave/valor) e `depoimentos`, mais o bucket `publico`
 do Storage para as fotos. O site lê essas duas tabelas em tempo de execução
 com a chave anon (leitura liberada; escrita só com login).
 
-O que é editável: os três vídeos (hero, pirâmide, apresentação), o WhatsApp
-de destino dos leads, e os depoimentos com nome, cidade, tempo, texto e foto.
+O que é editável: os quatro vídeos (hero, pirâmide, resumo da apresentação e
+apresentação completa), o WhatsApp de destino dos leads, e os depoimentos com
+nome, cidade, tempo, texto e foto.
 
 O que NÃO é editável e é proposital: FAQ, headlines e textos dos produtos
 ficam no código. Esses textos precisam estar no HTML servido, senão o Google
@@ -523,6 +524,35 @@ os anúncios e as etapas só existem daí em diante.
 Comparar com cuidado: chip grátis e licença de R$ 1.997 não convertem igual.
 Linha de base de 30/out/2026: igreencel 260 visitas e 49 leads (18,8%);
 integradores 251 e 8 (3,2%); home ~3.900 e 6 (0,15%, quase tudo anúncio frio).
+
+## Apresentação completa na home (30/out/2026)
+
+Pedido do Jimmy: a apresentação completa (Vimeo 1232661752, "Outubro de 2026",
+38 min, 16:9) entrou na seção `#apresentacao` da home, ao lado do resumo de 5 min
+que já estava lá (`video_apresentacao`, vertical). Chaves novas no `site_config`:
+`video_completo` e `video_completo_formato`, editáveis na aba Conteúdo do painel
+(campo "Vídeo da apresentação completa"). Se ele gravar uma versão nova por mês,
+é só trocar o link no painel.
+
+- **Duração automática:** `capaDoVimeo` passou a devolver também `duration` do
+  oEmbed; `montarVideo` põe o selo `.vslot__dur` ("38 min") no cartão e preenche
+  qualquer `[data-dur-for="<id do slot>"]` da página (as legendas da seção). Nada
+  de duração escrita à mão no HTML: trocou o vídeo, troca o número. YouTube não
+  informa duração pelo oEmbed, então o vídeo da pirâmide fica sem selo.
+- **Layout:** `.apres-grid` com a completa (16:9) à esquerda e o resumo (9:16) em
+  24% à direita, alturas quase iguais a partir de 860px; empilhados no celular.
+  `.apres-grid .vslot{width:100%}` é obrigatório: numa coluna flex, o
+  `margin-inline:auto` do vertical encolhia o cartão a 2px.
+- **Player:** o `embutir` passou a mandar `dnt=1` ao Vimeo (como integradores) e a
+  só tratar como código de vídeo não listado o `vimeo.com/ID/CODIGO` ou `?h=`;
+  antes, `?share=copy` do link copiado virava `h=share`. O CTA de cadastro dentro
+  do player (`cta_video_*`) vale para o resumo e para a completa.
+- **Menu:** ganhou "Apresentação" entre "Quem acompanha" e "Perguntas" (cabe a
+  partir de 940px, onde os links aparecem).
+- Política de Privacidade, item 8: parágrafo "Vídeos da página principal" (Vimeo com
+  dnt, YouTube sem cookies, consulta pública de capa/duração ao abrir a página).
+- Corrigido de passagem: o quiz dizia "Seis perguntas rápidas" e tem sete (oito
+  para quem responde que não consegue investir).
 
 ## Como retomar no Claude Code
 

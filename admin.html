@@ -423,9 +423,13 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <div class="campo"><label for="c-v2">Vídeo da seção "isso é pirâmide?"</label>
           <input class="inp" id="c-v2" type="url" placeholder="https://youtu.be/...">
           <select class="inp" id="c-f2" style="margin-top:.4rem"><option value="16:9">Horizontal — 16:9</option><option value="9:16">Vertical — 9:16 (Reels, Shorts)</option><option value="1:1">Quadrado — 1:1</option></select></div>
-        <div class="campo"><label for="c-v3">Vídeo da apresentação completa</label>
+        <div class="campo"><label for="c-v3">Vídeo da apresentação — resumo curto</label>
           <input class="inp" id="c-v3" type="url" placeholder="https://youtu.be/...">
           <select class="inp" id="c-f3" style="margin-top:.4rem"><option value="16:9">Horizontal — 16:9</option><option value="9:16">Vertical — 9:16 (Reels, Shorts)</option><option value="1:1">Quadrado — 1:1</option></select></div>
+        <div class="campo"><label for="c-v4">Vídeo da apresentação completa</label>
+          <input class="inp" id="c-v4" type="url" placeholder="https://vimeo.com/...">
+          <select class="inp" id="c-f4" style="margin-top:.4rem"><option value="16:9">Horizontal — 16:9</option><option value="9:16">Vertical — 9:16 (Reels, Shorts)</option><option value="1:1">Quadrado — 1:1</option></select>
+          <span class="dica">A versão longa, ao lado do resumo. Gravou uma nova? É só trocar o link aqui; a duração aparece sozinha.</span></div>
         <div class="campo"><label for="c-wanum">WhatsApp que recebe os leads</label>
           <input class="inp" id="c-wanum" type="tel" inputmode="numeric" placeholder="5548991067007">
           <span class="dica">Código do país + DDD + número, só dígitos.</span></div>
@@ -1167,9 +1171,11 @@ function carregarConfig(){
     $("#c-v1").value = m.video_hero || "";
     $("#c-v2").value = m.video_piramide || "";
     $("#c-v3").value = m.video_apresentacao || "";
+    $("#c-v4").value = m.video_completo || "";
     $("#c-f1").value = m.video_hero_formato || "16:9";
     $("#c-f2").value = m.video_piramide_formato || "16:9";
     $("#c-f3").value = m.video_apresentacao_formato || "16:9";
+    $("#c-f4").value = m.video_completo_formato || "16:9";
     $("#c-wanum").value = m.whatsapp_destino || "";
     $("#c-cad").value = m.link_cadastro || "";
     $("#c-grupo").value = m.link_grupo || "";
@@ -1213,10 +1219,12 @@ $("#c-salvar").addEventListener("click", function(){
     {chave:"video_hero",         valor:$("#c-v1").value.trim()},
     {chave:"video_piramide",     valor:$("#c-v2").value.trim()},
     {chave:"video_apresentacao", valor:$("#c-v3").value.trim()},
+    {chave:"video_completo",     valor:$("#c-v4").value.trim()},
     {chave:"whatsapp_destino",   valor:num},
     {chave:"video_hero_formato",         valor:$("#c-f1").value},
     {chave:"video_piramide_formato",     valor:$("#c-f2").value},
     {chave:"video_apresentacao_formato", valor:$("#c-f3").value},
+    {chave:"video_completo_formato",     valor:$("#c-f4").value},
     {chave:"link_cadastro",       valor:$("#c-cad").value.trim()},
     {chave:"link_grupo",          valor:$("#c-grupo").value.trim()},
     {chave:"meta_pixel",          valor:$("#c-pixel").value.replace(/\D/g,"")},
