@@ -679,13 +679,19 @@ cadastro direto da home continuam só no pixel.
   vazio = não tentou, `false` = falhou, `true` = enviado. Só a função escreve nessa
   coluna, e ela não reenvia lead já `true`.
 - **Quem pode chamar:** a verificação de JWT da plataforma também aceita a chave anon,
-  que é pública. Por isso a função confere `role = service_role`. Chamadas sem chave e
-  com a chave anon voltam 401 (conferido em produção).
+  que é pública. Por isso a função compara o `Authorization` com a `service_key` de
+  `private_config`. Essa chave é `sb_secret`, não um JWT: conferir o papel nela barrava
+  o próprio gatilho, o que só apareceu no primeiro teste real. Chamadas sem chave e com a
+  chave anon voltam 401 (conferido em produção). Esse 401 vem antes do registro e não
+  vira linha no log: lead de integrador com `meta_conversao_enviada` vazio é chamada que
+  não chegou a rodar.
 - **Reenviar um lead que falhou** (sem IP e navegador, que não ficam guardados):
   `select net.http_post(url := 'https://buapklmgdjcoyzrmhhcd.supabase.co/functions/v1/conversao-meta', headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || (select valor from private_config where chave='service_key')), body := jsonb_build_object('lead_id','<id>'));`
 - **Testar sem sujar:** o mesmo comando com `body` `{"action":"teste","test_event_code":"<código>"}`,
   usando o código da aba **Testar eventos** com ela aberta. Código de sessão fechada é
-  processado como conversão real. Lead fictício, sem linha em `leads`.
+  processado como conversão real. Lead fictício, sem linha em `leads`. Em 30/out/2026 a
+  Meta respondeu 200 com o token atual e o log ficou com `ok`; o caminho com lead real
+  (gatilho → função → Meta) só se confirma no primeiro lead depois dessa data.
 - **Testar a gravação:** `begin; set local role anon; insert ...; rollback`. O rollback
   também desfaz a chamada do `pg_net`, então não sai aviso nem conversão. Formulário no
   ar: abrir com `?naocontar=1` e substituir `fetch`, `fbq` e `gtag` antes de enviar, ou

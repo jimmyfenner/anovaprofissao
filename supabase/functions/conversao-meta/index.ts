@@ -29,15 +29,14 @@ async function db(path: string, init: RequestInit = {}) {
 }
 
 // a verificação de JWT da plataforma também aceita a chave anon, que é pública
-// no site: sem este teste, qualquer pessoa poderia chamar a função
-function chamadaDoBanco(req: Request) {
-  try {
-    const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-    const claims = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-    return claims.role === "service_role";
-  } catch {
-    return false;
-  }
+// no site: sem este teste, qualquer pessoa poderia chamar a função. A chave que o
+// gatilho manda é a de private_config (formato sb_secret, não é um JWT com papel
+// para conferir), então a comparação é com ela.
+async function chamadaDoBanco(req: Request) {
+  const token = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  if (!token) return false;
+  const cfg = await db("private_config?chave=eq.service_key&select=valor");
+  return cfg?.[0]?.valor === token;
 }
 
 async function sha256(valor: string) {
@@ -100,7 +99,7 @@ async function enviarLead(pixel: string, L: any, ud: Record<string, unknown>, co
 }
 
 Deno.serve(async (req) => {
-  if (!chamadaDoBanco(req)) return json({ error: "Sem acesso" }, 401);
+  if (!(await chamadaDoBanco(req))) return json({ error: "Sem acesso" }, 401);
   let body: any = {};
   try { body = await req.json(); } catch { /* vazio */ }
 
