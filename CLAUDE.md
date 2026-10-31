@@ -402,9 +402,13 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-**Pendentes desde 30/out/2026:** `db/14-video-assistido.sql` e `db/15-resultados.sql`.
-A ferramenta `npx supabase` desta máquina alcança o projeto, mas o modo automático
-do Claude não aplica migração em produção sem autorização.
+Nenhuma. 14 (vídeo assistido) e 15 (resultados) aplicadas e testadas em 30/out/2026,
+com a Edge Function `whatsapp` publicada na versão 14. A CLI do Supabase desta máquina
+alcança o projeto: `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f arquivo`
+e `supabase functions deploy whatsapp --project-ref buapklmgdjcoyzrmhhcd --use-api`
+(sem Docker; manter `verify_jwt`). Instale a CLI uma vez numa pasta: `npx --yes` a cada
+chamada reinstala tudo e chamadas simultâneas falham com "Lock compromised". O modo
+automático do Claude só aplica em produção com autorização do Jimmy.
 
 13 (espelhos de licenciados) aplicada e testada em 23/out/2026.
 12 (terceira página no contador, transição energética) aplicada e
@@ -504,7 +508,8 @@ Banco: `db/15-resultados.sql` (`visitas.utm_term/utm_content`, tabela
 `eventos_funil`, função `resumo_resultados`). Os sites marcam etapas por
 `marcarFunil`, uma por sessão, só dos eventos em `ETAPAS_FUNIL`; o nome do evento
 é a mesma coisa que o `track` usa. Sem a migração: a visita grava sem os campos
-novos e o painel usa `resumo_visitas`, sem etapas nem anúncios.
+novos e o painel usa `resumo_visitas`, sem etapas nem anúncios. Aplicada em 30/out/2026:
+os anúncios e as etapas só existem daí em diante.
 
 Comparar com cuidado: chip grátis e licença de R$ 1.997 não convertem igual.
 Linha de base de 30/out/2026: igreencel 260 visitas e 49 leads (18,8%);
@@ -603,8 +608,7 @@ quem pensa em **mudar de ramo** — nunca "quebrado" ou "desesperado". O bloco
 fatos (Fio B da Lei 14.300, inversão de fluxo, kit a preço de custo), sem
 política: nada de governo ou partido, nem em anúncio. A pergunta do formulário
 grava na coluna `momento` (já existia, migração 08); o painel mostra, a
-mensagem pronta do WhatsApp leva, e o aviso `corpoInteg` tem a linha no código
-— só aparece no aviso depois de republicar a Edge Function `whatsapp`.
+mensagem pronta do WhatsApp leva, e o aviso `corpoInteg` mostra a linha.
 
 Corte do Carlos Evangelista (fundador da ABGD, sócio da Vértice) liberado
 pelo Jimmy para esta página em 19/10/2026: seção `#carlos`, logo depois da
@@ -616,8 +620,7 @@ segundos da apresentação do Vimeo a pessoa realmente tocou (pulos não contam;
 `player.js` do Vimeo carregado só no clique) e grava a porcentagem em
 `leads.video_pct` junto com o formulário (migração `db/14-video-assistido.sql`).
 90% ou mais = "assistiu completo": selo "Viu o vídeo" na lista do painel, linha
-"Apresentação" no detalhe e no aviso `corpoInteg` (este só depois de republicar
-a Edge Function). Os segundos vistos ficam no localStorage (`qvc_video_<id>`),
+"Apresentação" no detalhe e no aviso `corpoInteg`. Os segundos vistos ficam no localStorage (`qvc_video_<id>`),
 então quem assistiu num dia e preenche no outro continua contando no mesmo
 navegador. Sem a API (bloqueador), `video_pct` vai null, nunca 0. Marcos
 25/50/75/90 viram eventos `video_NN` do Pixel. Se trocar o vídeo, atualizar
