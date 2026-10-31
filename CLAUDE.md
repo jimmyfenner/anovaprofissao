@@ -635,6 +635,9 @@ navegador. Sem a API (bloqueador), `video_pct` vai null, nunca 0. Marcos
 25/50/75/90 viram eventos `video_NN` do Pixel. Se trocar o vídeo, atualizar
 `data-vimeo`, `data-duracao` e a capa. Política de Privacidade: itens 2 e 8.
 
+Sem botão flutuante de WhatsApp (30/10/2026, pedido do Jimmy): nesta página todo
+contato passa pelo formulário, e o WhatsApp só abre na tela final. A home mantém o dela.
+
 Leads: mesma tabela `leads`, `tipo = 'integrador'` (migração
 `db/10-integradores.sql`). Mapeamento das respostas: `experiencia` = o que
 faz hoje, `perfil` = quantos clientes já atendeu, `objetivo` = interesse,

@@ -306,16 +306,6 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 .foot__links a:hover{color:var(--credit)}
 .disc{margin-top:2.8rem;padding-top:1.8rem;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:.75rem;font-size:.8rem;color:var(--muted-dim);line-height:1.55}
 .disc b{color:var(--muted);font-weight:600}
-
-/* ---------- WhatsApp flutuante ---------- */
-.float{
-  position:fixed;right:clamp(14px,3vw,24px);bottom:clamp(14px,3vw,24px);z-index:70;
-  display:inline-flex;align-items:center;gap:.55em;padding:.8em 1.15em;border-radius:999px;
-  background:var(--credit);color:var(--on-credit);font-weight:600;font-size:.9rem;text-decoration:none;
-  box-shadow:0 10px 30px rgba(0,0,0,.45);
-}
-.float:hover{background:#4BEA9C}
-@media(max-width:520px){.float span{display:none}.float{padding:.85em}}
 </style>
 
 <header class="nav">
@@ -800,11 +790,6 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
   </div>
 </footer>
 
-<a class="float" id="float-wa" href="#" target="_blank" rel="noopener" data-ev="whatsapp_click" aria-label="Falar com Jimmy no WhatsApp">
-  <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.85 9.85 0 0012.04 2zm0 18.15h-.01a8.2 8.2 0 01-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 01-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 012.41 5.83c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.78.97-.15.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.230-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.16.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.84-.2-.48-.4-.42-.56-.43h-.47c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03s.87 2.35.99 2.51c.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.44-.59 1.640-1.16.2-.57.2-1.05.14-1.16-.06-.1-.22-.16-.47-.28z"/></svg>
-  <span>Falar com Jimmy</span>
-</a>
-
 <script>
 (function(){
   "use strict";
@@ -944,7 +929,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 
   /* ---- etapas do funil no banco (painel: "Onde as pessoas param") ----
      Uma linha por etapa por sessão, com o mesmo código anônimo das visitas. */
-  var ETAPAS_FUNIL = {video_play:1, video_25:1, video_50:1, video_75:1, video_90:1, video_fim:1, video_fundador_abgd:1, form_inicio:1, lead_integrador:1, whatsapp_click:1, whatsapp_pos_form:1, momento_somar:1, momento_vendas:1, momento_mudar:1};
+  var ETAPAS_FUNIL = {video_play:1, video_25:1, video_50:1, video_75:1, video_90:1, video_fim:1, video_fundador_abgd:1, form_inicio:1, lead_integrador:1, whatsapp_pos_form:1, momento_somar:1, momento_vendas:1, momento_mudar:1};
   function marcarFunil(evento){
     try{
       if(!REAL || localStorage.getItem("anp_admin") || navigator.webdriver) return;
@@ -987,13 +972,6 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
 
   /* ---- WhatsApp ---- */
   function waLink(msg){ return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg); }
-  // o botão flutuante não passa pelo formulário: a origem viaja no próprio texto
-  function rastro(){
-    var campanha = [origem.utm_source, origem.utm_medium, origem.utm_campaign].filter(Boolean).join(" / ");
-    var de = campanha || (origem.referrer && origem.referrer !== "direto" ? origem.referrer : "acesso direto");
-    return "\n\n— vim de: " + de + " · " + (origem.landing || "/") + " · " + (origem.device || "");
-  }
-  $("#float-wa").href = waLink("Olá " + NOME + "! Sou da área de energia, vi a página Quero Vender Carregador e quero entender a Conexão Mob." + rastro());
 
   /* ---- vídeo (Vimeo): capa primeiro, o player só carrega no clique ----
      dnt=1 desliga o rastreamento de visitante do Vimeo. */
