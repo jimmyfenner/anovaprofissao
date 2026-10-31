@@ -539,6 +539,15 @@ que já estava lá (`video_apresentacao`, vertical). Chaves novas no `site_confi
   qualquer `[data-dur-for="<id do slot>"]` da página (as legendas da seção). Nada
   de duração escrita à mão no HTML: trocou o vídeo, troca o número. YouTube não
   informa duração pelo oEmbed, então o vídeo da pirâmide fica sem selo.
+- **Mês da gravação:** a legenda da completa mostra "outubro de 2026 · 38 min",
+  com o mês vindo de `upload_date` do oEmbed (`[data-mes-for]`, `mesLegivel`).
+  Motivo: o vídeo é amarrado ao mês (campanhas de Conexão Green, Telecom e
+  Seguros, "dia 20 de outubro", recuperar a licença em 10 dias) e traz simulações
+  e promessas de ganho ("50 a 100 mil por mês", "mais de R$ 300 mil por mês").
+  É conteúdo dele, falado em vídeo; **nenhum desses números vai para o texto do
+  site**, e a legenda avisa que as condições vigentes são confirmadas na
+  conversa. Transcrição com tempos feita em 30/10/2026 (mlx-whisper), roteiro
+  na memória do Claude; o vídeo diz "R$ 1.997 por um ano" aos 27:57, igual ao FAQ.
 - **Layout:** `.apres-grid` com a completa (16:9) à esquerda e o resumo (9:16) em
   24% à direita, alturas quase iguais a partir de 860px; empilhados no celular.
   `.apres-grid .vslot{width:100%}` é obrigatório: numa coluna flex, o

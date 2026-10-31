@@ -185,7 +185,9 @@ p{margin:0}
 /* width:100% porque, numa coluna flex, o margin-inline:auto do vertical encolheria o cartão a zero */
 .apres-grid .vslot{margin-top:0;width:100%}
 .apres-item{display:flex;flex-direction:column;gap:.8rem;min-width:0}
-.apres-item__cap{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin:0;border-top:1px solid var(--line-soft);padding-top:.75rem}
+.apres-item__cap{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.5rem 1rem;margin:0;border-top:1px solid var(--line-soft);padding-top:.75rem}
+.apres-item__meta{display:inline-flex;gap:.5em}
+.apres-item__meta span:not(:empty)+span:not(:empty)::before{content:"· "}
 .apres-item__cap strong{font-weight:600;font-size:.95rem;color:var(--text)}
 .apres-item__cap small{display:block;color:var(--muted);font-size:.86rem;font-weight:400;margin-top:.25rem;line-height:1.45;max-width:52ch}
 .apres-item__cap span{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -1011,7 +1013,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
           <p class="vslot__label">Apresentação completa</p>
           <p class="vslot__note">Espaço reservado para a apresentação completa.</p>
         </div>
-        <p class="apres-item__cap"><strong>Apresentação completa<small>Do começo ao fim, com calma, para quem quer entender tudo antes de conversar.</small></strong><span data-dur-for="v-completa"></span></p>
+        <p class="apres-item__cap"><strong>Apresentação completa<small>Produtos, remuneração, plano de carreira e as perguntas de sempre, do começo ao fim. As campanhas citadas são do mês da gravação; as condições vigentes eu confirmo na conversa.</small></strong><span class="apres-item__meta"><span data-mes-for="v-completa"></span><span data-dur-for="v-completa"></span></span></p>
       </div>
       <div class="apres-item">
         <div class="vslot" id="v-apresentacao">
@@ -1555,13 +1557,20 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
   function capaDoVimeo(url, aplicar){
     fetch("https://vimeo.com/api/oembed.json?width=1280&url=" + encodeURIComponent(url))
       .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){ if(d) aplicar(d.thumbnail_url, d.duration); })
+      .then(function(d){ if(d) aplicar(d.thumbnail_url, d.duration, d.upload_date); })
       .catch(function(){});
   }
   function duracaoLegivel(s){
     s = parseInt(s, 10);
     if(!s) return "";
     return s < 60 ? s + " s" : Math.floor(s / 60) + " min";
+  }
+  var MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  // "2026-10-03 17:16:27" do oEmbed → "outubro de 2026": a apresentação completa é
+  // amarrada às campanhas do mês, e a legenda precisa dizer de quando ela é
+  function mesLegivel(data){
+    var m = /^(\d{4})-(\d{2})/.exec(String(data || ""));
+    return m ? MESES[parseInt(m[2], 10) - 1] + " de " + m[1] : "";
   }
 
   function montarVideo(id, url, formato){
@@ -1580,7 +1589,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     });
 
     if(v.vimeo){
-      capaDoVimeo(v.vimeo, function(src, dur){
+      capaDoVimeo(v.vimeo, function(src, dur, data){
         if(src && !el.querySelector(".vslot__thumb")){
           var img = document.createElement("img");
           img.className = "vslot__thumb";
@@ -1596,6 +1605,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
           el.appendChild(b);
         }
         $$('[data-dur-for="' + id + '"]').forEach(function(x){ x.textContent = txt; });
+        $$('[data-mes-for="' + id + '"]').forEach(function(x){ x.textContent = mesLegivel(data); });
       });
     }
   }
