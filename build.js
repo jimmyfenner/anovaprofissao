@@ -461,11 +461,13 @@ function homeDoLicenciado(src, lic) {
   // configuração do script: nem o número nem o ID do Jimmy ficam no espelho
   h = h.replace(/var WHATSAPP = "\d+";/, `var WHATSAPP = "${lic.whatsapp}";`)
        .replace(/var NOME {5}= "Jimmy";/, `var NOME     = "${lic.nome_curto}";`)
-       .replace(/var LINK_CADASTRO = "[^"]*";/, `var LINK_CADASTRO = "${lic.link_cadastro}";`);
+       .replace(/var LINK_CADASTRO = "[^"]*";/, `var LINK_CADASTRO = "${lic.link_cadastro}";`)
+       // quem chama o lead no espelho é o licenciado (ANP_LIC); os números do Jimmy saem
+       .replace(/var QUEM_CHAMA_NUMEROS = \[[^\]]*\];/, 'var QUEM_CHAMA_NUMEROS = [];');
   // páginas jurídicas do próprio licenciado
   h = h.replace(/href="\/(privacidade|termos|aviso-legal)"/g, `href="/${lic.slug}/$1"`);
-  const dados = { slug: lic.slug, nome: lic.nome, nome_curto: lic.nome_curto, whatsapp: lic.whatsapp,
-                  link_cadastro: lic.link_cadastro, link_grupo: lic.link_grupo || '', meta_pixel: lic.meta_pixel || '' };
+  const dados = { slug: lic.slug, nome: lic.nome, nome_curto: lic.nome_curto, nome_completo: lic.nome_completo,
+                  whatsapp: lic.whatsapp, link_cadastro: lic.link_cadastro, link_grupo: lic.link_grupo || '', meta_pixel: lic.meta_pixel || '' };
   return `<script>window.ANP_LIC=${JSON.stringify(dados)};</script>\n` + h;
 }
 function conferirEspelho(html, slug) {

@@ -273,6 +273,20 @@ fieldset.field{border:0;margin:0;padding:0}
 .ok{display:flex;flex-direction:column;gap:1rem}
 .ok h3{font-size:clamp(1.3rem,3vw,1.7rem)}
 .ok p{color:var(--muted)}
+/* quem chama o lead: nome e número em destaque, para a pessoa reconhecer o contato e ignorar qualquer outro */
+.quem{border:1px solid var(--line);border-radius:10px;padding:1.15rem 1.2rem;display:grid;gap:.75rem;text-align:center;background:var(--surface)}
+.quem[hidden]{display:none}
+.quem p{margin:0;color:var(--muted)}
+.quem p.quem__t{font-size:.92rem;line-height:1.5}
+.quem__t b{color:var(--text);font-weight:600}
+.quem p.quem__num{font-family:var(--display);font-weight:700;font-size:clamp(1.55rem,4.2vw,2rem);letter-spacing:-.02em;line-height:1.1}
+.quem__num a{color:var(--credit);text-decoration:none}
+.quem p.quem__sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim)}
+.quem p.quem__alt{font-size:.86rem;line-height:1.5}
+.quem__alt b{color:var(--text);font-weight:600}
+.quem p.quem__alerta{display:flex;gap:.65rem;text-align:left;border:1px solid rgba(251,191,36,.38);background:rgba(251,191,36,.08);border-radius:8px;padding:.85rem .95rem;font-size:.86rem;line-height:1.5;color:var(--text)}
+.quem__alerta b{color:#FBBF24}
+.quem__alerta svg{flex:none;width:18px;height:18px;margin-top:.15em;color:#FBBF24}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 
 /* ---------- FAQ ---------- */
@@ -706,7 +720,14 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         <h3 id="ok-titulo">Pronto. Agora é só me chamar.</h3>
         <p>Suas respostas já chegaram para mim. Toque no botão abaixo para abrir a conversa no WhatsApp — a mensagem já vai pronta.</p>
         <a class="btn btn--primary btn--block" id="ok-wa" href="#" target="_blank" rel="noopener" data-ev="whatsapp_pos_form">Abrir conversa no WhatsApp</a>
-        <p class="form__nota">Prefere esperar? Eu te chamo no número informado.</p>
+        <!-- quem chama: só aparece quando o lead foi gravado (sem gravação, não há quem chamar) -->
+        <div class="quem" id="ok-quem">
+          <p class="quem__t">Prefere esperar? Quem vai te chamar é <b>Jimmy Fenner</b>, por este WhatsApp:</p>
+          <p class="quem__num"><a href="https://wa.me/5548991067007" target="_blank" rel="noopener">(48) 99106-7007</a></p>
+          <p class="quem__sub">Jimmy Fenner · Licenciado iGreen Energy</p>
+          <p class="quem__alt">Em alguns casos o contato pode vir do <b>(47) 98809-2413</b>, também do Jimmy. Salve os dois números nos seus contatos para reconhecer a mensagem quando ela chegar.</p>
+          <p class="quem__alerta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg><span><b>Desconsidere qualquer outro número ou contato que não seja do Jimmy.</b> Só estes dois números são dele; não aceite chamadas nem mensagens de nenhum outro.</span></p>
+        </div>
       </div>
     </form>
   </div>
@@ -1152,6 +1173,7 @@ footer{border-top:1px solid var(--line-soft);padding-block:clamp(48px,7vw,72px) 
         window.gtag("event", "conversion", {send_to: GADS_ID + "/" + GADS_LABEL});
       }
       $("#ok-wa").href = waLink(mensagem(L));
+      $("#ok-quem").hidden = !ok;
       if(!ok){
         $("#ok-titulo").textContent = "Quase lá: me chama no WhatsApp.";
       }

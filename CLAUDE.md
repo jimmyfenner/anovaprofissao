@@ -495,6 +495,29 @@ Se algum dia o botão precisar virar lead de verdade, aí sim entra
 formulário antes — e aí ele deixa de ser o atalho de baixo atrito que é
 hoje. Decisão consciente: mantido sem formulário.
 
+## Quem chama o lead (31/out/2026)
+
+Copiado do igreencel, onde o aviso "a Débora vai te chamar deste número"
+melhorou muito a taxa de resposta. Depois do cadastro, a página diz **quem**
+vai chamar e **de que número**, e manda desconsiderar qualquer outro contato.
+
+- `home.html`: `QUEM_CHAMA` na configuração editável ({nome, curto, papel,
+  numeros}); `avisoQuemChama()` monta o bloco `.quem` e entra nos dois
+  resultados do quiz (apto e sem investimento), depois dos botões. Jimmy:
+  (48) 99106-7007 principal e (47) 98809-2413 como "também pode vir". Nos
+  espelhos (`ANP_LIC`, que agora leva `nome_completo`) o bloco nomeia o
+  licenciado e só o número dele; os números do Jimmy ficam na linha
+  `var QUEM_CHAMA_NUMEROS = [...]`, que o build esvazia no espelho (senão a
+  trava `conferirEspelho` para o build). É fixo de propósito: **não** segue o
+  `whatsapp_destino` do painel, porque esse campo diz quem recebe o lead, não
+  quem chama.
+- `integradores.html`: bloco estático `#ok-quem` dentro de `#form-ok`, mesmo
+  texto e números do Jimmy. `hidden` quando o lead **não** foi gravado
+  (`ok` falso): sem gravação não há quem chamar, e o título já pede para a
+  pessoa chamar.
+- Mesmo padrão no querocarregador (`src/components/QuemChama.tsx`), com o
+  (47) 98809-2413 como principal lá.
+
 ## Painel de resultados (30/out/2026)
 
 Pedido do Jimmy, tomando o painel do igreencel.com.br como régua. No topo da

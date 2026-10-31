@@ -477,6 +477,19 @@ p{margin:0}
 .sumrow:last-child{border-bottom:0}
 .sumrow dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-dim);flex:none;width:11ch}
 .sumrow dd{margin:0;color:var(--text)}
+/* quem chama o lead: nome e número em destaque, para a pessoa reconhecer o contato e ignorar qualquer outro */
+.quem{border:1px solid var(--line);border-radius:10px;padding:1.15rem 1.2rem;display:grid;gap:.75rem;text-align:center;background:var(--surface)}
+.quem p{margin:0}
+.quem__t{font-size:.92rem;color:var(--muted);line-height:1.5}
+.quem__t b{color:var(--text);font-weight:600}
+.quem__num{font-family:var(--display);font-weight:700;font-size:clamp(1.55rem,4.2vw,2rem);letter-spacing:-.02em;line-height:1.1}
+.quem__num a{color:var(--credit);text-decoration:none}
+.quem__sub{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim)}
+.quem__alt{font-size:.86rem;color:var(--muted);line-height:1.5}
+.quem__alt b{color:var(--text);font-weight:600}
+.quem__alerta{display:flex;gap:.65rem;text-align:left;border:1px solid rgba(251,191,36,.38);background:rgba(251,191,36,.08);border-radius:8px;padding:.85rem .95rem;font-size:.86rem;line-height:1.5;color:var(--text)}
+.quem__alerta b{color:#FBBF24}
+.quem__alerta svg{flex:none;width:18px;height:18px;margin-top:.15em;color:#FBBF24}
 
 /* ---------- faq ---------- */
 .faq{display:grid;gap:0;border-top:1px solid var(--line-soft)}
@@ -1269,6 +1282,16 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
     LINK_CADASTRO = LIC.link_cadastro;
     LINK_GRUPO = LIC.link_grupo || "";
   }
+  /* Quem chama o lead depois da avaliação. O resultado mostra o nome e os
+     números, para a pessoa reconhecer o contato e desconsiderar qualquer
+     outro. O primeiro número é o principal; os demais também são da pessoa.
+     Fixo de propósito: não segue o whatsapp_destino do painel. A lista fica
+     numa linha própria porque o build a esvazia nos espelhos (nenhum número
+     do Jimmy pode sobrar lá). */
+  var QUEM_CHAMA_NUMEROS = ["5548991067007", "5547988092413"];
+  var QUEM_CHAMA = LIC
+    ? { nome: LIC.nome_completo || LIC.nome, curto: LIC.nome_curto, papel: "Licenciado iGreen Energy", numeros: [LIC.whatsapp] }
+    : { nome: "Jimmy Fenner", curto: "Jimmy", papel: "Licenciado iGreen Energy", numeros: QUEM_CHAMA_NUMEROS };
   var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
   /* =================================== */
 
@@ -2053,6 +2076,28 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         : "A licença não cabe no meu momento agora, mas pretendo entrar mais pra frente. Por ora, quero economizar na minha conta de luz.");
   }
 
+  /* "5511987654321" -> "(11) 98765-4321". Sem número de exemplo real aqui: a
+     trava do build procura o do Jimmy no espelho inteiro, comentários incluídos. */
+  function fone(n){
+    var d = String(n).replace(/\D/g, "").replace(/^55/, "");
+    return d.length >= 10 ? "(" + d.slice(0, 2) + ") " + d.slice(2, -4) + "-" + d.slice(-4) : n;
+  }
+
+  function avisoQuemChama(){
+    var q = QUEM_CHAMA, principal = q.numeros[0], outros = q.numeros.slice(1);
+    var escudo = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>';
+    return '<div class="quem">'+
+      '<p class="quem__t">Prefere esperar? Quem vai te chamar é <b>'+q.nome+'</b>, por este WhatsApp:</p>'+
+      '<p class="quem__num"><a href="https://wa.me/'+principal+'" target="_blank" rel="noopener">'+fone(principal)+'</a></p>'+
+      '<p class="quem__sub">'+q.nome+' · '+q.papel+'</p>'+
+      (outros.length
+        ? '<p class="quem__alt">Em alguns casos o contato pode vir do <b>'+outros.map(fone).join("</b> ou do <b>")+'</b>, também do '+q.curto+'. Salve os números nos seus contatos para reconhecer a mensagem quando ela chegar.</p>'
+        : '<p class="quem__alt">Salve o número nos seus contatos para reconhecer a mensagem quando ela chegar.</p>')+
+      '<p class="quem__alerta">'+escudo+'<span><b>Desconsidere qualquer outro número ou contato que não seja do '+q.curto+'.</b> '+
+        (outros.length ? 'Só estes números são dele' : 'Só este número é dele')+'; não aceite chamadas nem mensagens de nenhum outro.</span></p>'+
+    '</div>';
+  }
+
   function resultadoSemInvestimento(primeiro){
     var volta = respostas.momento !== "Não é por dinheiro: acho que não é para mim";
 
@@ -2080,7 +2125,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         '<p class="result__porque">'+texto+'</p>'+
         '<a class="btn btn--primary btn--block" id="go-eco" href="'+waLink(mensagemEconomia())+'" target="_blank" rel="noopener">Quero economizar na minha conta de luz</a>'+
         '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Gratuito. Eu te explico como funciona na sua distribuidora.</p>'+
-        convite + porta +
+        convite + porta + avisoQuemChama() +
       '</div>';
     $("#go-eco").addEventListener("click", function(){ track("whatsapp_click", {origem_lead:"quiz_economia"}); });
     if($("#go-grupo")) $("#go-grupo").addEventListener("click", function(){ track("grupo_espera_click", {}); });
@@ -2113,6 +2158,7 @@ footer{border-top:1px solid var(--line);padding-block:clamp(3rem,6vw,4.5rem) 2.5
         '<p class="ou">ou</p>'+
         '<a class="btn btn--ghost btn--block" id="go-cad" data-cadastro href="'+LINK_CADASTRO+'" target="_blank" rel="noopener">Já entendi o modelo — quero fazer meu cadastro</a>'+
         '<p style="font-size:.8rem;color:var(--muted-dim);text-align:center">Leva ao cadastro oficial da iGreen Energy, já com a minha indicação.</p>'+
+        avisoQuemChama() +
       '</div>';
     $("#go-wa").addEventListener("click", function(){ track("whatsapp_click", {origem_lead:"quiz"}); });
     $("#go-cad").addEventListener("click", function(){ track("cadastro_click", {origem:"quiz"}); });
