@@ -690,7 +690,7 @@ cadastro direto da home continuam só no pixel.
 - **Testar sem sujar:** o mesmo comando com `body` `{"action":"teste","test_event_code":"<código>"}`,
   usando o código da aba **Testar eventos** com ela aberta. Código de sessão fechada é
   processado como conversão real. Lead fictício, sem linha em `leads`. Em 30/out/2026 a
-  Meta respondeu 200 com o token atual e o log ficou com `ok`; o caminho com lead real
+  Meta respondeu 200 com o token atual, o Jimmy viu o evento na aba e o log ficou com `ok`; o caminho com lead real
   (gatilho → função → Meta) só se confirma no primeiro lead depois dessa data.
 - **Testar a gravação:** `begin; set local role anon; insert ...; rollback`. O rollback
   também desfaz a chamada do `pg_net`, então não sai aviso nem conversão. Formulário no
