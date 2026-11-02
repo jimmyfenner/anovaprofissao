@@ -381,7 +381,7 @@ body.static .uf,body.static .lb,body.static .bxa{animation:none!important;opacit
 .leg i{width:20px;height:20px;border-radius:6px;display:inline-block;border:1px solid rgba(255,255,255,.12)}
 .leg .i-ok{background:#17c964}.leg .i-par{background:repeating-linear-gradient(45deg,rgba(0,226,107,.78) 0 5px,rgba(0,226,107,.3) 5px 10px)}.leg .i-nao{background:rgba(255,255,255,.09)}
 .leg .i-bx{border-radius:50%;background:#FFC24B;border-color:#05080A}
-.mapa-dica{position:absolute;z-index:6;width:350px;background:rgba(8,14,11,.94);border:1px solid rgba(0,226,107,.4);border-radius:18px;padding:16px 18px 15px;backdrop-filter:blur(12px);box-shadow:0 24px 60px -12px rgba(0,0,0,.85);opacity:0;transform:translateY(10px) scale(.97);transition:opacity .18s,transform .3s var(--ease);pointer-events:none}
+.mapa-dica{position:absolute;z-index:6;width:490px;background:rgba(8,14,11,.94);border:1px solid rgba(0,226,107,.4);border-radius:18px;padding:16px 18px 15px;backdrop-filter:blur(12px);box-shadow:0 24px 60px -12px rgba(0,0,0,.85);opacity:0;transform:translateY(10px) scale(.97);transition:opacity .18s,transform .3s var(--ease);pointer-events:none}
 .mapa-dica.on{opacity:1;transform:none}
 .mapa-dica h4{font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .mapa-dica .st{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:5px 9px;border-radius:999px;white-space:nowrap}
@@ -393,6 +393,12 @@ body.static .uf,body.static .lb,body.static .bxa{animation:none!important;opacit
 .mapa-dica .bxc{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#04120a;background:#FFC24B;border-radius:999px;padding:3px 8px;white-space:nowrap}
 .mapa-dica .bxc.t{background:rgba(255,194,75,.18);color:#FFC24B;border:1px solid rgba(255,194,75,.5)}
 .mapa-dica .obs{font-size:15px;color:var(--dim);margin-top:10px;line-height:1.35}
+.mapa-dica .fxs{display:flex;gap:6px;margin-top:8px}
+.mapa-dica .fxs+ul{margin-top:12px}
+.mapa-dica .fx{flex:1 1 0;min-width:0;max-width:112px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:7px 3px 6px;border-radius:11px;background:rgba(0,226,107,.09);border:1px solid rgba(0,226,107,.28);line-height:1.12}
+.mapa-dica .fx b{font-size:23px;font-weight:900;letter-spacing:-.02em;color:var(--g)}
+.mapa-dica .fx i{font-style:normal;font-size:14px;font-weight:700;color:#fff;margin-top:2px;white-space:nowrap}
+.mapa-dica .fx u{text-decoration:none;font-size:11.5px;font-weight:600;color:var(--mut);margin-top:3px;white-space:nowrap}
 .mapa-reset{position:absolute;right:12px;bottom:12px;z-index:7;font:700 15px Montserrat,sans-serif;color:#fff;background:rgba(8,14,11,.85);border:1px solid rgba(0,226,107,.45);border-radius:999px;padding:9px 14px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s}
 .mapa-reset.on{opacity:1;pointer-events:auto}
 .mapa-reset:hover{background:rgba(0,226,107,.18)}
@@ -638,7 +644,7 @@ body.clean .ui,body.clean .prog{display:none}
       </div>
       <div class="card mapa-card r zoom" style="--i:3;flex:1">
         <div class="row" style="justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
-          <div><div class="tag">Onde a Conexão Green está disponível</div><div class="small" style="margin-top:8px"><b style="color:#fff">21 de 27 estados</b> · passe o mouse · role para aproximar · 2 cliques volta</div></div>
+          <div><div class="tag">Onde a Conexão Green está disponível</div><div class="small" style="margin-top:8px"><b style="color:#fff">21 de 27 estados</b> · passe o mouse: descontos e bônus · role: zoom</div></div>
           <div class="leg"><span><i class="i-ok"></i>Disponível</span><span><i class="i-par"></i>Parcial</span><span><i class="i-nao"></i>Ainda não</span><span><i class="i-bx"></i>⚡ Bônus Extra (out/26)</span></div>
         </div>
         <div class="mapa-wrap" id="mapa-wrap">
@@ -648,7 +654,7 @@ body.clean .ui,body.clean .prog{display:none}
         </div>
       </div>
     </div>
-    <div class="disc">Cobertura conforme as regras vigentes da Conexão Green (out/26) · ⚡ = distribuidoras do Bônus Extra Green do mês (algumas só com troca de titularidade) · família ilustrativa: R$ 1,00/kWh e 10% de desconto, varia por estado.</div>
+    <div class="disc">Cobertura, descontos e bônus conforme as regras vigentes da Conexão Green (out/26) · ⚡ = distribuidoras do Bônus Extra Green do mês (algumas só com troca de titularidade) · família ilustrativa: R$ 1,00/kWh e 10% de desconto, varia por estado.</div>
   </section>
 
   <!-- 10 CARTEIRA GREEN -->
@@ -1251,7 +1257,7 @@ body.clean .ui,body.clean .prog{display:none}
 
   try {
   // ---- mapa de cobertura: dica por estado + zoom/arrasto ----
-  const MAPA_DADOS={"AC": {"n": "Acre", "s": "nao", "d": [["Energisa Acre", false, 0]], "b": false}, "AL": {"n": "Alagoas", "s": "ok", "d": [["Equatorial", true, 1]], "b": true}, "AP": {"n": "Amapá", "s": "nao", "d": [["CEA Equatorial", false, 0]], "b": false}, "AM": {"n": "Amazonas", "s": "nao", "d": [["Amazonas Energia", false, 0]], "b": false}, "BA": {"n": "Bahia", "s": "ok", "d": [["Coelba Neoenergia", true, 1]], "b": true}, "CE": {"n": "Ceará", "s": "ok", "d": [["Enel Ceará", true, 1]], "b": true}, "DF": {"n": "Distrito Federal", "s": "nao", "d": [["Neoenergia Brasília", false, 0]], "b": false}, "ES": {"n": "Espírito Santo", "s": "ok", "d": [["EDP Espírito Santo", true, 0]], "b": false}, "GO": {"n": "Goiás", "s": "ok", "d": [["Equatorial", true, 1]], "b": true}, "MA": {"n": "Maranhão", "s": "ok", "d": [["Equatorial", true, 0]], "b": false}, "MT": {"n": "Mato Grosso", "s": "ok", "d": [["Energisa", true, 1]], "b": true}, "MS": {"n": "Mato Grosso do Sul", "s": "ok", "d": [["Elektro", true, 2], ["Energisa", true, 1]], "b": true}, "MG": {"n": "Minas Gerais", "s": "ok", "d": [["CEMIG", true, 1], ["Energisa Minas Rio", true, 1], ["Energisa Sul Sudeste", true, 2], ["CPFL Santa Cruz", true, 0]], "b": true}, "PA": {"n": "Pará", "s": "ok", "d": [["Equatorial", true, 0]], "b": false}, "PB": {"n": "Paraíba", "s": "ok", "d": [["Energisa", true, 0]], "b": false}, "PR": {"n": "Paraná", "s": "ok", "d": [["Copel", true, 2], ["CPFL Santa Cruz", true, 0], ["Celesc", true, 0], ["Energisa Sul Sudeste", true, 0]], "b": true}, "PE": {"n": "Pernambuco", "s": "ok", "d": [["Neoenergia Celpe", true, 1]], "b": true}, "PI": {"n": "Piauí", "s": "ok", "d": [["Equatorial", true, 1]], "b": true}, "RJ": {"n": "Rio de Janeiro", "s": "parcial", "d": [["Energisa Minas Rio", true, 1], ["Enel Rio", true, 0], ["Light", false, 0]], "b": true}, "RN": {"n": "Rio Grande do Norte", "s": "ok", "d": [["Cosern Neoenergia", true, 1]], "b": true}, "RS": {"n": "Rio Grande do Sul", "s": "ok", "d": [["RGE", true, 1], ["CEEE Equatorial", true, 0]], "b": true}, "RO": {"n": "Rondônia", "s": "nao", "d": [["Energisa Rondônia", false, 0]], "b": false}, "RR": {"n": "Roraima", "s": "nao", "d": [["Roraima Energia", false, 0]], "b": false}, "SC": {"n": "Santa Catarina", "s": "ok", "d": [["Celesc", true, 0], ["Copel", true, 0]], "b": false}, "SP": {"n": "São Paulo", "s": "parcial", "d": [["CPFL Paulista", true, 2], ["Elektro Neoenergia", true, 2], ["Energisa Sul Sudeste", true, 2], ["CPFL Santa Cruz", true, 0], ["CPFL Piratininga", false, 0], ["EDP São Paulo", false, 0], ["Enel SP", false, 0]], "b": true}, "SE": {"n": "Sergipe", "s": "ok", "d": [["Energisa", true, 0]], "b": false}, "TO": {"n": "Tocantins", "s": "ok", "d": [["Energisa", true, 1]], "b": true}};
+  const MAPA_DADOS={"AC": {"n": "Acre", "s": "nao", "d": [["Energisa Acre", false, 0, []]], "b": false}, "AL": {"n": "Alagoas", "s": "ok", "d": [["Equatorial", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "AP": {"n": "Amapá", "s": "nao", "d": [["CEA Equatorial", false, 0, []]], "b": false}, "AM": {"n": "Amazonas", "s": "nao", "d": [["Amazonas Energia", false, 0, []]], "b": false}, "BA": {"n": "Bahia", "s": "ok", "d": [["Coelba Neoenergia", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "CE": {"n": "Ceará", "s": "ok", "d": [["Enel Ceará", true, 1, [[10, 4, 0], [14, 2, 0], [18, 1, 1000], [20, 0.4, 1000]]]], "b": true}, "DF": {"n": "Distrito Federal", "s": "nao", "d": [["Neoenergia Brasília", false, 0, []]], "b": false}, "ES": {"n": "Espírito Santo", "s": "ok", "d": [["EDP Espírito Santo", true, 0, [[10, 2, 0]]]], "b": false}, "GO": {"n": "Goiás", "s": "ok", "d": [["Equatorial", true, 1, [[10, 4, 0], [14, 2, 0], [18, 1, 1000], [20, 0.4, 1000]]]], "b": true}, "MA": {"n": "Maranhão", "s": "ok", "d": [["Equatorial", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": false}, "MT": {"n": "Mato Grosso", "s": "ok", "d": [["Energisa", true, 1, [[10, 4, 0], [14, 2, 0], [18, 1, 1000], [20, 0.4, 1000]]]], "b": true}, "MS": {"n": "Mato Grosso do Sul", "s": "ok", "d": [["Elektro", true, 2, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Energisa", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "MG": {"n": "Minas Gerais", "s": "ok", "d": [["CEMIG", true, 1, [[10, 4, 0], [16, 2, 0], [20, 2, 1000], [24, 1, 5000], [28, 0.4, 10000]]], ["Energisa Minas Rio", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Energisa Sul Sudeste", true, 2, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["CPFL Santa Cruz", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "PA": {"n": "Pará", "s": "ok", "d": [["Equatorial", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": false}, "PB": {"n": "Paraíba", "s": "ok", "d": [["Energisa", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": false}, "PR": {"n": "Paraná", "s": "ok", "d": [["Copel", true, 2, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["CPFL Santa Cruz", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Celesc", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Energisa Sul Sudeste", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "PE": {"n": "Pernambuco", "s": "ok", "d": [["Neoenergia Celpe", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "PI": {"n": "Piauí", "s": "ok", "d": [["Equatorial", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "RJ": {"n": "Rio de Janeiro", "s": "parcial", "d": [["Energisa Minas Rio", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Enel Rio", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Light", false, 0, []]], "b": true}, "RN": {"n": "Rio Grande do Norte", "s": "ok", "d": [["Cosern Neoenergia", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "RS": {"n": "Rio Grande do Sul", "s": "ok", "d": [["RGE", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["CEEE Equatorial", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}, "RO": {"n": "Rondônia", "s": "nao", "d": [["Energisa Rondônia", false, 0, []]], "b": false}, "RR": {"n": "Roraima", "s": "nao", "d": [["Roraima Energia", false, 0, []]], "b": false}, "SC": {"n": "Santa Catarina", "s": "ok", "d": [["Celesc", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Copel", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": false}, "SP": {"n": "São Paulo", "s": "parcial", "d": [["CPFL Paulista", true, 2, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Elektro Neoenergia", true, 2, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["Energisa Sul Sudeste", true, 2, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["CPFL Santa Cruz", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]], ["CPFL Piratininga", false, 0, []], ["EDP São Paulo", false, 0, []], ["Enel SP", false, 0, []]], "b": true}, "SE": {"n": "Sergipe", "s": "ok", "d": [["Energisa", true, 0, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": false}, "TO": {"n": "Tocantins", "s": "ok", "d": [["Energisa", true, 1, [[8, 4, 0], [10, 2, 0], [12, 1, 1000], [14, 0.4, 1000]]]], "b": true}};
   (function(){
     const wrap=document.getElementById('mapa-wrap'); if(!wrap) return;
     const svg=wrap.querySelector('svg'), dica=document.getElementById('mapa-dica'), reset=document.getElementById('mapa-reset');
@@ -1259,16 +1265,26 @@ body.clean .ui,body.clean .prog{display:none}
     const BX={1:'<em class="bxc">⚡ Bônus Extra</em>',2:'<em class="bxc t">⚡ Bônus Extra *</em>'};
     let fixo=null, arrastou=false;
     const scale=()=>parseFloat(stage.style.getPropertyValue('--s'))||1;
+    const pct=v=>String(v).replace('.',',')+'%';
+    const li=x=>`<li class="${x[1]?'ok':'nao'}">${x[0]}${x[2]?' '+BX[x[2]]:''}</li>`;
+    const chips=t=>`<div class="fxs">${t.map(f=>`<span class="fx"><b>${pct(f[0])}</b><i>bônus ${pct(f[1])}</i>${f[2]?`<u>${f[2].toLocaleString('pt-BR')}+ kWh</u>`:''}</span>`).join('')}</div>`;
+    function corpo(d){ // distribuidoras com as mesmas faixas ficam juntas
+      const grupos=new Map(); d.d.filter(x=>x[1]).forEach(x=>{ const k=JSON.stringify(x[3]); if(!grupos.has(k)) grupos.set(k,[]); grupos.get(k).push(x); });
+      const nao=d.d.filter(x=>!x[1]);
+      return [...grupos.values()].map(g=>`<ul>${g.map(li).join('')}</ul>${chips(g[0][3])}`).join('')+(nao.length?`<ul>${nao.map(li).join('')}</ul>`:'');
+    }
     function mostrar(p){
       const uf=p.dataset.uf, d=MAPA_DADOS[uf];
-      dica.innerHTML=`<h4>${d.n}<span class="st st-${d.s}">${ST[d.s]}</span></h4><ul>${d.d.map(x=>`<li class="${x[1]?'ok':'nao'}">${x[0]}${x[2]?' '+BX[x[2]]:''}</li>`).join('')}</ul>`+(d.s==='nao'?'<div class="obs">A Conexão Green ainda não chegou a este estado.</div>':d.s==='parcial'?'<div class="obs">Clientes das distribuidoras marcadas com ✕ ainda não podem ser conectados.</div>':'')+(d.d.some(x=>x[2]===2)?'<div class="obs">* Bônus Extra só com troca de titularidade.</div>':'');
-      const bb=p.getBBox(), pt=svg.createSVGPoint(); pt.x=bb.x+bb.width/2; pt.y=bb.y+bb.height/2;
-      const sp=pt.matrixTransform(p.getScreenCTM()), wr=wrap.getBoundingClientRect(), k=scale();
-      const lx=(sp.x-wr.left)/k, ly=(sp.y-wr.top)/k, W=wr.width/k, H=wr.height/k;
+      dica.innerHTML=`<h4>${d.n}<span class="st st-${d.s}">${ST[d.s]}</span></h4>${corpo(d)}`+(d.s==='nao'?'<div class="obs">A Conexão Green ainda não chegou a este estado.</div>':(d.s==='parcial'?'<div class="obs">Clientes das distribuidoras marcadas com ✕ ainda não podem ser conectados.</div>':'')+(d.d.some(x=>x[2]===2)?'<div class="obs">* Bônus Extra só com troca de titularidade.</div>':'')+'<div class="obs">Desconto do cliente · bônus (A 4%, B 2%, C 1%, D 0,4%) = sua comissão recorrente como licenciado PRO.</div>');
+      const bb=p.getBBox(), ctm=p.getScreenCTM(), pt=svg.createSVGPoint(), wr=wrap.getBoundingClientRect(), k=scale();
+      const tela=(x,y)=>{ pt.x=x; pt.y=y; return pt.matrixTransform(ctm); };
+      const c1=tela(bb.x,bb.y), c2=tela(bb.x+bb.width,bb.y+bb.height);
+      const esq=(c1.x-wr.left)/k, dir=(c2.x-wr.left)/k, cy=((c1.y+c2.y)/2-wr.top)/k, W=wr.width/k, H=wr.height/k;
       dica.classList.add('on');
-      const dw=dica.offsetWidth||350, dh=dica.offsetHeight||160;
-      let x = lx>W*0.5 ? lx-dw-28 : lx+28; x=Math.max(0,Math.min(W-dw,x));
-      let y = ly-dh/2; y=Math.max(0,Math.min(H-dh,y));
+      const dw=dica.offsetWidth||490, dh=dica.offsetHeight||160;
+      // encosta na borda do estado, do lado com mais espaço, para ele continuar visível
+      let x = esq>=W-dir ? esq-dw-14 : dir+14; x=Math.max(0,Math.min(W-dw,x));
+      let y = cy-dh/2; y=Math.max(0,Math.min(H-dh,y));
       dica.style.left=x+'px'; dica.style.top=y+'px';
     }
     function esconder(){ if(!fixo){ dica.classList.remove('on'); } }

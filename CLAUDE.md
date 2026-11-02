@@ -955,6 +955,16 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   dias, troca de bandeira e carteira). A projeção de retorno do investidor
   fica de fora de propósito (CVM/SCP); ela mora na apresentação do investidor
   em querocarregador.com.br/apresentacao e /simulador.
+- **Descontos e bônus na dica do mapa (02/11/2026)**: cada estado mostra, por
+  distribuidora, os descontos com o bônus (A 4%, B 2%, C 1%, D 0,4%, GP de
+  licenciado PRO) e, quando a faixa exige, o consumo mínimo ("1.000+ kWh").
+  Distribuidoras com as mesmas faixas ficam agrupadas. Os dados vêm de
+  `mapa-conexao-green/regras.json` (backup do Academy), via `faixas()` no
+  `patch_mapa.py`. Conferidos com a tabela `pvRawData` do portal
+  (gaabiislva.github.io/index, público no código da página): 32 de 37 iguais.
+  Vale o Academy, mais recente. Diferenças em aberto: ES EDP, MT Energisa e MS
+  Energisa; PR Celesc e SC Copel só existem no Academy. Nome de fornecedora
+  nunca entra nesses dados.
 - **Teste de boot obrigatório**: `verificar_boot.sh` (junto do deck) abre o
   HTML sem `?static`, como o público vê, e falha se o slide 1 não ativar; o
   `gerar_pdf.sh` roda esse teste antes de tudo. Motivo: em 28/10/2026 o deck
