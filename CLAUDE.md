@@ -919,17 +919,21 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   outras páginas (integradores, transição) segue sendo decisão a reabrir com
   o Jimmy (CVM/SCP na Licença Mob, ver "Transição energética").
 - A capa traz o aviso de licenciado independente, como a home.
-- Slides de campanha (11 "Bônus Extra Garantido" e 22 "Campanhas do mês",
-  mais as etiquetas "Out/26" em Seguros e Livre) vencem em 31/10/2026 e são
-  refeitos a cada export novo do Academy; os valores de GP são de licenciado
-  PRO (regra por vertical). Pendências e histórico do deck: memória
+- Slides de campanha (11 "Bônus Extra Garantido" e 23 "Campanhas do mês",
+  mais as etiquetas "Nov/26" em Seguros e Livre e a legenda ⚡ do mapa)
+  vencem em 30/11/2026. Desde 03/11/2026 a fonte é a newsletter do mês
+  (`~/Downloads/Newsletter_<Mês>-2026.pdf`, a de novembro tem 81 páginas);
+  o Academy completa os regulamentos. Os valores de GP são de licenciado PRO
+  (regra por vertical). Pendências e histórico do deck: memória
   `apresentacao-plano-negocios-igreen` do Claude.
 - **Mapa de cobertura (slide 9)**: SVG dos 27 estados (malha do IBGE, a mesma
   de `mapa-conexao-green/componente/geometria-ufs.js`) com as distribuidoras
   por estado vindas de `mapa-conexao-green/regras.json` (gerado do backup do
   Academy) mais as exceções que o Jimmy passou em 27/10/2026: sem cobertura em
-  AC, AM, AP, DF, RO e RR; em SP não atende Enel SP, EDP São Paulo e CPFL
-  Piratininga; no RJ não atende Light. Dica ao passar o mouse/tocar; clique
+  AC, AM, AP, DF, RO e RR; em SP não atende Enel SP e CPFL Piratininga; no RJ
+  não atende Light. A EDP São Paulo voltou em novembro/2026 (newsletter:
+  reabertura a partir de 350 kWh, 2 boletos, energia limitada) e aparece com
+  a etiqueta "Reaberta". Dica ao passar o mouse/tocar; clique
   fixa. **Marcadores ⚡ (âmbar)** = distribuidoras da campanha Bônus Extra
   Green do mês (tabela `BONUS` no `patch_mapa.py`, tirada do regulamento no
   export do Academy; `2` = só com troca de titularidade). É o padrão visual
@@ -958,13 +962,13 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
 - **Descontos e bônus na dica do mapa (02/11/2026)**: cada estado mostra, por
   distribuidora, os descontos com o bônus (A 4%, B 2%, C 1%, D 0,4%, GP de
   licenciado PRO) e, quando a faixa exige, o consumo mínimo ("1.000+ kWh").
-  Distribuidoras com as mesmas faixas ficam agrupadas. Os dados vêm de
-  `mapa-conexao-green/regras.json` (backup do Academy), via `faixas()` no
-  `patch_mapa.py`. Conferidos com a tabela `pvRawData` do portal
-  (gaabiislva.github.io/index, público no código da página): 32 de 37 iguais.
-  Vale o Academy, mais recente. Diferenças em aberto: ES EDP, MT Energisa e MS
-  Energisa; PR Celesc e SC Copel só existem no Academy. Nome de fornecedora
-  nunca entra nesses dados.
+  Distribuidoras com as mesmas faixas ficam agrupadas. **Desde 03/11/2026 o
+  hub de pós-venda da Gabi prevalece** (decisão do Jimmy): as faixas vêm da
+  tabela `pvRawData` de gaabiislva.github.io/index (pública no código da
+  página), copiada em `apresentacao-igreen-2026/fontes/hub-gabi-pv.json`, via
+  `faixas()` no `patch_mapa.py`. Distribuidora do Academy que não está no hub
+  sai do mapa (PR Celesc e SC Copel). Para atualizar, baixar a tabela de novo
+  e substituir o JSON. Nome de fornecedora nunca entra nesses dados.
 - **Teste de boot obrigatório**: `verificar_boot.sh` (junto do deck) abre o
   HTML sem `?static`, como o público vê, e falha se o slide 1 não ativar; o
   `gerar_pdf.sh` roda esse teste antes de tudo. Motivo: em 28/10/2026 o deck
