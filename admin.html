@@ -154,6 +154,89 @@ p{margin:0}
 .src{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:.28em .55em;white-space:nowrap}
 @media(max-width:700px){.lead__when,.src{display:none}}
 
+/* disparo de mensagens: seleção, barra, compositor e acompanhamento (nov/2026) */
+.lead__sel{flex:none;align-self:stretch;display:grid;place-items:center;width:44px;cursor:pointer}
+.lead__sel input{width:18px;height:18px;margin:0;accent-color:var(--credit);cursor:pointer}
+.lead__sel.is-off{cursor:not-allowed}
+.lead__sel.is-off input{opacity:.3;cursor:not-allowed}
+.lead__sel + .lead__head{padding-left:.35rem}
+.lead.is-novo .lead__head{border-left-color:transparent}
+.lead.is-novo .lead__linha{box-shadow:inset 2px 0 0 var(--credit)}
+.lead.is-sel .lead__linha{background:rgba(52,219,139,.05)}
+@media(max-width:560px){
+  .lead__sel{width:38px}
+  .lead__head{flex-wrap:wrap;row-gap:.4rem;column-gap:.55rem;padding-right:.6rem}
+  .lead__who{flex:1 1 calc(100% - 24px)}
+  .lead__chamar{margin-right:.6rem}
+}
+.selacts{display:flex;gap:.4rem;flex-wrap:wrap}
+.selbar{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:.45rem;width:max-content;max-width:calc(100% - 32px);padding:.45rem .45rem .45rem .85rem;border:1px solid var(--credit-dim);border-radius:10px;background:rgba(17,22,20,.96);backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.selbar__n{font-size:.88rem;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.selbar__n b{font-family:var(--display);font-variant-numeric:tabular-nums}
+.selbar .btn{white-space:nowrap}
+.selbar__x{padding:.48em .62em}
+body.tem-selbar main{padding-bottom:4.5rem}
+body.modal-aberto{overflow:hidden}
+.modal{position:fixed;inset:0;z-index:60;display:flex;justify-content:center;align-items:flex-start;padding:clamp(12px,4vh,44px) 16px;background:rgba(4,6,5,.74);backdrop-filter:blur(3px);overflow-y:auto;overscroll-behavior:contain}
+.modal__box{width:100%;max-width:640px;margin-block:auto;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal__top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.1rem}
+.modal__top .sub{margin:.25rem 0 0}
+.modal__acts{margin-top:1.2rem;justify-content:flex-end}
+.cp-txt{min-height:150px}
+.cp-vars{margin-bottom:.15rem}
+.cp-vars .chip{font-size:.8rem;padding:.36em .8em}
+.cp-chk{display:flex;align-items:flex-start;gap:.55rem;font-size:.86rem;color:var(--muted);cursor:pointer;line-height:1.45}
+.cp-chk input{margin:.2em 0 0;accent-color:var(--credit);flex:none}
+.cp-chk span{color:var(--text)}
+.cp-prev{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.92rem;line-height:1.5;padding:.85rem 1rem;border-radius:10px 10px 3px 10px;border:1px solid rgba(52,219,139,.25);background:rgba(52,219,139,.08)}
+.cp-prev.is-vazia{color:var(--muted-dim);border-style:dashed;background:transparent}
+.cp-nav{display:flex;align-items:center;gap:.5rem}
+.cp-nav span{flex:1;min-width:0;font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-nav .btn{padding:.3em .7em;font-size:.95rem;line-height:1}
+.cp-linha{font-size:.88rem;color:var(--muted);line-height:2.2}
+.cp-num{width:5.6em;padding:.45em .6em;text-align:center}
+.cp-quando{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.2rem}
+.cp-ag{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;width:100%}
+.cp-ag small{font-size:.76rem;color:var(--muted-dim)}
+.dica.is-erro{color:var(--st-perdido)}
+.aviso--alerta{background:rgba(224,168,60,.09);border:1px solid rgba(224,168,60,.3);color:#E0A83C;margin-top:.6rem}
+.cp-feito{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.55rem}
+.modal .dica{font-size:.78rem;color:var(--muted-dim);line-height:1.5}
+.modal .campo > .inp{width:100%;max-width:100%}
+.disp{display:grid;gap:1.2rem;margin-block:clamp(1.5rem,3vw,2.2rem)}
+@media(min-width:900px){.disp{grid-template-columns:minmax(0,1fr) minmax(0,1.8fr);align-items:start}}
+.disp .campo .inp{width:100%}
+.dsp-cab{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.3rem}
+.dsp{padding:1.1rem 0;border-top:1px solid var(--line-soft)}
+.dsp:first-child{border-top:0;padding-top:.2rem}
+.dsp__top{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .7rem}
+.dsp__top strong{font-family:var(--display);font-size:1rem;font-variant-numeric:tabular-nums}
+.dsp__msg{font-size:.84rem;color:var(--muted);margin-top:.45rem;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dsp__barra{height:5px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:.7rem}
+.dsp__barra i{display:block;height:100%;background:var(--credit);transition:width .3s}
+.dsp__info{font-family:var(--mono);font-size:.72rem;color:var(--muted-dim);margin-top:.5rem;line-height:1.6;overflow-wrap:anywhere}
+.dsp__err{font-size:.78rem;color:var(--st-perdido);margin-top:.4rem;overflow-wrap:anywhere}
+.dsp .acts{margin-top:.75rem}
+.dsp .aviso{margin-top:.7rem}
+.pes{display:flex;gap:.7rem;align-items:baseline;padding:.5rem 0;border-bottom:1px solid var(--line-soft);font-size:.84rem}
+.pes:last-child{border-bottom:0}
+.pes-lista{margin-top:.8rem;padding:.2rem .9rem;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);max-height:420px;overflow-y:auto}
+.pes__c{flex:1;min-width:0}
+.pes__c em{font-style:normal;font-family:var(--mono);font-size:.74rem;color:var(--muted-dim);white-space:nowrap}
+.pes__c p{color:var(--st-perdido);font-size:.76rem;margin-top:.15rem;overflow-wrap:anywhere}
+.pes__t{flex:none;text-align:right;font-size:.78rem;color:var(--muted)}
+.pes__t small{display:block;font-family:var(--mono);font-size:.7rem;color:var(--muted-dim)}
+.pes__s{flex:none;width:7px;height:7px;border-radius:50%;background:var(--muted-dim);transform:translateY(-1px)}
+.pes__s--enviado{background:var(--credit)}
+.pes__s--enviando{background:var(--st-conversa)}
+.pes__s--falhou{background:var(--st-perdido)}
+.pes__s--incerto{background:#E0A83C}
+.pes__s--cancelado{background:var(--line)}
+.pill--ativo{color:var(--credit);border-color:rgba(52,219,139,.35);background:rgba(52,219,139,.1)}
+.pill--pausado{color:#E0A83C;border-color:rgba(224,168,60,.4);background:rgba(224,168,60,.1)}
+.pill--agendado{color:var(--st-contatado);border-color:rgba(107,168,216,.35);background:rgba(107,168,216,.09)}
+.pill--cancelado,.pill--concluido{color:var(--muted);border-color:var(--line);background:transparent}
+
 /* detail */
 .detail{padding:0 1.15rem 1.35rem;display:grid;gap:1.3rem}
 @media(min-width:860px){.detail{grid-template-columns:1.25fr 1fr}}
@@ -199,6 +282,8 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
 
 /* whatsapp */
 .wa{display:grid;gap:1.2rem;margin-block:clamp(1.5rem,3vw,2.2rem)}
+/* item de grid não encolhe abaixo do conteúdo sem isto: a tabela "Por anúncio" empurrava a página 39 px para o lado no celular */
+.wa>*{min-width:0}
 @media(min-width:900px){.wa{grid-template-columns:1fr 1fr;align-items:start}}
 /* visitas */
 .vis{margin-block:clamp(1.5rem,3vw,2.2rem)}
@@ -292,6 +377,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <div class="wrap top__in">
       <div class="brand">A Nova <em>Profissão</em><small>Painel de leads</small></div>
       <div class="top__act">
+        <button class="btn btn--sm" id="btn-disp">Disparos</button>
         <button class="btn btn--sm" id="btn-vis">Visitas</button>
         <button class="btn btn--sm" id="btn-cont">Conteúdo</button>
         <button class="btn btn--sm" id="btn-wa">Notificações</button>
@@ -366,6 +452,10 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <option value="recentes">Mais recentes primeiro</option>
         <option value="antigos">Mais antigos primeiro</option>
       </select>
+      <span class="selacts">
+        <button class="btn btn--sm" type="button" id="sel-todos">Selecionar os 0 da lista</button>
+        <button class="btn btn--sm hidden" type="button" id="sel-limpar">Limpar seleção</button>
+      </span>
       <span class="count" id="contador"></span>
     </div>
 
@@ -564,15 +654,93 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <p class="sub" style="margin:.9rem 0 0">Preencha WhatsApp, e-mail, ou os dois. O número vai com código do país e DDD, só dígitos: 5548991067007.</p>
       </div>
     </div>
+
+    <div class="disp hidden" id="tela-disp">
+      <div class="box">
+        <h2>Instância e teste</h2>
+        <p class="sub">A instância padrão já vem escolhida quando você escreve uma mensagem. O teste vai sempre para o número abaixo.</p>
+        <div class="campo"><label for="dp-inst">Instância padrão</label>
+          <select class="inp" id="dp-inst"><option value="">Carregando…</option></select>
+          <span class="dica">Só as conectadas podem ser escolhidas.</span></div>
+        <div class="campo"><label for="dp-teste">Número de teste</label>
+          <input class="inp" id="dp-teste" type="tel" inputmode="numeric" placeholder="(48) 99106-7007">
+          <span class="dica">DDD e número. Vazio volta para (48) 99106-7007.</span></div>
+        <button class="btn btn--primary btn--sm" type="button" id="dp-salvar">Salvar</button>
+        <div id="dp-msg"></div>
+      </div>
+      <div class="box">
+        <div class="dsp-cab"><h2>Disparos</h2><button class="btn btn--sm" type="button" id="dp-atualizar">Atualizar</button></div>
+        <p class="sub">Os em andamento aparecem primeiro. A tela se atualiza sozinha a cada 5 segundos enquanto algum estiver enviando.</p>
+        <div id="dp-falha"></div>
+        <div id="dp-lista"><p class="sub">Carregando…</p></div>
+      </div>
+    </div>
     <p style="font-size:.78rem;color:var(--muted-dim);margin:1.5rem 0 3rem;max-width:70ch">
       Dados pessoais de terceiros. Trate conforme a LGPD: use apenas para o contato que a pessoa autorizou e atenda pedidos de exclusão.
     </p>
   </main>
+
+  <div class="selbar hidden" id="selbar" role="region" aria-label="Leads selecionados">
+    <span class="selbar__n" id="selbar-n"></span>
+    <button class="btn btn--primary btn--sm" type="button" id="selbar-ir">Escrever mensagem</button>
+    <button class="btn btn--sm selbar__x" type="button" id="selbar-x" aria-label="Limpar seleção" title="Limpar seleção">✕</button>
+  </div>
+
+  <div class="modal hidden" id="comp">
+    <div class="box modal__box" role="dialog" aria-modal="true" aria-labelledby="cp-tit">
+      <div class="modal__top">
+        <div><h2 id="cp-tit">Mensagem</h2><p class="sub" id="cp-sub"></p></div>
+        <button class="btn btn--sm" type="button" id="cp-fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div class="campo"><label for="cp-inst">Enviar pela instância</label>
+        <select class="inp" id="cp-inst"><option value="">Carregando…</option></select>
+        <label class="cp-chk" id="cp-padrao-l"><input type="checkbox" id="cp-padrao"><span>Usar sempre esta instância</span></label>
+        <span class="dica" id="cp-inst-dica"></span></div>
+      <div class="campo"><label for="cp-txt">Mensagem</label>
+        <div class="chips cp-vars" id="cp-vars" role="group" aria-label="Inserir variável"></div>
+        <textarea class="inp cp-txt" id="cp-txt" maxlength="4096" placeholder="{saudacao}, {primeiro_nome}! Tudo bem?"></textarea>
+        <span class="dica">Toque numa variável para colocar onde está o cursor. <span class="mono">{cidade|sua cidade}</span> usa "sua cidade" quando a pessoa não informou a cidade. <span class="mono">{Oi|Olá}</span> sorteia uma das opções em cada mensagem.</span>
+        <div id="cp-alertas"></div></div>
+      <div class="campo"><label>Prévia</label>
+        <div class="cp-nav">
+          <button class="btn btn--sm" type="button" id="cp-ant" aria-label="Pessoa anterior">‹</button>
+          <span id="cp-quem"></span>
+          <button class="btn btn--sm" type="button" id="cp-prox" aria-label="Próxima pessoa">›</button>
+        </div>
+        <div class="cp-prev is-vazia" id="cp-prev">A prévia aparece aqui.</div>
+        <span class="dica">A saudação sai conforme a hora em que cada mensagem for enviada.</span></div>
+      <div class="campo" id="cp-int"><label>Intervalo</label>
+        <p class="cp-linha">Espera aleatória entre <input class="inp cp-num" id="cp-min" type="number" min="5" max="3600" step="1" inputmode="numeric" aria-label="Espera mínima em segundos"> e <input class="inp cp-num" id="cp-max" type="number" min="5" max="3600" step="1" inputmode="numeric" aria-label="Espera máxima em segundos"> segundos entre uma mensagem e a próxima.</p>
+        <span class="dica" id="cp-est"></span></div>
+      <div class="campo"><label>Quando</label>
+        <div class="cp-quando">
+          <label class="cp-chk"><input type="radio" name="cp-quando" id="cp-agora" checked><span>Agora</span></label>
+          <label class="cp-chk"><input type="radio" name="cp-quando" id="cp-depois"><span>Agendar</span></label>
+          <span class="cp-ag hidden" id="cp-ag">
+            <input class="inp" type="date" id="cp-data" aria-label="Dia">
+            <input class="inp" type="time" id="cp-hora" aria-label="Hora">
+            <small>horário de Brasília</small>
+          </span>
+        </div>
+        <span class="dica" id="cp-quando-dica"></span></div>
+      <label class="cp-chk" id="cp-cont-l"><input type="checkbox" id="cp-cont" checked><span id="cp-cont-t">Marcar como contatado quem está como Novo, depois que a mensagem sair</span></label>
+      <div class="acts modal__acts" id="cp-acts">
+        <button class="btn btn--sm" type="button" id="cp-teste">Mandar teste para mim</button>
+        <button class="btn btn--primary" type="button" id="cp-enviar">Enviar</button>
+      </div>
+      <p class="dica" id="cp-teste-dica" style="margin-top:.6rem;text-align:right"></p>
+      <div id="cp-msg"></div>
+    </div>
+  </div>
 </div>
 
 <script>
 (function(){
 "use strict";
+
+/* Renderizador das mensagens do disparo: o build.js cola aqui o arquivo
+   supabase/functions/_shared/mensagem.mjs (o mesmo que a função usa). */
+/*@@MENSAGEM@@*/
 
 /* ============ CONFIGURAÇÃO ============
    Preencha depois de criar o projeto no Supabase.
@@ -594,7 +762,8 @@ var EXEMPLOS = [
   {id:"d2",criado_em:hrAtras(9),nome:"[exemplo] Patrícia Almeida",whatsapp:"(48) 99xxx-xxxx",whatsapp_e164:"5548990000002",cidade:"Florianópolis",uf:"SC",objetivo:"Criar uma nova atividade profissional",tempo:"Meio período",experiencia:"Nunca trabalhei com vendas",solucao:"Seguro de carro/moto",perfil:"Atendendo consumidores",utm_source:"youtube",utm_medium:"video",utm_campaign:"canal_jimmy",device:"desktop",referrer:"youtube.com",status:"contatado",anotacoes:"Ligou de volta. Quer conversar na quinta à noite."},
   {id:"d3",criado_em:hrAtras(31),nome:"[exemplo] Eduardo Ranzani",whatsapp:"(11) 9xxxx-xxxx",whatsapp_e164:"5511990000003",cidade:"Campinas",uf:"SP",objetivo:"Construir um negócio",tempo:"Tempo integral",experiencia:"Já trabalho com vendas",solucao:"Mercado Livre de Energia",perfil:"Atendendo empresas",utm_source:"google",utm_medium:"cpc",utm_campaign:"licenciado_igreen",device:"desktop",referrer:"google.com",status:"em_conversa",anotacoes:"Já tem carteira B2B de contabilidade. Perfil forte pra Conexão Livre."},
   {id:"d4",criado_em:hrAtras(74),nome:"[exemplo] Simone Krüger",whatsapp:"(47) 98xxx-xxxx",whatsapp_e164:"5547990000004",cidade:"Balneário Camboriú",uf:"SC",objetivo:"Uma renda complementar",tempo:"Algumas horas por semana",experiencia:"Tenho muitos contatos, mas não sou vendedor",solucao:"Energia",perfil:"Ainda não sei",utm_source:"",utm_medium:"",utm_campaign:"",device:"mobile",referrer:"direto",status:"ganho",anotacoes:"Fechou. Começou pelo Conexão Green."},
-  {id:"d5",criado_em:hrAtras(120),nome:"[exemplo] Rafael Tonetti",whatsapp:"(51) 99xxx-xxxx",whatsapp_e164:"5551990000005",cidade:"Porto Alegre",uf:"RS",objetivo:"Ainda estou pesquisando",tempo:"Ainda não sei",experiencia:"Nunca trabalhei com vendas",solucao:"Ainda não sei",perfil:"Ainda não sei",utm_source:"instagram",utm_medium:"social",utm_campaign:"stories",device:"mobile",referrer:"instagram.com",status:"sem_retorno",anotacoes:null}
+  {id:"d5",criado_em:hrAtras(120),nome:"[exemplo] Rafael Tonetti",whatsapp:"(51) 99xxx-xxxx",whatsapp_e164:"5551990000005",cidade:"Porto Alegre",uf:"RS",objetivo:"Ainda estou pesquisando",tempo:"Ainda não sei",experiencia:"Nunca trabalhei com vendas",solucao:"Ainda não sei",perfil:"Ainda não sei",utm_source:"instagram",utm_medium:"social",utm_campaign:"stories",device:"mobile",referrer:"instagram.com",status:"sem_retorno",anotacoes:null},
+  {id:"d6",criado_em:hrAtras(5),nome:"[exemplo] Juliana Prado",whatsapp:"(13) 99xxx-xxxx",whatsapp_e164:"5513990000006",cidade:"Santos",uf:"SP",objetivo:"Uma renda complementar",tempo:"Meio período",experiencia:"Já trabalhei com vendas",solucao:"Energia",perfil:"Ainda não sei",utm_source:"",utm_medium:"",utm_campaign:"",device:"mobile",referrer:"direto",status:"novo",licenciado:"mariogomes",anotacoes:null}
 ];
 function hrAtras(h){ return new Date(Date.now()-h*3600e3).toISOString(); }
 
@@ -877,6 +1046,7 @@ function render(){
 
   var fs = filtrados(), lista = $("#lista");
   $("#contador").textContent = fs.length + (fs.length===1?" lead":" leads");
+  atualizaSelecao(fs);
 
   if(!fs.length){
     lista.innerHTML = '<div class="empty"><p>Nenhum lead por aqui</p><p>'+
@@ -887,8 +1057,12 @@ function render(){
   lista.innerHTML = fs.map(function(l){
     var aberta = aberto === l.id;
     var espera = l.status === "novo" && Date.now() - new Date(l.criado_em).getTime() > 86400e3;
-    return '<div class="lead '+(l.status==="novo"?"is-novo ":"")+(aberta?"is-open":"")+'" data-id="'+l.id+'">'+
+    var semMsg = motivoSemMensagem(l);
+    return '<div class="lead '+(l.status==="novo"?"is-novo ":"")+(sel[l.id]?"is-sel ":"")+(aberta?"is-open":"")+'" data-id="'+l.id+'">'+
       '<div class="lead__linha">'+
+      '<label class="lead__sel'+(semMsg?' is-off':'')+'" title="'+esc(semMsg || "Selecionar para mandar mensagem")+'">'+
+        '<input type="checkbox" data-sel="'+l.id+'"'+(sel[l.id]?' checked':'')+(semMsg?' disabled':'')+' aria-label="'+esc(semMsg || "Selecionar " + l.nome)+'">'+
+      '</label>'+
       '<button class="lead__head" type="button" aria-expanded="'+aberta+'">'+
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto"||l.tipo==="agendamento" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
@@ -916,6 +1090,20 @@ function render(){
   });
   $$("[data-status]").forEach(function(s){
     s.addEventListener("change", function(){ mudarStatus(s.getAttribute("data-status"), s.value); });
+  });
+  $$("[data-sel]").forEach(function(c){
+    c.addEventListener("change", function(){
+      var id = c.getAttribute("data-sel");
+      if(c.checked) sel[id] = true; else delete sel[id];
+      c.closest(".lead").classList.toggle("is-sel", c.checked);
+      atualizaSelecao();
+    });
+  });
+  $$("[data-msg]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var id = b.getAttribute("data-msg"), l = leads.find(function(x){ return x.id === id; });
+      if(l) abrirCompositor([l]);
+    });
   });
   $$("[data-chamar]").forEach(function(a){
     a.addEventListener("click", function(){
@@ -961,6 +1149,7 @@ function diaReuniao(iso){ return iso ? new Date(iso).toLocaleString("pt-BR", {ti
 function dataReuniao(iso){ return iso ? new Date(iso).toLocaleString("pt-BR", {timeZone:"America/Sao_Paulo", weekday:"long", day:"2-digit", month:"long", hour:"2-digit", minute:"2-digit"}) : "?"; }
 
 function detalhe(l){
+  var semMsg = motivoSemMensagem(l);
   return '<div class="detail">'+
     '<dl class="dl">'+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
@@ -998,12 +1187,14 @@ function detalhe(l){
         '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
       '<div class="acts">'+
         '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Abrir conversa</a>'+
+        '<button class="btn btn--sm" type="button" data-msg="'+l.id+'"'+(semMsg ? ' disabled title="'+esc(semMsg)+'"' : '')+'>Enviar mensagem</button>'+
         (l.agenda_meet ? '<a class="btn btn--sm" target="_blank" rel="noopener" href="'+esc(l.agenda_meet)+'">Abrir o Meet</a>' : '')+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
         '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
         '<button class="btn btn--sm btn--perigo" type="button" data-excluir="'+l.id+'">Excluir</button>'+
       '</div>'+
-      '<p class="apaga-nota">'+(l.agenda_evento ? 'Excluir apaga o contato e a reunião na sua agenda, sem desfazer. Se a reunião ainda não aconteceu, o convidado recebe o cancelamento do Google.' : 'Excluir apaga o contato e as respostas na hora, sem desfazer.')+'</p>'+
+      (l.licenciado ? '<p class="apaga-nota">Enviar mensagem fica desligado: este lead veio do espelho de ' + esc(LICS[l.licenciado] || l.licenciado) + ', e a página disse que quem chama é ele.</p>' : '')+
+      '<p class="apaga-nota">'+(l.agenda_evento ? 'Excluir apaga o contato, a reunião na sua agenda e as mensagens enviadas a este número, sem desfazer. Se a reunião ainda não aconteceu, o convidado recebe o cancelamento do Google.' : 'Excluir apaga o contato, as respostas e as mensagens enviadas a este número na hora, sem desfazer.')+'</p>'+
     '</div>'+
   '</div>';
 }
@@ -1050,9 +1241,18 @@ function mudarStatus(id, valor){
 }
 function excluirLead(id, botao){
   if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); aberto = null; render(); return; }
+  var lead = leads.find(function(x){return x.id===id});
+  /* LGPD: as mensagens enviadas a este número (db/18) saem antes do lead, nos
+     dois caminhos. Se não der para apagar o histórico, nada é apagado. */
+  apagarEnviosDoNumero(lead).then(function(ok){
+    if(ok){ excluirLeadDeVez(id, lead, botao); return; }
+    botao.disabled = false; botao.textContent = "Excluir"; botao.classList.remove("is-armado");
+    alert("Não consegui apagar as mensagens enviadas a este número. Nada foi apagado; tente de novo em instantes.");
+  });
+}
+function excluirLeadDeVez(id, lead, botao){
   /* reunião agendada: quem apaga é a função "agenda", que tira o evento da agenda
      do Google junto — apagar só o lead deixaria a reunião marcada lá */
-  var lead = leads.find(function(x){return x.id===id});
   if(lead && lead.agenda_evento){
     sb.functions.invoke("agenda", {body:{action:"excluir", id:id}}).then(function(r){
       botao.disabled = false; botao.textContent = "Excluir"; botao.classList.remove("is-armado");
@@ -1114,17 +1314,23 @@ function mostrar(v){
   $("#tela-wa").classList.toggle("hidden",   v !== "wa");
   $("#tela-cont").classList.toggle("hidden", v !== "cont");
   $("#tela-vis").classList.toggle("hidden",  v !== "vis");
+  $("#tela-disp").classList.toggle("hidden", v !== "disp");
   $("#lista").classList.toggle("hidden",     v !== "leads");
   $("#res").classList.toggle("hidden",       v !== "leads");
   $(".filters").classList.toggle("hidden",   v !== "leads");
   $("#btn-wa").textContent   = v === "wa"   ? "Ver leads" : "Notificações";
   $("#btn-cont").textContent = v === "cont" ? "Ver leads" : "Conteúdo";
   $("#btn-vis").textContent  = v === "vis"  ? "Ver leads" : "Visitas";
+  $("#btn-disp").textContent = v === "disp" ? "Ver leads" : "Disparos";
   if(v !== "wa" && pollQR){ clearInterval(pollQR); pollQR = null; }
+  if(v !== "disp" && dispTimer){ clearTimeout(dispTimer); dispTimer = null; }
   if(v === "wa"){ waStatus(); carregarDest(); carregarLog(); }
   if(v === "cont"){ carregarConfig(); carregarDepoimentos(); }
   if(v === "vis"){ carregarVisitas(); }
+  if(v === "disp"){ carregarConfigDisp(); carregarDisparos(); }
+  if(v === "leads") render(); else atualizaSelecao();   // a barra de seleção só aparece na lista
 }
+$("#btn-disp").addEventListener("click", function(){ mostrar(vista === "disp" ? "leads" : "disp"); });
 $("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
 $("#btn-cont").addEventListener("click", function(){ mostrar(vista === "cont" ? "leads" : "cont"); });
 $("#btn-vis").addEventListener("click",  function(){ mostrar(vista === "vis"  ? "leads" : "vis"); });
@@ -1716,6 +1922,665 @@ $("#d-add").addEventListener("click", function(){
     carregarDest();
   });
 });
+
+/* ================= DISPARO DE MENSAGENS (nov/2026) =================
+   Selecionar leads → escrever com variáveis → a função "disparos" põe na fila
+   e manda uma por vez, com espera aleatória (db/18-disparos.sql). Lead de
+   espelho de licenciado fica de fora: a página disse a ele que quem chama é
+   o licenciado e para desconsiderar qualquer outro contato. */
+var TEM_MENSAGEM = typeof renderizar === "function";   // false só no admin.html cru, sem o build
+var NUM_TESTE_PADRAO = "5548991067007";
+var sel = {};                // id do lead -> true
+var instCache = null;        // última resposta de "instancias"
+var comp = null;             // compositor aberto
+var dispAberto = null, dispTimer = null;
+var ST_DISP  = {ativo:"Em andamento", pausado:"Pausado", cancelado:"Cancelado", concluido:"Concluído"};
+var ST_ENVIO = {pendente:"Na fila", enviando:"Saindo agora", enviado:"Enviado", falhou:"Não enviado", incerto:"Sem confirmação", cancelado:"Cancelado"};
+
+function numeroDisp(n){
+  if(TEM_MENSAGEM) return normalizarNumero(n).numero;
+  var d = String(n || "").replace(/\D/g, "");
+  return d || null;
+}
+function motivoSemMensagem(l){
+  if(l.licenciado) return "Lead de espelho de licenciado: quem chama é o licenciado, então não dá para mandar mensagem por aqui.";
+  if(!numeroDisp(l.whatsapp_e164)) return "Este lead não tem um WhatsApp válido.";
+  return "";
+}
+function podeMandar(l){ return !motivoSemMensagem(l); }
+function selecionados(){ return leads.filter(function(l){ return sel[l.id] && podeMandar(l); }); }
+function limparSelecao(){ sel = {}; render(); }
+
+function atualizaSelecao(fs){
+  Object.keys(sel).forEach(function(id){
+    var l = leads.find(function(x){ return x.id === id; });
+    if(!l || !podeMandar(l)) delete sel[id];
+  });
+  var n = Object.keys(sel).length;
+  var podem = (fs || filtrados()).filter(podeMandar);
+  var faltam = podem.filter(function(l){ return !sel[l.id]; }).length;
+  var bt = $("#sel-todos");
+  bt.textContent = podem.length === 1 ? "Selecionar o 1 da lista" : "Selecionar os " + podem.length + " da lista";
+  bt.disabled = !faltam;
+  $("#sel-limpar").classList.toggle("hidden", !n);
+  var mostra = n > 0 && vista === "leads" && !comp;
+  $("#selbar").classList.toggle("hidden", !mostra);
+  document.body.classList.toggle("tem-selbar", mostra);
+  $("#selbar-n").innerHTML = "<b>" + n + "</b> " + (n === 1 ? "selecionado" : "selecionados");
+}
+$("#sel-todos").addEventListener("click", function(){
+  filtrados().filter(podeMandar).forEach(function(l){ sel[l.id] = true; });
+  render();
+});
+$("#sel-limpar").addEventListener("click", limparSelecao);
+$("#selbar-x").addEventListener("click", limparSelecao);
+$("#selbar-ir").addEventListener("click", function(){ abrirCompositor(selecionados()); });
+
+/* ---- formatos ---- */
+function fmtNumero(n){
+  var d = String(n || "").replace(/\D/g, "");
+  if(d.indexOf("55") === 0 && (d.length === 12 || d.length === 13)) d = d.slice(2);
+  if(d.length === 11) return "(" + d.slice(0,2) + ") " + d.slice(2,7) + "-" + d.slice(7);
+  if(d.length === 10) return "(" + d.slice(0,2) + ") " + d.slice(2,6) + "-" + d.slice(6);
+  return n ? String(n) : "";
+}
+function horaBR(ms){ return new Date(ms).toLocaleTimeString("pt-BR", {timeZone:"America/Sao_Paulo", hour:"2-digit", minute:"2-digit"}); }
+function diaBR(ms){ return new Date(ms).toLocaleDateString("en-CA", {timeZone:"America/Sao_Paulo"}); }
+function quandoBR(ms){
+  var dia = diaBR(ms);
+  if(dia === diaBR(Date.now())) return "às " + horaBR(ms);
+  if(dia === diaBR(Date.now() + 86400e3)) return "amanhã às " + horaBR(ms);
+  return "em " + new Date(ms).toLocaleDateString("pt-BR", {timeZone:"America/Sao_Paulo", day:"2-digit", month:"2-digit"}) + " às " + horaBR(ms);
+}
+function nomeDe(d){ return (TEM_MENSAGEM ? formatarNome(d.nome) : d.nome) || fmtNumero(d.numero) || "Sem nome"; }
+function lerLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function gravarLocal(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+
+/* ---- chamada da função "disparos" com o seu login ---- */
+function fnDisp(action, extra){
+  if(DEMO) return Promise.resolve(demoDisp(action, extra || {}));
+  return sb.auth.getSession().then(function(s){
+    var t = s.data.session && s.data.session.access_token;
+    return fetch(CFG.url + "/functions/v1/disparos", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":CFG.anonKey,"Authorization":"Bearer "+t},
+      body: JSON.stringify(Object.assign({action:action}, extra||{}))
+    });
+  }).then(function(r){
+    return r.json().catch(function(){ return null; }).then(function(j){
+      j = j && typeof j === "object" ? j : {};
+      if(!r.ok){
+        j.http = r.status;
+        if(!j.error) j.error = r.status === 404 ? "A função de disparos ainda não foi publicada." : "O servidor recusou o pedido (erro " + r.status + ").";
+      }
+      return j;
+    });
+  }).catch(function(){ return {error:"Não consegui falar com o servidor agora. Confira a internet e tente de novo."}; });
+}
+
+/* ---- instâncias da Evolution (nome do perfil, número e nome; nunca o token) ---- */
+function carregarInstancias(forcar){
+  if(instCache && !forcar && Date.now() - instCache.em < 30000) return Promise.resolve(instCache);
+  return fnDisp("instancias").then(function(r){
+    if(!r.error){ r.em = Date.now(); instCache = r; }
+    return r;
+  });
+}
+function rotuloInst(i){
+  return [i.perfil, i.numero ? fmtNumero(i.numero) : "", i.nome].filter(Boolean).join(" · ") +
+    (i.estado === "open" ? "" : " (desconectada)");
+}
+function abertas(r){ return (r.instancias || []).filter(function(i){ return i.estado === "open"; }); }
+function instInicial(r){
+  var ab = abertas(r), tem = function(nome){ return nome && ab.some(function(i){ return i.nome === nome; }); };
+  if(tem(r.padrao)) return r.padrao;
+  if(tem(r.instancia_avisos)) return r.instancia_avisos;   // sem padrão: a mesma dos avisos de lead
+  return ab[0] ? ab[0].nome : "";
+}
+function opcoesInst(r, escolhida, mantem){
+  return (r.instancias || []).map(function(i){
+    var off = i.estado !== "open" && i.nome !== mantem;
+    return '<option value="'+esc(i.nome)+'"'+(off?" disabled":"")+(i.nome===escolhida?" selected":"")+'>'+esc(rotuloInst(i))+'</option>';
+  }).join("");
+}
+
+/* ---- compositor ---- */
+function destinatariosDe(lista){
+  var porNum = {}, saida = [], repetidos = 0;
+  lista.forEach(function(l){
+    var n = numeroDisp(l.whatsapp_e164);
+    if(!n) return;
+    if(porNum[n]){ porNum[n].refs.push({id: l.id}); repetidos++; return; }   // mesmo número: sai uma vez só
+    porNum[n] = {numero: l.whatsapp_e164, nome: l.nome, cidade: l.cidade, uf: l.uf, refs: [{id: l.id}]};
+    saida.push(porNum[n]);
+  });
+  return {lista: saida, repetidos: repetidos};
+}
+// sorteio repetível por pessoa: a prévia não troca de variação a cada tecla
+function sorteioFixo(semente){
+  var s = ((semente + 1) * 7919) % 233280;
+  return function(){ s = (s * 9301 + 49297) % 233280; return s / 233280; };
+}
+function cpMsg(html, tipo){
+  $("#cp-msg").innerHTML = html ? '<div class="aviso aviso--'+(tipo||"erro")+'">'+html+'</div>' : "";
+}
+function textoIgnorados(ign){
+  if(!ign || !ign.length) return "";
+  var lista = ign.slice(0, 6).map(function(x){ return esc((x.nome || fmtNumero(x.numero) || "?") + " (" + x.motivo + ")"); }).join(", ");
+  return "<br>Ficaram de fora: " + lista + (ign.length > 6 ? " e mais " + (ign.length - 6) : "") + ".";
+}
+
+// identifica o pedido "criar" deste compositor: repetido, o servidor devolve o mesmo disparo
+function novaChave(){
+  try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12) + Math.random().toString(36).slice(2, 12);
+}
+
+function abrirCompositor(lista){
+  if(comp && comp.enviando) return;   // ainda colocando o anterior na fila
+  if(!TEM_MENSAGEM){ alert("Este painel foi aberto sem passar pelo build (node build.js), então não tem como montar a mensagem."); return; }
+  var d = destinatariosDe(lista.filter(podeMandar));
+  if(!d.lista.length){ alert("Ninguém da seleção pode receber mensagem por aqui."); return; }
+  var n = d.lista.length, novos = lista.filter(function(l){ return l.status === "novo"; }).length;
+  comp = {dest: d.lista, i: 0, cursor: null, enviando: false, testando: false, feito: false, numeroTeste: NUM_TESTE_PADRAO,
+          chave: novaChave(), volta: document.activeElement};
+  $("#cp-tit").textContent = n === 1 ? "Mensagem para " + nomeDe(d.lista[0]) : "Mensagem para " + n + " pessoas";
+  $("#cp-sub").textContent = d.repetidos
+    ? (d.repetidos === 1 ? "Um número aparecia duas vezes na seleção: cada pessoa recebe uma vez só." : d.repetidos + " números apareciam repetidos na seleção: cada pessoa recebe uma vez só.")
+    : n === 1 ? fmtNumero(d.lista[0].numero) : "Uma mensagem por vez, com espera entre elas.";
+  $("#cp-vars").innerHTML = VARIAVEIS.map(function(v){
+    return '<button class="chip" type="button" data-var="'+esc(v.nome)+'" title="'+esc("Ex.: " + v.exemplo)+'">'+esc(v.rotulo)+'</button>';
+  }).join("");
+  $("#cp-txt").value = lerLocal("anp_disp_rascunho") || "";
+  $("#cp-min").value = lerLocal("anp_disp_min") || 40;
+  $("#cp-max").value = lerLocal("anp_disp_max") || 90;
+  $("#cp-int").classList.toggle("hidden", n < 2);
+  $("#cp-agora").checked = true;
+  $("#cp-ag").classList.add("hidden");
+  var sug = Math.ceil((Date.now() + 3600e3) / 300e3) * 300e3;   // daqui a uma hora, de 5 em 5 min
+  $("#cp-data").value = diaBR(sug);
+  $("#cp-hora").value = horaBR(sug);
+  $("#cp-cont").checked = true;
+  $("#cp-cont-l").classList.toggle("hidden", !novos);
+  $("#cp-cont-t").textContent = "Marcar como contatado quem está como Novo (" + novos + "), depois que a mensagem sair";
+  $("#cp-acts").classList.remove("hidden");
+  $("#cp-enviar").textContent = n === 1 ? "Enviar" : "Enviar para " + n + " pessoas";
+  $("#cp-teste").textContent = "Mandar teste para mim";
+  $("#cp-inst").innerHTML = '<option value="">Carregando…</option>';
+  $("#cp-inst-dica").textContent = "";
+  $("#cp-padrao-l").classList.add("hidden");
+  $("#cp-teste-dica").textContent = "";
+  cpMsg("");
+  $("#comp").classList.remove("hidden");
+  document.body.classList.add("modal-aberto");
+  atualizaSelecao();
+  atualizaCompositor();
+  setTimeout(function(){ if(comp) $("#cp-txt").focus(); }, 30);
+  carregarInstancias(false).then(preencherInstCompositor);
+}
+
+function preencherInstCompositor(r){
+  if(!comp) return;
+  var s = $("#cp-inst"), dica = $("#cp-inst-dica");
+  dica.classList.toggle("is-erro", !!r.error);
+  if(r.error && !(r.instancias || []).length){
+    s.innerHTML = '<option value="">Sem instâncias</option>';
+    dica.textContent = r.error;
+    atualizaCompositor();
+    return;
+  }
+  var escolhida = instInicial(r);
+  s.innerHTML = (escolhida ? "" : '<option value="" selected>Nenhuma instância conectada</option>') + opcoesInst(r, escolhida);
+  comp.padrao = r.padrao || null;
+  comp.numeroTeste = r.numero_teste || NUM_TESTE_PADRAO;
+  dica.textContent = r.padrao && escolhida !== r.padrao ? "A instância padrão (" + r.padrao + ") está desconectada." : "";
+  $("#cp-teste-dica").textContent = "O teste vai para " + fmtNumero(comp.numeroTeste) + ", com os dados da pessoa da prévia. Para trocar o número, abra Disparos.";
+  atualizaPadrao();
+  atualizaCompositor();
+}
+function atualizaPadrao(){
+  if(!comp) return;
+  var v = $("#cp-inst").value;
+  $("#cp-padrao-l").classList.toggle("hidden", !v || v === comp.padrao);
+  if(!v || v === comp.padrao) $("#cp-padrao").checked = false;
+}
+
+function inicioEscolhido(){
+  if(!$("#cp-depois").checked) return Date.now();
+  var d = $("#cp-data").value, h = $("#cp-hora").value;
+  return d && h ? Date.parse(d + "T" + h + ":00-03:00") : NaN;   // Brasília, sem horário de verão
+}
+
+function atualizaCompositor(){
+  if(!comp) return;
+  var modelo = $("#cp-txt").value, n = comp.dest.length, tem = !!modelo.trim();
+  gravarLocal("anp_disp_rascunho", modelo);
+
+  var a = analisarModelo(modelo), alertas = [];
+  if(a.desconhecidas.length){
+    alertas.push("Não reconheço " + a.desconhecidas.map(function(x){ return "{" + x + "}"; }).join(", ") +
+      ". Vai sair do jeito que está escrito.");
+  }
+  [["cidade", "cidade", "{cidade|sua cidade}"], ["uf", "estado", "{uf|seu estado}"]].forEach(function(c){
+    if(!a.usadas.some(function(u){ return u.chave === c[0] && !u.planoB; })) return;
+    var faltam = comp.dest.filter(function(d){ return !String(d[c[0]] || "").trim(); }).length;
+    if(faltam) alertas.push((faltam === 1 ? "1 pessoa sem " : faltam + " pessoas sem ") + c[1] + ". Use " + c[2] + " para ter um plano B.");
+  });
+  if(n > 500) alertas.push("No máximo 500 pessoas por disparo. Tire " + (n - 500) + " da seleção.");
+  $("#cp-alertas").innerHTML = alertas.map(function(t){ return '<p class="aviso aviso--alerta">'+esc(t)+'</p>'; }).join("");
+
+  if(comp.i >= n) comp.i = 0;
+  var d = comp.dest[comp.i];
+  var txt = tem ? renderizar(modelo, d, new Date(), sorteioFixo(comp.i)) : "";
+  var prev = $("#cp-prev");
+  prev.textContent = txt || (tem ? "A mensagem fica vazia para esta pessoa." : "A prévia aparece aqui.");
+  prev.classList.toggle("is-vazia", !txt);
+  $("#cp-quem").textContent = (n > 1 ? (comp.i + 1) + "/" + n + " · " : "") + nomeDe(d) + (d.cidade ? " · " + formatarNome(d.cidade) : "");
+  $("#cp-ant").disabled = $("#cp-prox").disabled = n < 2;
+
+  var x = parseInt($("#cp-min").value, 10), y = parseInt($("#cp-max").value, 10);
+  var okInt = n < 2 || (x >= 5 && y >= x && y <= 3600);
+  var ini = inicioEscolhido(), okIni = !isNaN(ini), dq = "";
+  if($("#cp-depois").checked){
+    if(!okIni) dq = "Escolha o dia e a hora.";
+    else if(ini < Date.now() - 60e3){ dq = "Esse horário já passou."; okIni = false; }
+    else if(ini > Date.now() + 30 * 86400e3){ dq = "Agende para no máximo 30 dias à frente."; okIni = false; }
+    else dq = "Começa " + quandoBR(ini) + ".";
+  }
+  $("#cp-quando-dica").textContent = dq;
+  $("#cp-quando-dica").classList.toggle("is-erro", !okIni);
+  var est = "";
+  if(n > 1){
+    if(!okInt) est = "A espera precisa ficar entre 5 e 3.600 segundos, e o primeiro número não pode passar do segundo.";
+    else if(okIni){
+      var dur = ((n - 1) * (x + y) / 2 + n * 10) * 1000, fim = ini + dur;
+      est = n + " mensagens, leva cerca de " + duracao(dur) + ". Termina por volta de " + (diaBR(fim) === diaBR(ini) && diaBR(fim) === diaBR(Date.now()) ? horaBR(fim) : quandoBR(fim).replace(/^às /, "")) + ".";
+    }
+  }
+  $("#cp-est").textContent = est;
+  $("#cp-est").classList.toggle("is-erro", !okInt);
+
+  var inst = $("#cp-inst").value;
+  $("#cp-enviar").disabled = comp.enviando || comp.feito || !tem || !inst || !okInt || !okIni || n > 500;
+  $("#cp-teste").disabled = comp.enviando || comp.testando || !tem || !inst || !txt;
+}
+
+function inserirVariavel(nome){
+  var t = $("#cp-txt"), v = "{" + nome + "}";
+  var ini = comp.cursor != null ? comp.cursor.ini : t.value.length, fim = comp.cursor != null ? comp.cursor.fim : ini;
+  t.value = t.value.slice(0, ini) + v + t.value.slice(fim);
+  t.focus();
+  t.selectionStart = t.selectionEnd = ini + v.length;
+  comp.cursor = {ini: ini + v.length, fim: ini + v.length};
+  atualizaCompositor();
+}
+function guardaCursor(){ if(comp){ var t = $("#cp-txt"); comp.cursor = {ini: t.selectionStart, fim: t.selectionEnd}; } }
+["input","keyup","click","select"].forEach(function(ev){ $("#cp-txt").addEventListener(ev, guardaCursor); });
+$("#cp-txt").addEventListener("input", atualizaCompositor);
+$("#cp-vars").addEventListener("mousedown", function(e){ if(e.target.closest("[data-var]")) e.preventDefault(); });  // não tira o cursor do texto
+$("#cp-vars").addEventListener("click", function(e){
+  var b = e.target.closest("[data-var]");
+  if(b && comp) inserirVariavel(b.getAttribute("data-var"));
+});
+$("#cp-ant").addEventListener("click", function(){ if(comp){ comp.i = (comp.i - 1 + comp.dest.length) % comp.dest.length; atualizaCompositor(); } });
+$("#cp-prox").addEventListener("click", function(){ if(comp){ comp.i = (comp.i + 1) % comp.dest.length; atualizaCompositor(); } });
+["#cp-min","#cp-max","#cp-data","#cp-hora"].forEach(function(s){
+  $(s).addEventListener("input", atualizaCompositor);
+  $(s).addEventListener("change", atualizaCompositor);
+});
+["#cp-agora","#cp-depois"].forEach(function(s){
+  $(s).addEventListener("change", function(){ $("#cp-ag").classList.toggle("hidden", !$("#cp-depois").checked); atualizaCompositor(); });
+});
+$("#cp-inst").addEventListener("change", function(){ atualizaPadrao(); atualizaCompositor(); });
+
+function fecharCompositor(){
+  if(!comp) return;
+  // fechar agora deixaria a seleção de pé e abriria a porta para mandar de novo
+  if(comp.enviando){ cpMsg("Espere um instante: a mensagem está entrando na fila.", "alerta"); return; }
+  var volta = comp.volta;
+  comp = null;
+  $("#comp").classList.add("hidden");
+  document.body.classList.remove("modal-aberto");
+  atualizaSelecao();
+  if(volta && volta.focus && document.body.contains(volta)) volta.focus();
+}
+$("#cp-fechar").addEventListener("click", fecharCompositor);
+(function(){
+  var noFundo = false;   // só fecha se o toque começou e terminou no fundo (arrastar seleção de texto não fecha)
+  $("#comp").addEventListener("mousedown", function(e){ noFundo = e.target === this; });
+  $("#comp").addEventListener("click", function(e){ if(noFundo && e.target === this) fecharCompositor(); noFundo = false; });
+})();
+document.addEventListener("keydown", function(e){ if(e.key === "Escape" && comp) fecharCompositor(); });
+
+$("#cp-teste").addEventListener("click", function(){
+  if(!comp || comp.testando) return;
+  var c = comp, d = c.dest[c.i], b = $("#cp-teste");
+  c.testando = true;
+  b.disabled = true; b.textContent = "Enviando teste…"; cpMsg("");
+  fnDisp("teste", {instancia: $("#cp-inst").value, modelo: $("#cp-txt").value, dados: {nome: d.nome, cidade: d.cidade, uf: d.uf}}).then(function(r){
+    c.testando = false;
+    if(comp !== c) return;
+    b.textContent = "Mandar teste para mim";
+    atualizaCompositor();
+    if(r.error){ cpMsg(esc(r.error)); return; }
+    if(r.ok) cpMsg("Teste enviado para " + esc(fmtNumero(r.numero)) + ". Confira no WhatsApp.", "ok");
+    else cpMsg("O teste não saiu: " + esc(r.erro || "sem detalhe") + ".");
+  });
+});
+
+$("#cp-enviar").addEventListener("click", function(){
+  if(!comp || comp.enviando || comp.feito) return;
+  var c = comp, n = c.dest.length, inst = $("#cp-inst").value, modelo = $("#cp-txt").value;
+  var x = n < 2 ? 40 : parseInt($("#cp-min").value, 10), y = n < 2 ? 90 : parseInt($("#cp-max").value, 10);
+  var agora = !$("#cp-depois").checked, ini = inicioEscolhido();
+  var quando = agora ? "Começa agora." : "Começa " + quandoBR(ini) + ".";
+  var pergunta = n === 1
+    ? "Enviar a mensagem para " + nomeDe(c.dest[0]) + " pela instância " + inst + "? " + quando
+    : "Enviar para " + n + " pessoas pela instância " + inst + ", com espera de " + x + " a " + y + " s? " + quando;
+  if(!confirm(pergunta)) return;
+  c.enviando = true;
+  var b = $("#cp-enviar"); b.textContent = "Colocando na fila…"; atualizaCompositor(); cpMsg("");
+  fnDisp("criar", {
+    instancia: inst, modelo: modelo, intervalo_min: x, intervalo_max: y,
+    inicio: agora ? null : new Date(ini).toISOString(),
+    marcar_contatado: $("#cp-cont").checked && !$("#cp-cont-l").classList.contains("hidden"),
+    salvar_padrao: $("#cp-padrao").checked,
+    chave: c.chave,
+    destinatarios: c.dest
+  }).then(function(r){
+    c.enviando = false;
+    b.textContent = n === 1 ? "Enviar" : "Enviar para " + n + " pessoas";
+    if(r.error){
+      if(comp === c){ cpMsg(esc(r.error) + textoIgnorados(r.ignorados)); atualizaCompositor(); }
+      else alert("A mensagem não entrou na fila: " + r.error);
+      return;
+    }
+    c.feito = true;
+    if(n > 1){ gravarLocal("anp_disp_min", String(x)); gravarLocal("anp_disp_max", String(y)); }
+    if($("#cp-padrao").checked && instCache) instCache.padrao = inst;
+    sel = {};
+    render();
+    var pronto = r.repetido ? "Esta mensagem já estava na fila: o pedido anterior chegou ao servidor."
+      : r.total === 1 ? "Pronto: 1 mensagem na fila." : "Pronto: " + r.total + " mensagens na fila.";
+    if(comp !== c){ alert(pronto + " Acompanhe em Disparos."); return; }
+    $("#cp-acts").classList.add("hidden");
+    $("#cp-teste-dica").textContent = "";
+    cpMsg(pronto + (r.repetido ? "" : " " + (agora ? "A primeira sai em instantes." : "A primeira sai " + esc(quandoBR(ini)) + ".")) + textoIgnorados(r.ignorados) +
+      '<div class="cp-feito"><button class="btn btn--primary btn--sm" type="button" id="cp-ver">Acompanhar em Disparos</button>' +
+      '<button class="btn btn--sm" type="button" id="cp-ok">Fechar</button></div>', "ok");
+    $("#cp-ver").addEventListener("click", function(){ fecharCompositor(); mostrar("disp"); });
+    $("#cp-ok").addEventListener("click", fecharCompositor);
+    $("#cp-ver").focus();
+  });
+});
+
+/* ---- tela Disparos: instância padrão, número de teste e acompanhamento ---- */
+function dpMsg(t, tipo){ $("#dp-msg").innerHTML = t ? '<p class="aviso aviso--'+(tipo||"erro")+'">'+esc(t)+'</p>' : ""; }
+function carregarConfigDisp(){
+  var s = $("#dp-inst");
+  s.innerHTML = '<option value="">Carregando…</option>';
+  $("#dp-salvar").disabled = true;   // sem saber o que está salvo, Salvar apagaria o padrão
+  dpMsg("");
+  carregarInstancias(true).then(function(r){
+    if(vista !== "disp") return;
+    if(r.error) dpMsg(r.error);
+    var fora = r.padrao && !(r.instancias || []).some(function(i){ return i.nome === r.padrao; });
+    s.innerHTML = '<option value="">Sem padrão (usa a dos avisos de lead' + (r.instancia_avisos ? ": " + esc(r.instancia_avisos) : "") + ')</option>' +
+      (fora ? '<option value="'+esc(r.padrao)+'">'+esc(r.padrao)+' (fora da lista agora)</option>' : "") +
+      opcoesInst(r, r.padrao, r.padrao);
+    s.value = r.padrao || "";
+    $("#dp-teste").value = fmtNumero(r.numero_teste || NUM_TESTE_PADRAO);
+    $("#dp-salvar").disabled = !("padrao" in r);   // a resposta nem chegou: não dá para saber o padrão
+  });
+}
+$("#dp-salvar").addEventListener("click", function(){
+  var b = this, num = $("#dp-teste").value.replace(/\D/g, "");
+  if(num && !numeroDisp(num)){ dpMsg("O número de teste precisa ter DDD e número, como (48) 99106-7007."); return; }
+  b.disabled = true; b.textContent = "Salvando…";
+  fnDisp("config", {instancia: $("#dp-inst").value || null, numero_teste: num}).then(function(r){
+    b.disabled = false; b.textContent = "Salvar";
+    if(r.error){ dpMsg(r.error); return; }
+    instCache = null;
+    $("#dp-teste").value = fmtNumero(r.numero_teste || NUM_TESTE_PADRAO);
+    dpMsg("Salvo.", "ok");
+  });
+});
+$("#dp-atualizar").addEventListener("click", function(){ carregarDisparos(); });
+
+function agendarDisp(ativo){
+  if(dispTimer){ clearTimeout(dispTimer); dispTimer = null; }
+  if(!ativo || vista !== "disp") return;
+  dispTimer = setTimeout(function(){
+    dispTimer = null;
+    if(document.hidden){ agendarDisp(true); return; }   // aba escondida: espera ela voltar
+    carregarDisparos();
+  }, 5000);
+}
+var pedidoDisp = 0, dispAtivo = false;
+function carregarDisparos(){
+  var meu = ++pedidoDisp;   // só a resposta do último pedido vale (uma antiga traria as pessoas de outro disparo)
+  return fnDisp("lista", dispAberto ? {disparo_id: dispAberto} : {}).then(function(r){
+    if(vista !== "disp" || meu !== pedidoDisp) return;
+    if(r.error){
+      // falha passageira com a lista na tela: ela fica, com um aviso, e a atualização continua
+      if(r.http !== 401 && $("#dp-lista .dsp")){
+        $("#dp-falha").innerHTML = '<p class="aviso aviso--alerta">Não consegui atualizar agora. Tento de novo em instantes.</p>';
+        agendarDisp(dispAtivo);
+        return;
+      }
+      $("#dp-falha").innerHTML = "";
+      $("#dp-lista").innerHTML = '<p class="aviso aviso--erro">'+esc(r.error)+'</p>';
+      dispAtivo = false;
+      agendarDisp(false);
+      return;
+    }
+    $("#dp-falha").innerHTML = "";
+    renderDisparos(r);
+    dispAtivo = (r.disparos || []).some(function(d){ return d.status === "ativo"; });
+    agendarDisp(dispAtivo);
+  });
+}
+
+function renderDisparos(r){
+  var ds = r.disparos || [];
+  if(!ds.length){
+    $("#dp-lista").innerHTML = '<p class="sub">Nenhum disparo ainda. Na lista de leads, marque as pessoas e toque em Escrever mensagem.</p>';
+    return;
+  }
+  // a lista é refeita a cada 5 s: guarda a rolagem da lista de pessoas e o botão em foco
+  var pl = $("#dp-lista .pes-lista"), rolagem = pl ? {id: pl.getAttribute("data-pes"), y: pl.scrollTop} : null;
+  var fa = document.activeElement, foco = null;
+  if(fa && fa !== document.body && $("#dp-lista").contains(fa)){
+    foco = {id: fa.getAttribute("data-did") || fa.getAttribute("data-dver"), acao: fa.getAttribute("data-dacao"), ver: fa.hasAttribute("data-dver")};
+  }
+  $("#dp-lista").innerHTML = ds.map(function(d){
+    var c = d.contagem || {}, env = c.enviado || 0, falhas = (c.falhou || 0) + (c.incerto || 0);
+    var feitos = env + falhas + (c.cancelado || 0);
+    var agendado = d.status === "ativo" && !feitos && !c.enviando && new Date(d.inicio).getTime() > Date.now() + 30e3;
+    var st = agendado ? "agendado" : d.status;
+    var info = [
+      d.total > 1 ? "espera de " + d.intervalo_min + " a " + d.intervalo_max + " s" : "",
+      "pela " + d.instancia,
+      "criado " + quandoBR(new Date(d.criado_em).getTime())
+    ];
+    var agoraTxt = d.status !== "ativo" ? "" : c.enviando ? "saindo uma agora" : agendado ? "começa " + quandoBR(new Date(d.inicio).getTime())
+      : d.proximo ? "próxima " + quandoBR(new Date(d.proximo).getTime()) : "";
+    var aberto = dispAberto === d.id;
+    return '<div class="dsp">'+
+      '<div class="dsp__top">'+
+        '<span class="pill pill--'+st+'">'+(agendado ? "Agendado" : esc(ST_DISP[d.status] || d.status))+'</span>'+
+        '<strong>'+env+' de '+d.total+'</strong><span class="sub" style="margin:0">'+(d.total === 1 ? "enviada" : "enviadas")+
+        (falhas ? ' · ' + falhas + (falhas === 1 ? " não saiu" : " não saíram") : '')+(agoraTxt ? ' · ' + esc(agoraTxt) : '')+'</span>'+
+      '</div>'+
+      '<div class="dsp__barra" aria-hidden="true"><i style="width:'+(d.total ? Math.round(100 * (env + falhas) / d.total) : 0)+'%"></i></div>'+
+      (d.motivo ? '<p class="aviso aviso--alerta">Pausado sozinho: '+esc(d.motivo)+'. Quem estava na vez não perdeu o lugar. Confira se o WhatsApp dessa instância está conectado e toque em Retomar.</p>' : '')+
+      '<p class="dsp__msg">'+esc(d.modelo)+'</p>'+
+      '<p class="dsp__info">'+esc(info.filter(Boolean).join(" · "))+'</p>'+
+      (!aberto && d.erros && d.erros.length ? '<p class="dsp__err">'+d.erros.map(function(e){ return esc(nomeDe(e) + ": " + (e.erro || "sem detalhe")); }).join("<br>")+'</p>' : '')+
+      '<div class="acts">'+
+        (d.status === "ativo" ? '<button class="btn btn--sm" type="button" data-dacao="pausar" data-did="'+d.id+'">Pausar</button>' : '')+
+        (d.status === "pausado" ? '<button class="btn btn--primary btn--sm" type="button" data-dacao="retomar" data-did="'+d.id+'">Retomar</button>' : '')+
+        (d.status === "ativo" || d.status === "pausado" ? '<button class="btn btn--sm" type="button" data-dacao="cancelar" data-did="'+d.id+'">Cancelar</button>' : '')+
+        '<button class="btn btn--sm" type="button" data-dver="'+d.id+'" aria-expanded="'+aberto+'">'+(aberto ? "Esconder as pessoas" : "Ver cada pessoa")+'</button>'+
+      '</div>'+
+      (aberto ? '<div class="pes-lista" data-pes="'+esc(d.id)+'">'+(r.envios ? (r.envios.length ? r.envios.map(linhaEnvio).join("") : '<p class="sub">Ninguém neste disparo.</p>') : '<p class="sub">Carregando…</p>')+'</div>' : '')+
+    '</div>';
+  }).join("");
+
+  var pl2 = $("#dp-lista .pes-lista");
+  if(pl2 && rolagem && rolagem.id === pl2.getAttribute("data-pes")) pl2.scrollTop = rolagem.y;
+  if(foco && foco.id){
+    var q = function(s){ return $('#dp-lista ' + s); }, id = foco.id.replace(/["\\]/g, "");
+    var alvo = (foco.ver ? q('[data-dver="'+id+'"]') : q('[data-dacao="'+foco.acao+'"][data-did="'+id+'"]')) ||
+      q('[data-did="'+id+'"]') || q('[data-dver="'+id+'"]');
+    if(alvo){ try{ alvo.focus({preventScroll: true}); }catch(e){ alvo.focus(); } }
+  }
+
+  $$("[data-dacao]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var acao = b.getAttribute("data-dacao");
+      if(acao === "cancelar" && !confirm("Cancelar este disparo? Quem ainda não recebeu não recebe mais.")) return;
+      b.disabled = true;
+      fnDisp(acao, {id: b.getAttribute("data-did")}).then(function(x){
+        if(x.error){ alert(x.error); b.disabled = false; return; }
+        carregarDisparos();
+      });
+    });
+  });
+  $$("[data-dver]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var id = b.getAttribute("data-dver");
+      dispAberto = dispAberto === id ? null : id;
+      renderDisparos({disparos: ds, envios: null});
+      carregarDisparos();
+    });
+  });
+}
+function linhaEnvio(e){
+  var t = e.enviado_em || e.tentado_em || e.agendado_para;
+  var hora = !t ? (e.status === "pendente" ? "aguardando a vez" : "")
+    : (e.status === "pendente" ? "previsto " : "") + quandoBR(new Date(t).getTime());
+  return '<div class="pes"><span class="pes__s pes__s--'+esc(e.status)+'"></span>'+
+    '<span class="pes__c"><strong>'+esc(nomeDe(e))+'</strong> <em>'+esc(fmtNumero(e.numero))+'</em>'+
+      (e.erro ? '<p>'+esc(e.erro)+'</p>' : '')+'</span>'+
+    '<span class="pes__t">'+esc(ST_ENVIO[e.status] || e.status)+(hora ? '<small>'+esc(hora)+'</small>' : '')+'</span></div>';
+}
+
+/* ---- LGPD: excluir o lead apaga também o histórico de mensagens do número ----
+   Pelo WhatsApp de agora e pela referência ao lead: se o número foi corrigido
+   no detalhe, as mensagens mandadas ao número antigo também saem. Apagar no
+   meio de um disparo não trava a fila (gatilho em db/18 reagenda). */
+function apagarEnviosDoNumero(lead){
+  if(DEMO || !lead) return Promise.resolve(true);
+  var nums = [];
+  if(lead.whatsapp_e164){
+    nums.push(lead.whatsapp_e164);
+    var n = numeroDisp(lead.whatsapp_e164);
+    if(n && n !== lead.whatsapp_e164) nums.push(n);
+  }
+  var deuCerto = function(r){
+    if(!r.error) return true;
+    // antes da migração 18 a tabela não existe: não há histórico para apagar
+    if(r.error.code === "PGRST205" || r.error.code === "42P01" || /schema cache/i.test(r.error.message || "")) return true;
+    console.error(r.error);
+    return false;
+  };
+  var porNumero = nums.length ? sb.from("disparo_envios").delete().in("numero", nums).then(deuCerto) : Promise.resolve(true);
+  return porNumero.then(function(ok){
+    if(!ok) return false;
+    // texto, não array: o supabase-js trata array como array do Postgres e o filtro jsonb sairia errado
+    return sb.from("disparo_envios").delete().contains("refs", JSON.stringify([{id: lead.id}])).then(deuCerto);
+  });
+}
+
+/* ---- modo demonstração: instâncias falsas e fila simulada, só para ver as telas ---- */
+var DEMO_INST = [
+  {nome:"jimmy-principal", estado:"open", numero:"5548991067007", perfil:"Jimmy Fenner"},
+  {nome:"anovaprofissao-20261102-101500", estado:"open", numero:"5547988092413", perfil:"A Nova Profissão"},
+  {nome:"numero-antigo", estado:"close", numero:"5548999990000", perfil:null}
+];
+var DEMO_D = {padrao: null, numero_teste: NUM_TESTE_PADRAO, lista: []};
+function demoResumo(d){
+  var c = {}, prox = null, erros = [];
+  d.envios.forEach(function(e){
+    c[e.status] = (c[e.status] || 0) + 1;
+    if(e.status === "pendente" && e.agendado_para && d.status === "ativo" && (!prox || e.agendado_para < prox)) prox = e.agendado_para;
+    if((e.status === "falhou" || e.status === "incerto") && erros.length < 3) erros.push({nome: e.nome, numero: e.numero, erro: e.erro});
+  });
+  return {id:d.id, criado_em:d.criado_em, instancia:d.instancia, modelo:d.modelo, intervalo_min:d.intervalo_min, intervalo_max:d.intervalo_max,
+    marcar_contatado:d.marcar_contatado, status:d.status, motivo:d.motivo, total:d.total, inicio:d.inicio, contagem:c, proximo:prox, erros:erros};
+}
+function demoAvanca(){
+  var agora = Date.now();
+  DEMO_D.lista.forEach(function(d){
+    if(d.status !== "ativo") return;
+    var e = d.envios.filter(function(x){ return x.status === "pendente" && x.agendado_para && Date.parse(x.agendado_para) <= agora; })[0];
+    if(!e) return;
+    var ok = e.ordem % 7 !== 3;   // de vez em quando um número sem WhatsApp, para ver a falha
+    e.status = ok ? "enviado" : "falhou";
+    e.tentado_em = e.enviado_em = new Date(agora).toISOString();
+    if(!ok){ e.enviado_em = null; e.erro = "Este número não tem WhatsApp"; }
+    e.texto = renderizar(d.modelo, e, new Date());
+    if(ok && d.marcar_contatado) leads.forEach(function(l){ if(l.status === "novo" && numeroDisp(l.whatsapp_e164) === e.numero){ l.status = "contatado"; l.contatado_em = new Date().toISOString(); } });
+    var prox = d.envios.filter(function(x){ return x.status === "pendente"; })[0];
+    if(prox) prox.agendado_para = new Date(agora + 4000).toISOString();   // na demonstração a espera é curta
+    else d.status = "concluido";
+  });
+}
+function demoDisp(acao, x){
+  var D = DEMO_D, agora = Date.now();
+  var achar = function(id){ return D.lista.filter(function(d){ return d.id === id; })[0]; };
+  if(acao === "instancias") return {instancias: DEMO_INST, padrao: D.padrao, numero_teste: D.numero_teste, instancia_avisos: DEMO_INST[1].nome, em: agora};
+  if(acao === "config"){
+    if("instancia" in x) D.padrao = x.instancia || null;
+    if("numero_teste" in x) D.numero_teste = normalizarNumero(x.numero_teste).numero || NUM_TESTE_PADRAO;
+    return {ok:true, padrao:D.padrao, numero_teste:D.numero_teste, instancia_avisos: DEMO_INST[1].nome};
+  }
+  if(acao === "teste") return {ok:true, numero:D.numero_teste, texto:renderizar(x.modelo, x.dados, new Date())};
+  if(acao === "criar"){
+    var ja = x.chave ? D.lista.filter(function(d){ return d.chave === x.chave; })[0] : null;
+    if(ja) return {id:ja.id, total:ja.total, ignorados:[], repetido:true};
+    var vistos = {}, envios = [], ign = [];
+    (x.destinatarios || []).forEach(function(d){
+      var n = normalizarNumero(d.numero).numero;
+      if(!n){ ign.push({numero:d.numero, nome:d.nome, motivo:"Número fora do padrão"}); return; }
+      if(vistos[n]) return;
+      vistos[n] = 1;
+      envios.push({ordem:envios.length + 1, nome:d.nome, numero:n, cidade:d.cidade, uf:d.uf, status:"pendente",
+        agendado_para:null, tentado_em:null, enviado_em:null, erro:null});
+    });
+    var ini = x.inicio ? Date.parse(x.inicio) : agora;
+    envios[0].agendado_para = new Date(ini).toISOString();
+    var novo = {id:"demo-" + (D.lista.length + 1), criado_em:new Date(agora).toISOString(), instancia:x.instancia, modelo:x.modelo,
+      intervalo_min:x.intervalo_min, intervalo_max:x.intervalo_max, marcar_contatado:x.marcar_contatado !== false,
+      status:"ativo", motivo:null, total:envios.length, inicio:new Date(ini).toISOString(), envios:envios, chave:x.chave || null};
+    D.lista.unshift(novo);
+    if(x.salvar_padrao) D.padrao = x.instancia;
+    return {id:novo.id, total:envios.length, ignorados:ign};
+  }
+  if(acao === "lista"){
+    demoAvanca();
+    var alvo = x.disparo_id ? achar(x.disparo_id) : null;
+    var ordem = D.lista.slice().sort(function(a, b){
+      return (a.status === "ativo" || a.status === "pausado" ? 0 : 1) - (b.status === "ativo" || b.status === "pausado" ? 0 : 1);
+    });
+    return {disparos: ordem.slice(0, 20).map(demoResumo), envios: alvo ? alvo.envios : null};
+  }
+  var d = achar(x.id);
+  if(!d) return {error:"Disparo não encontrado."};
+  if(acao === "pausar" && d.status === "ativo") d.status = "pausado";
+  if(acao === "retomar" && d.status === "pausado"){
+    d.status = "ativo"; d.motivo = null;
+    var pend = d.envios.filter(function(e){ return e.status === "pendente"; });
+    pend.forEach(function(e, i){ e.agendado_para = i ? null : new Date(agora).toISOString(); });
+    if(!pend.length) d.status = "concluido";
+  }
+  if(acao === "cancelar" && (d.status === "ativo" || d.status === "pausado")){
+    d.status = "cancelado";
+    d.envios.forEach(function(e){ if(e.status === "pendente"){ e.status = "cancelado"; e.agendado_para = null; } });
+  }
+  return {ok:true};
+}
 
 /* ---------- utilidades ---------- */
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){

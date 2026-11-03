@@ -408,6 +408,7 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 | Painel de leads | `anovaprofissao.com.br/admin` (login Supabase do Jimmy) |
 | Pixel da Meta | ID `1752542589367351`, chave `meta_pixel` no `site_config` |
 | API de Conversões da Meta | Supabase Edge Function `conversao-meta`, só lead de integrador |
+| Disparo de mensagens | Supabase Edge Function `disparos` + `pg_cron` (fila em `disparo_envios`) |
 
 ## Segredos — o que nunca circula
 
@@ -424,7 +425,16 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 17 (agendamento) aplicada em 03/nov/2026, com os secrets `GOOGLE_CLIENT_ID`,
+**18 (disparo de mensagens) pendente** desde 03/nov/2026: `db/18-disparos.sql`
+(instala o `pg_cron`, cria a fila e agenda o job `disparos-processar`). Aplicar
+com `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f db/18-disparos.sql`
+e, na sequência, publicar a função com
+`supabase functions deploy disparos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`
+(essa é a única função daqui com `verify_jwt` desligado, ver "Disparo de mensagens
+pelo painel"). Sem a migração, a tela Disparos mostra o erro e o resto do painel
+segue normal; excluir lead funciona antes e depois.
+
+17 (agendamento) aplicada em 03/nov/2026, com os secrets `GOOGLE_CLIENT_ID`,
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (os mesmos do querocarregador) e
 `FORWARDEMAIL_API_TOKEN` gravados pelo Jimmy (o Claude é barrado de copiar
 credencial entre projetos) e as funções `agenda` (nova) e `whatsapp` publicadas
@@ -1068,4 +1078,100 @@ nos dois sites deste repo.
   agenda** (é a do Jimmy): bloco `<!--lic:agenda-->` some, o do quiz depende do
   `LIC`, e o build trava se sobrar `href="/agendar"` no espelho.
 - Política de Privacidade atualizada (itens 2, 3 e 5; `ATUALIZADO` 3/11/2026).
+
+## Disparo de mensagens pelo painel (nov/2026)
+
+Pedido do Jimmy em 03/11/2026 (primeiro uso: convidar os leads para a live do
+dia): mandar WhatsApp pelo painel para um lead ou para vários, com variáveis e
+espera aleatória entre uma mensagem e a próxima. Vale para todos os leads deste
+painel (home, integradores do querovendercarregador, transição, reuniões). O
+querocarregador.com.br/admin ganhou o mesmo recurso, com a mesma especificação e
+os mesmos testes do renderizador.
+
+- **Onde está no painel:** caixa no começo de cada linha de lead; "Selecionar os
+  N da lista" e "Limpar seleção" junto dos filtros; barra fixa no rodapé "N
+  selecionados · Escrever mensagem"; botão "Enviar mensagem" no detalhe; e a
+  tela **Disparos** no topo (instância padrão, número de teste e o
+  acompanhamento, com Pausar, Retomar, Cancelar e a lista de cada pessoa, que se
+  atualiza a cada 5 s enquanto houver disparo ativo).
+- **Compositor** (modal próprio, fecha com Esc e no fundo): instância (lista da
+  Evolution com perfil, número e nome, só as conectadas podem ser escolhidas; a
+  escolhida pode virar padrão em `disparo_config`; sem padrão, vem a dos avisos,
+  `whatsapp_config.instancia`), mensagem com botões de variável, aviso de
+  variável desconhecida e de "N pessoas sem cidade", prévia por pessoa ‹ 1/N ›,
+  intervalo (só com 2+ pessoas; padrão 40 a 90 s; 5 ≤ X ≤ Y ≤ 3600; estimativa de
+  término), início agora ou agendado (horário de Brasília), "marcar como
+  contatado" e "Mandar teste para mim". Rascunho e intervalo ficam no
+  localStorage (`anp_disp_rascunho`, `anp_disp_min`, `anp_disp_max`). Enquanto
+  o pedido está entrando na fila, o compositor não fecha (Esc, fundo e ✕ só
+  avisam para esperar). Cada compositor gera uma `chave` que vai no "criar"
+  (coluna única em `disparos`): se a resposta se perde e ele manda de novo, a
+  função devolve o mesmo disparo ("já estava na fila") em vez de criar outro.
+- **Variáveis:** `{primeiro_nome}`, `{nome}`, `{cidade}`, `{uf}` (ou `{estado}`)
+  e `{saudacao}` (bom dia 5h–11h59, boa tarde 12h–17h59, boa noite 18h–4h59, na
+  hora em que cada mensagem sai). Plano B `{cidade|sua cidade}`; variação
+  `{Oi|Olá|E aí}` sorteada por mensagem. Nome todo em maiúsculas ou todo em
+  minúsculas vira "João da Silva"; valor que abre frase ganha maiúscula.
+  **Renderizador único** em `supabase/functions/_shared/mensagem.mjs`, ES5 de
+  propósito: a função importa o arquivo e o `build.js` cola o mesmo conteúdo,
+  sem as palavras de exportação, no script do painel, no lugar de
+  `/*@@MENSAGEM@@*/` (o build para se o marcador sumir). Mexeu no renderizador,
+  mexe no do querocarregador junto e roda `node --test tests/` (inclui um teste
+  que roda o build e confere o painel).
+- **Regras:**
+  - **Espelho de licenciado fica fora.** A página disse ao lead que quem chama é
+    o licenciado e para desconsiderar qualquer outro contato: caixa e botão
+    desligados com o motivo, e a função confere no banco (`leads.licenciado`) e
+    recusa com "lead de licenciado".
+  - **Intervalo:** sorteado no servidor para cada pessoa (inteiro entre X e Y) e
+    contado do fim do envio anterior. Uma mensagem por vez por instância, mesmo
+    com dois disparos nela. Na Evolution, "digitando" de 1,2 a 3 s.
+  - **Teste para mim:** vai na hora, fora da fila, para o número de teste (padrão
+    5548991067007, editável na tela Disparos), com os dados da pessoa da prévia.
+  - Número repetido na seleção sai uma vez só e marca todos os leads dele.
+    Máximo 500 pessoas por disparo.
+  - **Contatado:** se ligado, o servidor passa de "novo" para "contatado" (e grava
+    `contatado_em` se estava vazio) só depois que a mensagem daquela pessoa sai.
+  - **LGPD:** excluir lead apaga antes as linhas de `disparo_envios` daquele
+    número e as que apontam para o lead em `refs` (pega o número antigo, se o
+    WhatsApp foi corrigido no detalhe), nos dois caminhos (comum e reunião); se
+    não conseguir, não apaga nada. Apagar no meio de um disparo não trava a fila:
+    o gatilho `disparo_envios_apagado` tira a pessoa do total e agenda a próxima
+    (ou conclui o disparo que ficou vazio).
+- **Fila e pg_cron** (`db/18-disparos.sql`): tabelas `disparo_config`,
+  `disparos` e `disparo_envios`; o painel só lê e apaga, quem grava é a função
+  (service role), e as funções SQL (`disparo_reservar`, `disparo_concluir`,
+  `disparo_devolver`, `disparo_pausar`, `disparo_retomar`, `disparo_cancelar`,
+  `disparo_proximo`, `disparo_painel`) só rodam com a service role. A migração
+  **instala o `pg_cron`** (não estava instalado neste banco) e agenda
+  `disparos-processar`, a cada minuto, chamando a função com
+  `{"action":"processar"}` por `net.http_post`. Cada chamada anda a fila por até
+  55 s. Sem resposta da Evolution em 75 s, ou "enviando" há mais de 4 min, vira
+  "Sem confirmação" (pode ter saído) e a fila segue. Número sem WhatsApp vira
+  "Não enviado" e segue. Instância caída, inexistente ou sem permissão **pausa o
+  disparo** com o motivo e devolve a pessoa para a fila sem perder a vez: conectar
+  o número e tocar em Retomar.
+- **Função `disparos`** (`supabase/functions/disparos`): ações `instancias`,
+  `config`, `criar`, `teste`, `lista`, `pausar`, `retomar`, `cancelar` (todas com
+  o login do painel) e `processar` (pública e inofensiva: só envia o que já está
+  na fila e no horário). Por isso é a única daqui com **`verify_jwt` desligado**.
+  Usa os mesmos secrets da `whatsapp` (`EVOLUTION_URL`, `EVOLUTION_APIKEY`); o
+  token das instâncias nunca sai da função. Publicar:
+  `supabase functions deploy disparos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.
+  O limite de parede vale para o worker, que o Supabase reaproveita entre
+  chamadas (Free: encerrado aos 150 s, sem chamada nova depois dos 75 s; pagos:
+  400 s e 200 s). Nenhum envio espera a Evolution além do fim do worker: perto
+  dele a espera encolhe até 15 s e o que passar vira "Sem confirmação". A função
+  supõe 150 s e passa a 400 s quando recebe chamada num worker com mais de 80 s.
+  Parar de reservar cedo foi descartado: deixava a fila parada quase um minuto
+  a cada dois.
+- **Modo demonstração:** instâncias falsas e fila simulada (anda um por consulta,
+  de vez em quando um número "sem WhatsApp"), para ver as telas sem login.
+- **Testado em 03/11/2026, sem tocar em produção:** renderizador e build
+  (`node --test tests/`), SQL em PGlite (migração rodada duas vezes, fila,
+  espera, pausa, retomada, cancelamento, recuperação de "enviando", contatado só
+  de "novo", uma instância sem dois envios, acesso por papel), função no Deno
+  contra Evolution e banco falsos, e as telas em jsdom no modo demonstração.
+  Falta: aplicar a 18, publicar a função e mandar o primeiro teste para o
+  número dele antes do primeiro disparo real.
 
