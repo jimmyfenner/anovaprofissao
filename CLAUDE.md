@@ -424,8 +424,13 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-**17 (agendamento) pendente** desde 03/nov/2026, junto com os secrets da agenda
-(`GOOGLE_*`) e do Forward Email (`FORWARDEMAIL_API_TOKEN`) e a publicação das funções `agenda` (nova) e `whatsapp`. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
+Nenhuma. 17 (agendamento) aplicada em 03/nov/2026, com os secrets `GOOGLE_CLIENT_ID`,
+`GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (os mesmos do querocarregador) e
+`FORWARDEMAIL_API_TOKEN` gravados pelo Jimmy (o Claude é barrado de copiar
+credencial entre projetos) e as funções `agenda` (nova) e `whatsapp` publicadas
+pela CLI. Teste real no mesmo dia: reunião marcada pela página, evento com Meet,
+WhatsApp e e-mail (Forward Email, no-reply@anovaprofissao.com.br) chegaram, e o
+evento e o lead de teste foram apagados. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
 `conversao-meta` publicada na versão 1. 14 (vídeo assistido) e 15 (resultados)
 aplicadas e testadas em 30/out/2026, com a Edge Function `whatsapp` publicada na versão 14. A CLI do Supabase desta máquina
 alcança o projeto: `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f arquivo`
