@@ -20,7 +20,7 @@ const SITE = {
 
 /* Data de revisão dos textos jurídicos. É fixa de propósito: ela diz quando o
    texto mudou, não quando o site foi publicado. Atualize ao alterar legal/*. */
-const ATUALIZADO = '30 de outubro de 2026';
+const ATUALIZADO = '3 de novembro de 2026';
 /* Idem para as páginas do Publicador (publicador/*). */
 const ATUALIZADO_PUBLICADOR = '25 de outubro de 2026';
 
@@ -95,12 +95,17 @@ function separaCabeca(src) {
    travava a primeira pintura em ~2 s no celular (Lighthouse: "render-blocking")
    e mandava o IP do visitante ao Google. Agora: dois preloads das fontes do
    texto e do título, e o @font-face direto no <head>. Só o subconjunto latino,
-   que cobre o português; Archivo e Instrument Sans são variáveis (um arquivo
-   para todos os pesos). Para trocar de fonte, baixar os .woff2 para fonts/. */
+   que cobre o português; todas variáveis (um arquivo para todos os pesos),
+   menos a IBM Plex Mono. Para trocar de fonte, baixar os .woff2 para fonts/.
+   Desde nov/2026 a home e a página de integradores usam Raleway + Outfit (o
+   kit do igreencel e do querocarregador): só elas têm preload. Archivo,
+   Instrument Sans e Plex Mono continuam para painel, transição e jurídicas. */
 const UR_LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
-const FONTES = `<link rel="preload" href="/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+const FONTES = `<link rel="preload" href="/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/raleway.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:'Outfit';font-style:normal;font-weight:300 700;font-display:swap;src:url(/fonts/outfit.woff2) format('woff2');unicode-range:${UR_LATIN}}
+@font-face{font-family:'Raleway';font-style:normal;font-weight:600 800;font-display:swap;src:url(/fonts/raleway.woff2) format('woff2');unicode-range:${UR_LATIN}}
 @font-face{font-family:'Archivo';font-style:normal;font-weight:500 800;font-display:swap;src:url(/fonts/archivo.woff2) format('woff2');unicode-range:${UR_LATIN}}
 @font-face{font-family:'Instrument Sans';font-style:normal;font-weight:400 600;font-display:swap;src:url(/fonts/instrument-sans.woff2) format('woff2');unicode-range:${UR_LATIN}}
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/ibm-plex-mono-400.woff2) format('woff2');unicode-range:${UR_LATIN}}
@@ -266,6 +271,47 @@ fs.writeFileSync(out('integradores', 'index.html'), documento({
   ogAlt: 'Quem instala usina vende uma vez. Quem conecta eletroposto participa de cada recarga.',
 }));
 
+/* Agendamento de reunião (nov/2026). agendar.html vira duas páginas: a da home
+   (apresentação da iGreen Energy, exige ciência da licença de R$ 1.997 por ano) e
+   a de integradores (Conexão Mob, exige o vídeo de apresentação). Os blocos
+   <!--so:home--> e <!--so:integ--> só entram na página deles, e window.AGENDA diz
+   qual é qual. Como o arquivo ganha dos rewrites na Vercel (ver a home), nenhuma
+   das duas fica em dist/agendar: a da home vai para /home-agendar e o vercel.json
+   faz /agendar virar uma ou outra conforme o domínio. O vídeo e a duração vêm da
+   própria página de integradores, para a exigência nunca apontar para um vídeo
+   que saiu de lá. */
+const agendarSrc = fs.readFileSync(path.join(__dirname, 'agendar.html'), 'utf8');
+const vimeoInteg = (integ.body.match(/data-vimeo="(\d+)"/) || [])[1];
+const duracaoInteg = Number((integ.body.match(/data-duracao="(\d+)"/) || [])[1]) || 0;
+if (!vimeoInteg || !duracaoInteg) { console.error('ERRO: não achei data-vimeo/data-duracao em integradores.html (o agendamento de integradores depende deles).'); process.exit(1); }
+function agendarVariante(fica, cfg) {
+  const fora = fica === 'home' ? 'integ' : 'home';
+  const h = agendarSrc
+    .replace(new RegExp(`<!--so:${fora}-->[\\s\\S]*?<!--/so:${fora}-->`, 'g'), '')
+    .replace(new RegExp(`<!--/?so:${fica}-->`, 'g'), '');
+  if (/<!--\/?so:/.test(h)) { console.error('ERRO: marcador <!--so:...--> sem par em agendar.html'); process.exit(1); }
+  const p = separaCabeca(h);
+  return { body: `<script>window.AGENDA=${JSON.stringify(cfg)};</script>\n` + p.body, links: p.links };
+}
+const agHome = agendarVariante('home', { origem: 'home' });
+mkdir(out('home-agendar'));
+fs.writeFileSync(out('home-agendar', 'index.html'), documento({
+  body: agHome.body, links: agHome.links,
+  title: 'Agende uma apresentação | ' + SITE.nome,
+  desc: 'Reunião de 30 minutos pelo Google Meet com Jimmy Fenner para conhecer a iGreen Energy e o modelo de licenciamento.',
+  canonical: SITE.url + '/agendar', noindex: true,
+}));
+const agInteg = agendarVariante('integ', { origem: 'integradores', vimeo: vimeoInteg, duracao: duracaoInteg });
+mkdir(out('integradores', 'agendar'));
+fs.writeFileSync(out('integradores', 'agendar', 'index.html'), documento({
+  body: agInteg.body, links: agInteg.links,
+  title: 'Agende uma conversa | Quero Vender Carregador',
+  desc: 'Reunião de 30 minutos pelo Google Meet com Jimmy Fenner sobre a Conexão Mob, para quem já trabalha com energia.',
+  canonical: QVC + '/agendar', noindex: true, siteNome: 'Quero Vender Carregador', comSite: false,
+  og: QVC + '/media/og/integradores.jpg',
+  ogAlt: 'Quem instala usina vende uma vez. Quem conecta eletroposto participa de cada recarga.',
+}));
+
 /* Página "Transição energética". Servida em /transicao-energetica e, pelo
    rewrite por host do vercel.json, na raiz de transicaoenergetica.com.br — o
    endereço canônico, porque o nome do domínio é o ativo.
@@ -389,7 +435,8 @@ PUBLICADOR.forEach(p => {
    (nome visível, WhatsApp, ID de cadastro) — é a trava contra uma edição da
    home que esqueça de marcar um bloco novo. */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
-  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao']);
+  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao',
+  'agendar', 'agendamento', 'home-agendar']);
 const LICS = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'licenciados.json'), 'utf8')).licenciados;
 const esc = escHtml;
 
@@ -452,6 +499,8 @@ function homeDoLicenciado(src, lic) {
   h = trocaBloco(h, 'redes', redes);
   h = trocaBloco(h, 'dono', esc(lic.nome_completo));
   h = trocaBloco(h, 'cidade', `${esc(lic.cidade)}, ${esc(lic.uf)}`);
+  // agenda é a do Jimmy: no espelho, os botões de agendar somem (o do resultado do quiz já some pelo LIC)
+  h = trocaBloco(h, 'agenda', '');
   h = trocaExato(h, '"Jimmy, isso é pirâmide?"', `"${nc}, isso é pirâmide?"`);
   h = trocaExato(h, '<span>Falar com Jimmy</span>', `<span>Falar com ${nc}</span>`);
   h = h.replace(/vídeo do Jimmy/g, `vídeo do ${nc}`);
@@ -477,6 +526,7 @@ function conferirEspelho(html, slug) {
   if (/5548991067007|99106-7007/.test(html)) restos.push('WhatsApp do Jimmy');
   if (/[?&]id=1971\b/.test(html)) restos.push('ID de cadastro do Jimmy');
   if (/jimmyfenner|minerandoosol/.test(html)) restos.push('rede social do Jimmy');
+  if (/href="\/agendar"/.test(html.replace(/<script[\s\S]*?<\/script>/g, ''))) restos.push('botão da agenda do Jimmy');
   if (restos.length) { console.error(`ERRO: o espelho /${slug} ainda tem coisas do Jimmy: ` + restos.join(' | ')); process.exit(1); }
 }
 
@@ -583,6 +633,7 @@ const n = faq ? faq.mainEntity.length : 0;
 console.log('dist/home/index.html ', (fs.statSync(out('home', 'index.html')).size / 1024).toFixed(0) + ' KB');
 console.log('dist/admin/index.html', (fs.statSync(out('admin', 'index.html')).size / 1024).toFixed(0) + ' KB');
 const faqInteg = faqSchema(integ.body);
+console.log('dist/home-agendar e dist/integradores/agendar: agendamento (vídeo ' + vimeoInteg + ', ' + duracaoInteg + ' s)');
 console.log('dist/integradores/index.html', (fs.statSync(out('integradores', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqInteg ? faqInteg.mainEntity.length : 0) + ' perguntas');
 const faqTe = faqSchema(te.body);
 console.log('dist/transicao-energetica/index.html', (fs.statSync(out('transicao-energetica', 'index.html')).size / 1024).toFixed(0) + ' KB · FAQ: ' + (faqTe ? faqTe.mainEntity.length : 0) + ' perguntas · dados de ' + dataBR(teDados.atualizado_em));

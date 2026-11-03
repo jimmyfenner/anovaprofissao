@@ -15,6 +15,21 @@
       "source": "/transicaoenergetica",
       "destination": "/transicao-energetica",
       "permanent": true
+    },
+    {
+      "source": "/home-agendar",
+      "destination": "/agendar",
+      "permanent": true
+    },
+    {
+      "source": "/agendamento",
+      "destination": "/agendar",
+      "permanent": true
+    },
+    {
+      "source": "/agenda",
+      "destination": "/agendar",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -145,6 +160,30 @@
         }
       ],
       "destination": "/transicao-energetica"
+    },
+    {
+      "source": "/agendar",
+      "has": [
+        {
+          "type": "host",
+          "value": "querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/integradores/agendar"
+    },
+    {
+      "source": "/agendar",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/integradores/agendar"
+    },
+    {
+      "source": "/agendar",
+      "destination": "/home-agendar"
     },
     {
       "source": "/",

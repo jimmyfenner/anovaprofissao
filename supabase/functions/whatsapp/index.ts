@@ -7,6 +7,11 @@ const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
 const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
 const SB_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+// E-mail pelo Forward Email (padrão de todos os sistemas do Jimmy desde nov/2026).
+// FORWARDEMAIL_FROM é só o endereço; o nome que aparece muda com a página do lead.
+// O Resend fica de reserva: se o Forward Email falhar, a mesma mensagem vai por ele.
+const FE_TOKEN = Deno.env.get("FORWARDEMAIL_API_TOKEN") ?? "";
+const FE_FROM  = Deno.env.get("FORWARDEMAIL_FROM") ?? "no-reply@querovendercarregador.com.br";
 const RESEND_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? "A Nova Profissao <onboarding@resend.dev>";
 
@@ -73,23 +78,29 @@ async function enviar(inst: string, numero: string, texto: string) {
   return r;
 }
 
-async function enviarEmail(para: string, assunto: string, texto: string) {
-  if (!RESEND_KEY) return { ok: false, status: 0, body: "RESEND_API_KEY nao configurada" };
+async function enviarEmail(para: string, assunto: string, texto: string, remetente = "A Nova Profissão") {
+  const html = `<pre style="font:14px/1.6 -apple-system,Segoe UI,sans-serif;white-space:pre-wrap">${
+    texto.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))
+  }</pre>`;
+  let falhaFE = "";
+  if (FE_TOKEN) {
+    const r = await fetch("https://api.forwardemail.net/v1/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Basic ${btoa(FE_TOKEN + ":")}` },
+      body: JSON.stringify({ from: `${remetente} <${FE_FROM}>`, to: para, subject: assunto, text: texto, html }),
+    });
+    const t = await r.text();
+    if (r.ok) return { ok: true, status: r.status, body: "" };
+    falhaFE = `Forward Email HTTP ${r.status}: ${t.slice(0, 200)} | `;
+  }
+  if (!RESEND_KEY) return { ok: false, status: 0, body: falhaFE + "RESEND_API_KEY nao configurada" };
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_KEY}` },
-    body: JSON.stringify({
-      from: EMAIL_FROM,
-      to: [para],
-      subject: assunto,
-      text: texto,
-      html: `<pre style="font:14px/1.6 -apple-system,Segoe UI,sans-serif;white-space:pre-wrap">${
-        texto.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))
-      }</pre>`,
-    }),
+    body: JSON.stringify({ from: EMAIL_FROM, to: [para], subject: assunto, text: texto, html }),
   });
   const t = await r.text();
-  return { ok: r.ok, status: r.status, body: t.slice(0, 400) };
+  return { ok: r.ok, status: r.status, body: (falhaFE + t).slice(0, 400) };
 }
 
 // toda tentativa vira uma linha — é isto que responde "por que nao chegou"
@@ -189,7 +200,32 @@ Deno.serve(async (req) => {
       // página de integradores (querovendercarregador.com.br); o segundo teste
       // cobre leads gravados antes da migração 10, que chegam sem o tipo
       const ehInteg = L.tipo === "integrador" || /página de integradores/.test(L.solucao ?? "");
+      // reunião marcada pela função "agenda" (migração 17): vem antes do ehInteg,
+      // porque a reunião da página de integradores também cita a página no texto
+      const ehAgenda = L.tipo === "agendamento";
       const onde = `${L.cidade ?? "?"}/${L.uf ?? "?"}`;
+      // o e-mail de reunião marcada vai sempre para o contato@ (pedido do Jimmy, nov/2026)
+      if (ehAgenda && !dest.some((d: any) => d.email === "contato@jimmyfenner.com.br")) {
+        dest.push({ numero: null, email: "contato@jimmyfenner.com.br", nome: "Jimmy" });
+      }
+      const quando = L.agenda_inicio
+        ? new Date(L.agenda_inicio).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "long", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" })
+        : "?";
+
+      const corpoAgenda = [
+        ehInteg ? "📅 *Reunião agendada — Conexão Mob (integrador)*" : "📅 *Reunião agendada — Apresentação iGreen Energy*", "",
+        `*${L.nome ?? "?"}*`,
+        `WhatsApp: ${L.whatsapp ?? "?"}`,
+        L.email ? `E-mail: ${L.email}` : null, "",
+        `Quando: ${quando} (30 min)`,
+        L.agenda_meet ? `Google Meet: ${L.agenda_meet}` : null,
+        L.agenda_aceite ? `Confirmou: ${L.agenda_aceite}` : null,
+        L.experiencia ? `Atuação: ${L.experiencia}` : null,
+        typeof L.video_pct === "number" ? `Vídeo medido no site: ${L.video_pct}%` : null, "",
+        "O convite com o link já foi para o e-mail da pessoa e está na sua agenda.",
+        `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
+        L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
+      ];
 
       const corpoDireto = [
         "🔴 *CADASTRO DIRETO — pessoa decidida*", "",
@@ -248,12 +284,14 @@ Deno.serve(async (req) => {
       // null = linha opcional ausente; "" = linha em branco proposital (Boolean apagaria as duas)
       const corpo = ehTeste
         ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
-        : (ehDireto ? corpoDireto : ehInteg ? corpoInteg : corpoQuiz).filter((l) => l !== null).join("\n");
+        : (ehAgenda ? corpoAgenda : ehDireto ? corpoDireto : ehInteg ? corpoInteg : corpoQuiz).filter((l) => l !== null).join("\n");
       // no espelho, a primeira linha diz de qual página o lead veio
       const texto = lic && !ehTeste ? `Via a sua pagina anovaprofissao.com.br/${lic.slug}\n\n${corpo}` : corpo;
 
       const assuntoBase = ehTeste
         ? "Teste de aviso — A Nova Profissao"
+        : ehAgenda
+          ? `📅 Reunião agendada: ${L.nome ?? "?"} — ${quando}`
         : ehDireto
           ? `🔴 CADASTRO DIRETO: ${L.nome ?? "?"} foi para o cadastro agora`
           : ehInteg
@@ -289,7 +327,8 @@ Deno.serve(async (req) => {
 
         if (d.email) {
           tarefas.push((async () => {
-            const r = await enviarEmail(d.email, assunto, texto.replace(/\*/g, ""));
+            const r = await enviarEmail(d.email, assunto, texto.replace(/\*/g, ""),
+                                        ehInteg ? "Quero Vender Carregador" : "A Nova Profissão");
             if (r.ok) mail++;
             log.push({ lead_id: L.id ?? null, lead_nome: L.nome ?? null, canal: "email",
                        destino: d.email, ok: r.ok,

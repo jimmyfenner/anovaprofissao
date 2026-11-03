@@ -85,8 +85,14 @@ leigo e a função exigia passos demais. A segurança não mudou:
   o envio de mensagem tenta o formato v2 e cai para o v1 — não deu para
   descobrir a versão do servidor. Qualquer ajuste depende do Jimmy testar e
   trazer o erro.
-- E-mail via Resend no mesmo fluxo do WhatsApp. Um destinatário pode ter
-  numero, email ou os dois (tabela notificacao_destinatarios).
+- E-mail no mesmo fluxo do WhatsApp, pelo **Forward Email** desde nov/2026
+  (secrets `FORWARDEMAIL_API_TOKEN` e `FORWARDEMAIL_FROM`; sai de
+  no-reply@querovendercarregador.com.br, domínio já liberado na conta, com o
+  nome "A Nova Profissão" ou "Quero Vender Carregador" conforme a página). Se
+  o Forward Email falhar, a mesma mensagem tenta o Resend. Para sair de
+  @anovaprofissao.com.br, o domínio precisa ser adicionado no Forward Email e
+  os registros DKIM/SPF/Return-Path/DMARC criados na Cloudflare. Um
+  destinatário pode ter numero, email ou os dois (tabela notificacao_destinatarios).
 - `notificacoes_log` registra TODA tentativa, com o erro quando falha, e o
   painel mostra as 40 últimas na aba Notificações. Foi criada depois de um
   lead (Moacir) não gerar aviso e não haver como descobrir o motivo — sem o
@@ -142,12 +148,22 @@ não pesar no Core Web Vitals.
 
 ## Sistema visual
 
-Grafite com viés verde (`--ink #0A0D0C`), verde elétrico `--credit #34DB8B`
-usado com sentido: é o **verde de crédito de um extrato**, não um destaque
-decorativo. Tipos: Archivo (display), Instrument Sans (texto),
-IBM Plex Mono (dados). O elemento estrutural que se repete é a **linha de
-extrato** — rótulo à esquerda, valor à direita, separados por fio.
-Tema escuro único e deliberado; todas as cores são pintadas explicitamente.
+**Desde 03/11/2026 a home, a página de integradores e o /agendar usam o kit do
+igreencel.com.br e do querocarregador.com.br** (pedido do Jimmy: "ficou feio
+comparado aos demais sistemas"): verde-escuro `--ink #09110E` com fundo vivo
+(`.aurora`, três manchas de luz que andam devagar, e `.grao`), malha `.grade` no
+alto do hero, cabeçalho em pílula de vidro com `.brand__ico`, botões
+arredondados (primário em degradê verde `#21CA70`, fantasma em vidro),
+sobrancelha `.eyebrow` em pílula com ponto, caixas em vidro (raio 20 px,
+degradê leve e filete claro), moldura com sombra verde no que é ação (vídeo,
+avaliação, formulário), `.brilho` numa frase do H1 e entrada `.surgir`/`.reveal`
+com `--ease-suave` e um leve desfoque. Fontes **Raleway** (títulos, 800) e
+**Outfit** (texto e rótulos), servidas pelo próprio site; o body tem
+`font-variant-numeric: lining-nums` porque a Raleway traz algarismos antigos.
+As superfícies (`--surface`, `--line`) são translúcidas para o fundo aparecer.
+A **linha de extrato** continua como elemento da home. Não voltar ao grafite
+chapado nem aos cantos retos. Painel, transição e páginas jurídicas seguem com
+o visual antigo (Archivo/Instrument Sans/Plex Mono).
 
 ## Roadmap combinado
 
@@ -385,7 +401,7 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 | Deploy | Vercel, automático a cada push em `main` (`node build.js` → `dist/`) |
 | DNS | Cloudflare, CNAME para a Vercel |
 | Banco / auth / storage | Supabase (projeto `buapklmgdjcoyzrmhhcd`) |
-| Notificações | Supabase Edge Function `whatsapp` → Evolution API + Resend |
+| Notificações | Supabase Edge Function `whatsapp` → Evolution API + Forward Email (Resend de reserva) |
 | Painel de leads | `anovaprofissao.com.br/admin` (login Supabase do Jimmy) |
 | Pixel da Meta | ID `1752542589367351`, chave `meta_pixel` no `site_config` |
 | API de Conversões da Meta | Supabase Edge Function `conversao-meta`, só lead de integrador |
@@ -405,7 +421,8 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
+**17 (agendamento) pendente** desde 03/nov/2026, junto com os secrets da agenda e do
+Forward Email e a publicação das funções `agenda` (nova) e `whatsapp`. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
 `conversao-meta` publicada na versão 1. 14 (vídeo assistido) e 15 (resultados)
 aplicadas e testadas em 30/out/2026, com a Edge Function `whatsapp` publicada na versão 14. A CLI do Supabase desta máquina
 alcança o projeto: `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f arquivo`
@@ -986,3 +1003,59 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   link (o `gerar_pdf.sh` do deck mede os cartões com `?medir` e sobrepõe `<a>`
   nas páginas antes do `--print-to-pdf`). Se os links mudarem, trocar no HTML
   do deck e regerar o PDF com o script; nunca editar só o `index.html` daqui.
+
+## Agendamento de reunião — /agendar (nov/2026)
+
+Pedido do Jimmy em 03/11/2026: o mesmo agendamento do querocarregador.com.br/agendamento
+nos dois sites deste repo.
+
+- **anovaprofissao.com.br/agendar** — apresentação da iGreen Energy. Antes do
+  horário, a pessoa precisa marcar "Sei que, para ser licenciado, existe um
+  investimento de R$ 1.997 por ano" (exigência dele; a caixa mostra também 12x
+  de R$ 197,41). Sem a marca, nem o site nem a função aceitam.
+- **querovendercarregador.com.br/agendar** — Conexão Mob para integradores.
+  Exige o vídeo de apresentação (o mesmo Vimeo da página, lido do
+  `data-vimeo`/`data-duracao` de integradores.html no build). "Já assisti" pede
+  a confirmação numa caixa; "Ainda não" abre o vídeo ali e só libera com 90% dos
+  segundos realmente tocados (mesma contagem e mesma chave `qvc_video_<id>` da
+  página, então quem já assistiu lá passa direto). Sem a API do Vimeo, a caixa
+  de confirmação aparece depois do tempo do vídeo. Pergunta também "O que você
+  faz hoje?" (mesmas opções do formulário).
+- **Fonte única** `agendar.html`; blocos `<!--so:home-->` e `<!--so:integ-->` e
+  `window.AGENDA` injetado no build. A da home é gerada em `dist/home-agendar`
+  (o arquivo ganharia dos rewrites em /agendar) e o `vercel.json` faz `/agendar`
+  virar uma ou outra por domínio; `/agendamento`, `/agenda` e `/home-agendar`
+  redirecionam para `/agendar`. Ambas `noindex`. Fora dos domínios reais a
+  marcação é **simulada** (prévia local não cria reunião).
+- **Função `agenda`** (`supabase/functions/agenda`, verify_jwt ligado: o site
+  chama com a chave anon): `slots`, `book` e `excluir` (este só com o login do
+  painel). Regras iguais às do querocarregador: 30 min, seg 9–19, **ter 9–16**,
+  qua–sex 9–19, aviso mínimo de 4 h, 14 dias à frente, ocupado lido do Google
+  `freeBusy`. **A agenda é a mesma** (primary de contato@jimmyfenner.com.br, com
+  os mesmos secrets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e
+  `GOOGLE_REFRESH_TOKEN` do querocarregador): uma reunião marcada num site some
+  do outro. Cria o evento com Meet e convite (`sendUpdates=all`) **antes** de
+  gravar o lead; se o lead não grava, apaga o evento. Uma reunião futura por
+  WhatsApp/e-mail. Campo-isca `site` contra robô.
+- **Banco** (`db/17-agendamento.sql`): o agendamento é um lead `tipo =
+  'agendamento'` com `agenda_inicio`, `agenda_fim`, `agenda_meet`,
+  `agenda_evento` e `agenda_aceite`; índice único no horário; o anon não tem
+  grant nessas colunas e um lead 'agendamento' sem horário é recusado. O de
+  integradores leva "página de integradores" na `solucao`, então conta como de lá
+  no painel e no contador.
+- **Aviso**: sai pelo gatilho de sempre (`avisa_lead_novo` → função `whatsapp`),
+  que só dispara quando o lead é gravado, ou seja, com a reunião já criada.
+  Mensagem própria (`corpoAgenda`: quando, Meet, o que confirmou, atuação, vídeo
+  medido), e o e-mail vai **sempre também para contato@jimmyfenner.com.br**
+  (pedido dele), pelo Forward Email. A pessoa recebe o convite do próprio Google.
+- **Painel**: selo "Reunião dd/mm às hh:mm", filtro "Reuniões agendadas",
+  linhas Reunião/Confirmou/Veio por no detalhe, botão "Abrir o Meet", Chamar
+  com mensagem da reunião, e **Excluir chama a função `agenda`**, que apaga o
+  evento (com cancelamento ao convidado se ainda não aconteceu) e o lead.
+- **Botões**: home (seção Apresentação, fechamento e resultado do quiz) e
+  integradores (hero, abaixo do vídeo e fechamento; `data-agendar` troca o link
+  para `/agendar` no domínio deles). **Nos espelhos de licenciado não há
+  agenda** (é a do Jimmy): bloco `<!--lic:agenda-->` some, o do quiz depende do
+  `LIC`, e o build trava se sobrar `href="/agendar"` no espelho.
+- Política de Privacidade atualizada (itens 2, 3 e 5; `ATUALIZADO` 3/11/2026).
+

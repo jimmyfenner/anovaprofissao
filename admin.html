@@ -147,6 +147,7 @@ p{margin:0}
 .lead__chamar{flex:none;margin-right:.9rem}
 .lead__when.is-espera{color:#E0A48C}
 @media(max-width:719px){.lead__who strong{white-space:normal;overflow:visible;overflow-wrap:anywhere}}
+.pill--agenda{color:#6BA8D8;border-color:rgba(107,168,216,.45);background:rgba(107,168,216,.1);font-weight:600}
 .pill--lic{color:#E0A83C;border-color:rgba(224,168,60,.45);background:rgba(224,168,60,.1);font-weight:600}
 .pill--ganho{color:#04120B;border-color:var(--credit);background:var(--credit)}
 .pill--sem_retorno,.pill--descartado{color:var(--muted-dim);border-color:var(--line);background:transparent}
@@ -357,6 +358,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <option value="quiz">Quiz (A Nova Profissão)</option>
         <option value="direto">Cadastro direto</option>
         <option value="integrador">Integradores</option>
+        <option value="agendamento">Reuniões agendadas</option>
         <option value="licenciado">Espelhos de licenciados</option>
       </select>
       <select class="inp" id="f-origem"><option value="">Todas as origens</option></select>
@@ -673,8 +675,11 @@ function filtrados(){
     if(pag && paginaDoLead(l) !== pag) return false;
     if(st && l.status !== st) return false;
     // integrador pelo mesmo critério do selo (cobre os gravados antes da migração 10)
+    // reunião agendada (migração 17) entra em "Reuniões" e, se veio de lá, também em "Integradores"
     if(tp === "licenciado"){ if(!l.licenciado) return false; }
-    else if(tp && (l.licenciado || (ehInteg(l) ? "integrador" : (l.tipo || "quiz")) !== tp)) return false;
+    else if(tp === "agendamento"){ if(l.tipo !== "agendamento") return false; }
+    else if(tp === "integrador"){ if(l.licenciado || !ehInteg(l)) return false; }
+    else if(tp && (l.licenciado || l.tipo === "agendamento" || (ehInteg(l) ? "integrador" : (l.tipo || "quiz")) !== tp)) return false;
     if(or && (l.utm_source || "direto") !== or) return false;
     if(corte && new Date(l.criado_em).getTime() < corte) return false;
     if(q){
@@ -857,7 +862,9 @@ setInterval(function(){
 // Chamar: mensagem pronta no WhatsApp. Quem é chamado sai da fila sozinho, para o número refletir o trabalho.
 function linkChamar(l){
   var nome = String(l.nome).split(" ")[0];
-  return "https://wa.me/" + (l.whatsapp_e164 || "") + "?text=" + encodeURIComponent(ehInteg(l)
+  return "https://wa.me/" + (l.whatsapp_e164 || "") + "?text=" + encodeURIComponent(l.tipo === "agendamento"
+    ? "Olá " + nome + "! Aqui é o Jimmy. É sobre a nossa reunião de " + dataReuniao(l.agenda_inicio) + ", pelo Google Meet — o link está no convite que foi para o seu e-mail."
+    : ehInteg(l)
     ? "Olá " + nome + "! Aqui é o Jimmy. Recebi suas respostas na página para integradores — posso te mostrar como a Conexão Mob se encaixa no seu trabalho?"
     : l.tipo === "direto"
     ? "Olá " + nome + "! Aqui é o Jimmy, do site A Nova Profissão. Vi que você foi para o cadastro — estou aqui para te ajudar em qualquer passo."
@@ -884,7 +891,8 @@ function render(){
       '<div class="lead__linha">'+
       '<button class="lead__head" type="button" aria-expanded="'+aberta+'">'+
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
+        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto"||l.tipo==="agendamento" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
+        (l.tipo==="agendamento" ? '<span class="pill pill--agenda" title="'+esc(dataReuniao(l.agenda_inicio))+'">Reunião '+esc(diaReuniao(l.agenda_inicio))+'</span>' : '')+
         (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
         (ehInteg(l) ? '<span class="pill pill--integ">Integrador</span>' : '')+
         (l.video_pct >= 90 ? '<span class="pill pill--video">Viu o vídeo</span>' : '')+
@@ -948,11 +956,17 @@ function render(){
 // lead da página de integradores; o segundo teste cobre os gravados antes da migração 10
 function ehInteg(l){ return l.tipo==="integrador" || /página de integradores/.test(l.solucao||""); }
 function nomeLic(slug){ return "Via " + ((LICS[slug] || "").split(" ")[0] || slug); }
+// reunião marcada pela página /agendar (migração 17), sempre no horário de Brasília
+function diaReuniao(iso){ return iso ? new Date(iso).toLocaleString("pt-BR", {timeZone:"America/Sao_Paulo", day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}).replace(",", " às") : "?"; }
+function dataReuniao(iso){ return iso ? new Date(iso).toLocaleString("pt-BR", {timeZone:"America/Sao_Paulo", weekday:"long", day:"2-digit", month:"long", hour:"2-digit", minute:"2-digit"}) : "?"; }
 
 function detalhe(l){
   return '<div class="detail">'+
     '<dl class="dl">'+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
+      (l.tipo==="agendamento" ? linha("Reunião", dataReuniao(l.agenda_inicio) + " (30 min, Google Meet)" + (new Date(l.agenda_fim) < new Date() ? " — já passou" : "")) +
+                                linha("Confirmou", l.agenda_aceite) +
+                                linha("Veio por", ehInteg(l) ? "Agendamento da página de integradores (querovendercarregador.com.br/agendar)" : "Agendamento de apresentação (anovaprofissao.com.br/agendar)") : "")+
       (ehInteg(l) ? linha("Veio por", "Página de integradores (querovendercarregador.com.br) — Atuação, Perfil e Objetivo abaixo são as respostas de lá") : "")+
       (l.licenciado ? linha("Espelho", (LICS[l.licenciado] || l.licenciado) + " — anovaprofissao.com.br/" + l.licenciado + ". O aviso deste lead foi para ele.") : "")+
       campo(l.id, "nome", "Nome", l.nome)+
@@ -984,11 +998,12 @@ function detalhe(l){
         '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
       '<div class="acts">'+
         '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Abrir conversa</a>'+
+        (l.agenda_meet ? '<a class="btn btn--sm" target="_blank" rel="noopener" href="'+esc(l.agenda_meet)+'">Abrir o Meet</a>' : '')+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
         '<button class="btn btn--sm" type="button" data-reenv="'+l.id+'">Reenviar aviso</button>'+
         '<button class="btn btn--sm btn--perigo" type="button" data-excluir="'+l.id+'">Excluir</button>'+
       '</div>'+
-      '<p class="apaga-nota">Excluir apaga o contato e as respostas na hora, sem desfazer.</p>'+
+      '<p class="apaga-nota">'+(l.agenda_evento ? 'Excluir apaga o contato e a reunião na sua agenda, sem desfazer. Se a reunião ainda não aconteceu, o convidado recebe o cancelamento do Google.' : 'Excluir apaga o contato e as respostas na hora, sem desfazer.')+'</p>'+
     '</div>'+
   '</div>';
 }
@@ -1035,6 +1050,23 @@ function mudarStatus(id, valor){
 }
 function excluirLead(id, botao){
   if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); aberto = null; render(); return; }
+  /* reunião agendada: quem apaga é a função "agenda", que tira o evento da agenda
+     do Google junto — apagar só o lead deixaria a reunião marcada lá */
+  var lead = leads.find(function(x){return x.id===id});
+  if(lead && lead.agenda_evento){
+    sb.functions.invoke("agenda", {body:{action:"excluir", id:id}}).then(function(r){
+      botao.disabled = false; botao.textContent = "Excluir"; botao.classList.remove("is-armado");
+      if(r.error || !r.data || !r.data.ok){
+        console.error(r.error || r.data);
+        alert("Não consegui excluir a reunião agora. Nada foi apagado; tente de novo em instantes.");
+        return;
+      }
+      leads = leads.filter(function(x){return x.id!==id});
+      aberto = null;
+      render();
+    });
+    return;
+  }
   /* .select() devolve as linhas realmente apagadas. Sem isso, quando a
      permissão falta, o Supabase responde "ok" sem apagar nada — e o painel
      mentiria para o operador até a próxima recarga. */
