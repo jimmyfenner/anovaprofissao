@@ -8,10 +8,14 @@ const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
 const SB_URL  = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 // E-mail pelo Forward Email (padrão de todos os sistemas do Jimmy desde nov/2026).
-// FORWARDEMAIL_FROM é só o endereço; o nome que aparece muda com a página do lead.
+// O remetente segue a página do lead: anovaprofissao.com.br ou, para integradores,
+// querovendercarregador.com.br (os dois com envio liberado na conta, em 03/11/2026).
 // O Resend fica de reserva: se o Forward Email falhar, a mesma mensagem vai por ele.
 const FE_TOKEN = Deno.env.get("FORWARDEMAIL_API_TOKEN") ?? "";
-const FE_FROM  = Deno.env.get("FORWARDEMAIL_FROM") ?? "no-reply@querovendercarregador.com.br";
+const FE_REMETENTES = {
+  home:  "A Nova Profissão <no-reply@anovaprofissao.com.br>",
+  integ: "Quero Vender Carregador <no-reply@querovendercarregador.com.br>",
+};
 const RESEND_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? "A Nova Profissao <onboarding@resend.dev>";
 
@@ -78,7 +82,7 @@ async function enviar(inst: string, numero: string, texto: string) {
   return r;
 }
 
-async function enviarEmail(para: string, assunto: string, texto: string, remetente = "A Nova Profissão") {
+async function enviarEmail(para: string, assunto: string, texto: string, remetente = FE_REMETENTES.home) {
   const html = `<pre style="font:14px/1.6 -apple-system,Segoe UI,sans-serif;white-space:pre-wrap">${
     texto.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!))
   }</pre>`;
@@ -87,7 +91,7 @@ async function enviarEmail(para: string, assunto: string, texto: string, remeten
     const r = await fetch("https://api.forwardemail.net/v1/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Basic ${btoa(FE_TOKEN + ":")}` },
-      body: JSON.stringify({ from: `${remetente} <${FE_FROM}>`, to: para, subject: assunto, text: texto, html }),
+      body: JSON.stringify({ from: remetente, to: para, subject: assunto, text: texto, html }),
     });
     const t = await r.text();
     if (r.ok) return { ok: true, status: r.status, body: "" };
@@ -328,7 +332,7 @@ Deno.serve(async (req) => {
         if (d.email) {
           tarefas.push((async () => {
             const r = await enviarEmail(d.email, assunto, texto.replace(/\*/g, ""),
-                                        ehInteg ? "Quero Vender Carregador" : "A Nova Profissão");
+                                        ehInteg ? FE_REMETENTES.integ : FE_REMETENTES.home);
             if (r.ok) mail++;
             log.push({ lead_id: L.id ?? null, lead_nome: L.nome ?? null, canal: "email",
                        destino: d.email, ok: r.ok,

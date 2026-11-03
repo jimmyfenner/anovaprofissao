@@ -86,13 +86,16 @@ leigo e a função exigia passos demais. A segurança não mudou:
   descobrir a versão do servidor. Qualquer ajuste depende do Jimmy testar e
   trazer o erro.
 - E-mail no mesmo fluxo do WhatsApp, pelo **Forward Email** desde nov/2026
-  (secrets `FORWARDEMAIL_API_TOKEN` e `FORWARDEMAIL_FROM`; sai de
-  no-reply@querovendercarregador.com.br, domínio já liberado na conta, com o
-  nome "A Nova Profissão" ou "Quero Vender Carregador" conforme a página). Se
-  o Forward Email falhar, a mesma mensagem tenta o Resend. Para sair de
-  @anovaprofissao.com.br, o domínio precisa ser adicionado no Forward Email e
-  os registros DKIM/SPF/Return-Path/DMARC criados na Cloudflare. Um
-  destinatário pode ter numero, email ou os dois (tabela notificacao_destinatarios).
+  (secret `FORWARDEMAIL_API_TOKEN`, o mesmo de Projects/monitor-hub-igreen/.env).
+  Remetente conforme a página: "A Nova Profissão <no-reply@anovaprofissao.com.br>"
+  (domínio adicionado pelo Jimmy no Forward Email em 03/11/2026, envio liberado
+  no mesmo dia: MX, SPF, DKIM, Return-Path `fe-bounces` e DMARC na Cloudflare)
+  ou "Quero Vender Carregador <no-reply@querovendercarregador.com.br>" para
+  integradores (`FE_REMETENTES` na função). Se o Forward Email falhar, a mesma
+  mensagem tenta o Resend. O MX do anovaprofissao.com.br aponta para o Forward
+  Email: e-mail recebido em @anovaprofissao.com.br segue as regras de
+  encaminhamento de lá. Um destinatário pode ter numero, email ou os dois
+  (tabela notificacao_destinatarios).
 - `notificacoes_log` registra TODA tentativa, com o erro quando falha, e o
   painel mostra as 40 últimas na aba Notificações. Foi criada depois de um
   lead (Moacir) não gerar aviso e não haver como descobrir o motivo — sem o
@@ -421,8 +424,8 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-**17 (agendamento) pendente** desde 03/nov/2026, junto com os secrets da agenda e do
-Forward Email e a publicação das funções `agenda` (nova) e `whatsapp`. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
+**17 (agendamento) pendente** desde 03/nov/2026, junto com os secrets da agenda
+(`GOOGLE_*`) e do Forward Email (`FORWARDEMAIL_API_TOKEN`) e a publicação das funções `agenda` (nova) e `whatsapp`. 16 (API de Conversões da Meta) aplicada em 30/out/2026, com a Edge Function
 `conversao-meta` publicada na versão 1. 14 (vídeo assistido) e 15 (resultados)
 aplicadas e testadas em 30/out/2026, com a Edge Function `whatsapp` publicada na versão 14. A CLI do Supabase desta máquina
 alcança o projeto: `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f arquivo`
@@ -1047,7 +1050,9 @@ nos dois sites deste repo.
   que só dispara quando o lead é gravado, ou seja, com a reunião já criada.
   Mensagem própria (`corpoAgenda`: quando, Meet, o que confirmou, atuação, vídeo
   medido), e o e-mail vai **sempre também para contato@jimmyfenner.com.br**
-  (pedido dele), pelo Forward Email. A pessoa recebe o convite do próprio Google.
+  (pedido dele), pelo Forward Email, de no-reply@anovaprofissao.com.br (apresentação)
+  ou no-reply@querovendercarregador.com.br (integradores). A pessoa recebe o
+  convite do próprio Google.
 - **Painel**: selo "Reunião dd/mm às hh:mm", filtro "Reuniões agendadas",
   linhas Reunião/Confirmou/Veio por no detalhe, botão "Abrir o Meet", Chamar
   com mensagem da reunião, e **Excluir chama a função `agenda`**, que apaga o
