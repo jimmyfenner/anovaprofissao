@@ -1,0 +1,389 @@
+<title>Painel do licenciado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@600..800&family=Outfit:wght@300..700&display=swap">
+
+<!-- Painel dos licenciados (nov/2026): login por código no WhatsApp e os leads da página
+     de cada um. Quem decide tudo é a função "painel" do Supabase; ver o CLAUDE.md. -->
+
+<style>
+:root{
+  --ink:#09110E;--text:#F1F4F1;--muted:#9CABA2;--muted-dim:#6F8077;
+  --line:rgba(255,255,255,.1);--line-soft:rgba(255,255,255,.065);
+  --credit:#21CA70;--credit-hi:#3FE08A;--warn:#FBBF24;--err:#F08A6C;--blue:#6BA8D8;
+  --display:"Raleway","Helvetica Neue",Arial,sans-serif;
+  --body:"Outfit","Helvetica Neue",Arial,sans-serif;
+  --vidro:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  --ease-suave:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:clip;font-variant-numeric:lining-nums}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--credit);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em;line-height:1.12;text-wrap:balance}
+p{margin:0}
+[hidden]{display:none !important}
+
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(120% 70% at 50% -10%,#10241A,transparent 65%),var(--ink)}
+.aurora>span{position:absolute;width:72vmax;height:72vmax;border-radius:50%;will-change:transform}
+.aurora>span:nth-child(1){top:-38vmax;left:-24vmax;background:radial-gradient(closest-side,rgba(33,202,112,.18),transparent);animation:deriva1 28s cubic-bezier(.45,0,.55,1) infinite alternate}
+.aurora>span:nth-child(2){top:-10vmax;right:-34vmax;background:radial-gradient(closest-side,rgba(28,156,124,.2),transparent);animation:deriva2 34s cubic-bezier(.45,0,.55,1) infinite alternate}
+@keyframes deriva1{50%{transform:translate(16vmax,10vmax) scale(1.15)}100%{transform:translate(6vmax,22vmax) scale(.95)}}
+@keyframes deriva2{50%{transform:translate(-14vmax,16vmax) scale(.9)}100%{transform:translate(-22vmax,4vmax) scale(1.12)}}
+.grao{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:.04;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+@media (prefers-reduced-motion:reduce){.aurora>span{animation:none}}
+
+.nav{position:sticky;top:0;z-index:60;padding-top:12px}
+.nav__in{display:flex;align-items:center;justify-content:space-between;gap:1rem;max-width:1088px;margin-inline:max(12px,calc(50vw - 544px));padding:.5rem .55rem .5rem .75rem;border-radius:999px;background:linear-gradient(180deg,rgba(17,30,24,.85),rgba(12,22,18,.75));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(255,255,255,.08),0 18px 50px -24px rgba(0,0,0,.8)}
+.brand{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--text);min-width:0}
+.brand__ico{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;color:#04140B;background:linear-gradient(135deg,#3FE08A,#17A85E);box-shadow:0 0 22px -4px rgba(33,202,112,.7)}
+.brand__mark{font-family:var(--display);font-weight:800;font-size:1rem;white-space:nowrap}
+.brand__mark em{font-style:normal;color:var(--credit-hi)}
+.brand__mark small{display:block;font-family:var(--body);font-weight:500;font-size:.72rem;color:var(--muted);letter-spacing:.02em}
+@media(max-width:420px){.brand__mark{font-size:.9rem}.brand__ico{width:30px;height:30px}}
+
+main{max-width:1000px;margin:0 auto;padding:clamp(28px,5vw,48px) 16px 72px}
+
+.btn{font:inherit;font-size:.95rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:.5em;padding:.85em 1.4em;border-radius:999px;border:0;cursor:pointer;text-decoration:none;color:var(--text);transition:transform .4s var(--ease-suave),box-shadow .4s var(--ease-suave),opacity .2s}
+.btn--primary{background:linear-gradient(135deg,#2AD47A,#1DB86B);color:#04140B;box-shadow:0 10px 32px -10px rgba(33,202,112,.65),inset 0 1px 0 rgba(255,255,255,.25)}
+.btn--primary:hover:not([disabled]){transform:translateY(-2px)}
+.btn--ghost{background:var(--vidro);box-shadow:inset 0 0 0 1px var(--line)}
+.btn--ghost:hover{box-shadow:inset 0 0 0 1px rgba(33,202,112,.4)}
+.btn--sm{font-size:.84rem;padding:.6em 1.05em}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.linkbtn{font:inherit;font-size:.9rem;background:none;border:0;color:var(--muted);cursor:pointer;padding:.4em 0}
+.linkbtn:hover{color:var(--text)}
+
+/* login */
+.entrar{max-width:440px;margin:clamp(24px,6vw,64px) auto 0;text-align:center;display:grid;gap:1rem}
+.eyebrow{justify-self:center;font-size:.68rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--credit-hi);display:inline-flex;align-items:center;gap:.55em;background:rgba(33,202,112,.1);box-shadow:inset 0 0 0 1px rgba(33,202,112,.25);border-radius:999px;padding:.5em 1.05em}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor}
+.entrar h1{font-size:clamp(1.9rem,6vw,2.5rem);font-weight:800}
+.entrar .lede{color:var(--muted)}
+.caixa{border-radius:24px;padding:clamp(1.3rem,4vw,2rem);background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.025));box-shadow:0 0 0 1px rgba(255,255,255,.1),0 40px 120px -40px rgba(33,202,112,.45);display:grid;gap:1rem;text-align:left}
+.campo{display:flex;flex-direction:column;gap:.4rem}
+.campo label{font-size:.82rem;font-weight:600;color:var(--muted)}
+.inp{font:inherit;font-size:1rem;color:var(--text);padding:.8em 1em;border-radius:12px;border:0;background:rgba(255,255,255,.045);box-shadow:inset 0 0 0 1px var(--line);width:100%}
+.inp:focus{outline:none;box-shadow:inset 0 0 0 1px rgba(33,202,112,.6),0 0 0 4px rgba(33,202,112,.12)}
+.inp--codigo{font-size:1.6rem;font-weight:700;letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}
+select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:2.4em}
+select.inp option{background:#0F1A16}
+textarea.inp{min-height:90px;resize:vertical}
+.msg{font-size:.9rem;line-height:1.5}
+.msg--erro{color:var(--err)}
+.msg--ok{color:var(--credit-hi)}
+.nota{font-size:.82rem;color:var(--muted-dim);line-height:1.55}
+
+/* painel */
+.cabeca{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1.4rem}
+.cabeca h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:800}
+.cabeca p{color:var(--muted);font-size:.92rem}
+.cabeca p a{color:var(--credit-hi);text-decoration:none;font-weight:600}
+.vercomo{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--muted)}
+.vercomo .inp{width:auto;min-width:200px;padding:.55em 2.4em .55em .9em;font-size:.9rem}
+.numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.4rem}
+.num{border-radius:18px;padding:1rem 1.1rem;background:var(--vidro);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 0 0 1px rgba(255,255,255,.08)}
+.num b{display:block;font-family:var(--display);font-weight:800;font-size:clamp(1.5rem,4vw,2rem);color:var(--credit-hi);line-height:1.1}
+.num span{font-size:.8rem;color:var(--muted)}
+@media(max-width:520px){.numeros{grid-template-columns:1fr 1fr}.num:last-child{grid-column:1/-1}}
+.filtros{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:.9rem}
+.filtros .inp{width:auto;flex:1;min-width:160px;padding:.6em .9em;font-size:.92rem}
+.filtros select.inp{flex:0 0 auto;min-width:170px}
+
+.lead{border-radius:16px;background:var(--vidro);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 0 1px rgba(255,255,255,.08);margin-bottom:.6rem;overflow:hidden}
+.lead.novo{box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 0 0 1px rgba(33,202,112,.35)}
+.lead__linha{display:flex;align-items:center;gap:.6rem;padding:.75rem .8rem .75rem 1rem}
+.lead__abre{flex:1;min-width:0;display:flex;align-items:center;gap:.7rem;background:none;border:0;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:0}
+.lead__quem{flex:1;min-width:0}
+.lead__quem strong{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead__quem span{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.pill{font-size:.72rem;font-weight:600;padding:.28em .7em;border-radius:999px;white-space:nowrap;box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
+.pill--novo{color:var(--credit-hi);box-shadow:inset 0 0 0 1px rgba(33,202,112,.45);background:rgba(33,202,112,.1)}
+.pill--contatado{color:var(--blue);box-shadow:inset 0 0 0 1px rgba(107,168,216,.4)}
+.pill--em_conversa{color:var(--warn);box-shadow:inset 0 0 0 1px rgba(251,191,36,.4)}
+.pill--ganho{color:#04140B;background:var(--credit)}
+.pill--direto{color:#04140B;background:#E0A83C}
+.lead__quando{font-size:.78rem;color:var(--muted-dim);white-space:nowrap}
+@media(max-width:600px){.lead__quando,.lead .pill--tipo{display:none}}
+.lead__det{padding:0 1rem 1rem;display:grid;gap:1rem;border-top:1px solid var(--line-soft)}
+.dl{display:grid;gap:0;margin:.8rem 0 0}
+.dl div{display:flex;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--line-soft);font-size:.9rem}
+.dl dt{flex:none;width:9rem;color:var(--muted-dim);font-size:.8rem;padding-top:.1em}
+.dl dd{margin:0;min-width:0;overflow-wrap:anywhere}
+@media(max-width:520px){.dl div{flex-direction:column;gap:.1rem}.dl dt{width:auto}}
+.acoes{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.vazio{text-align:center;color:var(--muted);padding:2.5rem 1rem;border-radius:18px;box-shadow:inset 0 0 0 1px var(--line-soft)}
+.rodape{margin-top:2rem;font-size:.78rem;color:var(--muted-dim);line-height:1.6;max-width:70ch}
+</style>
+
+<div class="aurora" aria-hidden="true"><span></span><span></span></div>
+<div class="grao" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="nav__in">
+    <a class="brand" href="/painel">
+      <span class="brand__ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>
+      <span class="brand__mark">A Nova <em>Profissão</em><small>Painel do licenciado</small></span>
+    </a>
+    <button class="btn btn--ghost btn--sm" type="button" id="sair" hidden>Sair</button>
+  </div>
+</nav>
+
+<main>
+  <!-- login -->
+  <section class="entrar" id="tela-entrar" hidden>
+    <p class="eyebrow">Acesso por WhatsApp</p>
+    <h1>Seu painel de leads</h1>
+    <p class="lede">Entre com o WhatsApp cadastrado. Mandamos um código de 6 números para ele.</p>
+    <div class="caixa" id="passo-numero">
+      <div class="campo"><label for="zap">WhatsApp</label><input class="inp" id="zap" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="20" placeholder="(00) 00000-0000"></div>
+      <button class="btn btn--primary" type="button" id="pedir">Receber código</button>
+      <p class="msg msg--erro" id="msg-numero" hidden></p>
+    </div>
+    <div class="caixa" id="passo-codigo" hidden>
+      <p class="nota" id="aviso-codigo">Se este número tiver acesso, o código chega no WhatsApp em alguns segundos.</p>
+      <div class="campo"><label for="codigo">Código</label><input class="inp inp--codigo" id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••"></div>
+      <button class="btn btn--primary" type="button" id="entrar">Entrar</button>
+      <p class="msg msg--erro" id="msg-codigo" hidden></p>
+      <button class="linkbtn" type="button" id="outro">Usar outro número ou pedir outro código</button>
+    </div>
+  </section>
+
+  <!-- painel -->
+  <section id="tela-painel" hidden>
+    <div class="cabeca">
+      <div>
+        <h1 id="ola">Olá</h1>
+        <p id="sua-pagina"></p>
+      </div>
+      <label class="vercomo" id="vercomo" hidden>Ver o painel de <select class="inp" id="lic"></select></label>
+    </div>
+    <div class="numeros" id="numeros"></div>
+    <div class="filtros">
+      <input class="inp" id="busca" type="search" placeholder="Buscar por nome, cidade ou telefone">
+      <select class="inp" id="f-status"><option value="">Todos os status</option></select>
+    </div>
+    <div id="lista"></div>
+    <p class="rodape">Dados pessoais de quem pediu contato pela sua página. Use apenas para esse contato e atenda pedidos de exclusão (LGPD): para apagar um contato, fale com o Jimmy.</p>
+  </section>
+
+  <p class="nota" id="carregando" style="text-align:center;margin-top:3rem">Carregando…</p>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var SUPABASE_URL = "https://buapklmgdjcoyzrmhhcd.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
+  var FN = SUPABASE_URL + "/functions/v1/painel";
+  var CHAVE = "anp_painel";   // token da sessão (o banco guarda só o hash dele)
+  var STATUS = {novo:"Novo",contatado:"Contatado",em_conversa:"Em conversa",ganho:"Ganho",sem_retorno:"Sem retorno",descartado:"Descartado"};
+
+  var $ = function(s){ return document.querySelector(s); };
+  var $$ = function(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); };
+  function esc(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function token(){ try{ return localStorage.getItem(CHAVE); }catch(e){ return null; } }
+  function guardar(t){ try{ t ? localStorage.setItem(CHAVE, t) : localStorage.removeItem(CHAVE); }catch(e){} }
+  // o painel não conta como visita do site
+  try{ localStorage.setItem("anp_admin", "1"); }catch(e){}
+
+  function chamar(acao, dados){
+    return fetch(FN, { method: "POST",
+      headers: {"Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY},
+      body: JSON.stringify(Object.assign({ action: acao }, dados || {})) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ j._status = r.status; return j; }); })
+      .catch(function(){ return { _status: 0, error: "Sem conexão agora. Confira a internet e tente de novo." }; });
+  }
+  function mensagem(el, t, tipo){ el.hidden = !t; el.textContent = t || ""; el.className = "msg msg--" + (tipo || "erro"); }
+
+  /* ---------- login ---------- */
+  var desafio = null;
+  var zap = $("#zap");
+  zap.addEventListener("input", function(){
+    var d = zap.value.replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "").slice(0, 11);
+    zap.value = d.length > 10 ? "(" + d.slice(0,2) + ") " + d.slice(2,7) + "-" + d.slice(7)
+              : d.length > 6 ? "(" + d.slice(0,2) + ") " + d.slice(2,6) + "-" + d.slice(6)
+              : d.length > 2 ? "(" + d.slice(0,2) + ") " + d.slice(2) : d;
+  });
+  zap.addEventListener("keydown", function(e){ if(e.key === "Enter") $("#pedir").click(); });
+  $("#codigo").addEventListener("keydown", function(e){ if(e.key === "Enter") $("#entrar").click(); });
+  $("#codigo").addEventListener("input", function(){ this.value = this.value.replace(/\D/g, "").slice(0, 6); if(this.value.length === 6) $("#entrar").click(); });
+
+  $("#pedir").addEventListener("click", function(){
+    var b = this, d = zap.value.replace(/\D/g, "");
+    if(d.length < 10){ mensagem($("#msg-numero"), "Informe o WhatsApp com DDD."); return; }
+    b.disabled = true; b.textContent = "Enviando…"; mensagem($("#msg-numero"), "");
+    chamar("codigo", { whatsapp: d }).then(function(j){
+      b.disabled = false; b.textContent = "Receber código";
+      if(!j.ok){ mensagem($("#msg-numero"), j.error || "Não deu certo agora. Tente de novo."); return; }
+      desafio = j.desafio;
+      $("#passo-numero").hidden = true; $("#passo-codigo").hidden = false;
+      $("#codigo").value = ""; $("#codigo").focus();
+    });
+  });
+  $("#entrar").addEventListener("click", function(){
+    var b = this, c = $("#codigo").value.replace(/\D/g, "");
+    if(c.length !== 6 || b.disabled) return;
+    b.disabled = true; b.textContent = "Conferindo…"; mensagem($("#msg-codigo"), "");
+    chamar("entrar", { desafio: desafio, codigo: c }).then(function(j){
+      b.disabled = false; b.textContent = "Entrar";
+      if(!j.ok || !j.token){ mensagem($("#msg-codigo"), j.error || "Não deu certo agora. Tente de novo."); return; }
+      guardar(j.token);
+      carregar();
+    });
+  });
+  $("#outro").addEventListener("click", function(){
+    desafio = null; $("#passo-codigo").hidden = true; $("#passo-numero").hidden = false; mensagem($("#msg-codigo"), ""); zap.focus();
+  });
+  $("#sair").addEventListener("click", function(){
+    var t = token(); guardar(null);
+    chamar("sair", { token: t }).then(function(){ location.reload(); });
+  });
+
+  function telaEntrar(){
+    $("#carregando").hidden = true; $("#tela-painel").hidden = true; $("#sair").hidden = true;
+    $("#tela-entrar").hidden = false; $("#passo-numero").hidden = false; $("#passo-codigo").hidden = true;
+  }
+
+  /* ---------- painel ---------- */
+  var D = null, aberto = null, slugEscolhido = null;
+  function carregar(){
+    var t = token();
+    if(!t){ telaEntrar(); return; }
+    chamar("dados", { token: t, slug: slugEscolhido }).then(function(j){
+      if(j._status === 401 || j._status === 403){ guardar(null); telaEntrar(); if(j._status === 403) mensagem($("#msg-numero"), j.error); return; }
+      if(j.error){ $("#carregando").hidden = false; $("#carregando").textContent = j.error; return; }
+      D = j; slugEscolhido = j.licenciado ? j.licenciado.slug : null;
+      $("#carregando").hidden = true; $("#tela-entrar").hidden = true; $("#tela-painel").hidden = false; $("#sair").hidden = false;
+      desenhar();
+    });
+  }
+  function quando(iso){
+    var d = new Date(iso), s = (Date.now() - d.getTime()) / 1000;
+    if(s < 3600) return "há " + Math.max(1, Math.round(s / 60)) + " min";
+    if(s < 86400) return "há " + Math.round(s / 3600) + " h";
+    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit", timeZone: "America/Sao_Paulo" });
+  }
+  function linkChamar(l){
+    var nome = String(l.nome || "").split(" ")[0], eu = D.licenciado.curto;
+    var txt = l.tipo === "direto"
+      ? "Olá " + nome + "! Aqui é o " + eu + ", do site A Nova Profissão. Vi que você foi para o cadastro — estou aqui para te ajudar em qualquer passo."
+      : "Olá " + nome + "! Aqui é o " + eu + ", do site A Nova Profissão. Vi que você terminou a avaliação de perfil — posso te explicar como funciona?";
+    return "https://wa.me/" + (l.whatsapp_e164 || "") + "?text=" + encodeURIComponent(txt);
+  }
+  function desenhar(){
+    var q = D.quem, lic = D.licenciado;
+    $("#ola").textContent = "Olá, " + q.nome;
+    if(q.admin){
+      $("#vercomo").hidden = !(D.licenciados || []).length;
+      $("#lic").innerHTML = (D.licenciados || []).map(function(x){ return '<option value="' + esc(x.slug) + '">' + esc(x.nome) + '</option>'; }).join("");
+      if(lic) $("#lic").value = lic.slug;
+    }
+    if(!lic){
+      $("#sua-pagina").textContent = "Nenhum licenciado com página ainda.";
+      $("#numeros").innerHTML = ""; $("#lista").innerHTML = ""; return;
+    }
+    $("#sua-pagina").innerHTML = (q.admin ? "Página de " + esc(lic.nome) + ": " : "Sua página: ") +
+      '<a href="/' + esc(lic.slug) + '" target="_blank" rel="noopener">anovaprofissao.com.br/' + esc(lic.slug) + '</a>';
+    var n = D.numeros || {};
+    $("#numeros").innerHTML =
+      '<div class="num"><b>' + (n.visitas30 || 0) + '</b><span>visitas na página (30 dias)</span></div>' +
+      '<div class="num"><b>' + (n.leads30 || 0) + '</b><span>leads (30 dias)</span></div>' +
+      '<div class="num"><b>' + (n.esperando || 0) + '</b><span>esperando o seu contato</span></div>';
+    if(!$("#f-status").options[1]){
+      $("#f-status").innerHTML += Object.keys(STATUS).map(function(k){ return '<option value="' + k + '">' + STATUS[k] + '</option>'; }).join("");
+    }
+    lista();
+  }
+  function lista(){
+    var busca = $("#busca").value.trim().toLowerCase(), st = $("#f-status").value;
+    var ls = (D.leads || []).filter(function(l){
+      if(st && l.status !== st) return false;
+      if(busca && [l.nome, l.cidade, l.uf, l.whatsapp, l.email].join(" ").toLowerCase().indexOf(busca) < 0) return false;
+      return true;
+    });
+    if(!(D.leads || []).length){
+      $("#lista").innerHTML = '<p class="vazio">Ainda não chegou nenhum lead pela sua página. Quando chegar, ele aparece aqui e o aviso vai para o seu WhatsApp.</p>';
+      return;
+    }
+    if(!ls.length){ $("#lista").innerHTML = '<p class="vazio">Nenhum lead com esse filtro.</p>'; return; }
+    $("#lista").innerHTML = ls.map(function(l){
+      var abre = aberto === l.id;
+      return '<div class="lead' + (l.status === "novo" ? " novo" : "") + '" data-id="' + esc(l.id) + '">' +
+        '<div class="lead__linha">' +
+          '<button class="lead__abre" type="button" aria-expanded="' + abre + '">' +
+            '<span class="lead__quem"><strong>' + esc(l.nome || "—") + '</strong><span>' + esc([l.cidade, l.uf].filter(Boolean).join(" / ") || l.email || "—") + '</span></span>' +
+            (l.tipo === "direto" ? '<span class="pill pill--direto pill--tipo">Cadastro direto</span>' : '') +
+            '<span class="pill pill--' + esc(l.status) + '">' + esc(STATUS[l.status] || l.status) + '</span>' +
+            '<span class="lead__quando">' + quando(l.criado_em) + '</span>' +
+          '</button>' +
+          (l.whatsapp_e164 ? '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="' + esc(l.id) + '" href="' + esc(linkChamar(l)) + '">Chamar</a>' : '') +
+        '</div>' +
+        (abre ? detalhe(l) : '') +
+      '</div>';
+    }).join("");
+  }
+  function linha(k, v){ return v ? '<div><dt>' + esc(k) + '</dt><dd>' + esc(v) + '</dd></div>' : ''; }
+  function detalhe(l){
+    return '<div class="lead__det">' +
+      '<dl class="dl">' +
+        linha("WhatsApp", l.whatsapp) + linha("E-mail", l.email) + linha("Cidade", [l.cidade, l.uf].filter(Boolean).join(" / ")) +
+        (l.tipo === "direto" ? linha("Veio por", "Botão de cadastro direto: foi para o cadastro sem fazer a avaliação") : "") +
+        linha("Objetivo", l.objetivo) + linha("Tempo", l.tempo) + linha("Experiência", l.experiencia) +
+        linha("Interesse", l.solucao) + linha("Perfil", l.perfil) + linha("Investimento", l.investimento) + linha("Momento", l.momento) +
+        linha("Recebido", new Date(l.criado_em).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })) +
+        linha("Origem", [l.utm_source, l.utm_campaign].filter(Boolean).join(" / ") || "direto") +
+      '</dl>' +
+      '<div class="campo"><label>Status</label><select class="inp" data-status="' + esc(l.id) + '">' +
+        Object.keys(STATUS).map(function(k){ return '<option value="' + k + '"' + (l.status === k ? " selected" : "") + '>' + STATUS[k] + '</option>'; }).join("") +
+      '</select></div>' +
+      '<div class="campo"><label>Anotações</label><textarea class="inp" data-nota="' + esc(l.id) + '" placeholder="O que ficou combinado…">' + esc(l.anotacoes || "") + '</textarea></div>' +
+      '<div class="acoes">' +
+        (l.whatsapp_e164 ? '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="' + esc(l.id) + '" href="' + esc(linkChamar(l)) + '">Abrir conversa</a>' : '') +
+        '<span class="nota" data-salvo="' + esc(l.id) + '"></span>' +
+      '</div>' +
+    '</div>';
+  }
+  function salvar(id, patch){
+    var l = (D.leads || []).find(function(x){ return x.id === id; });
+    if(l) Object.assign(l, patch);
+    var aviso = document.querySelector('[data-salvo="' + id + '"]');
+    if(aviso) aviso.textContent = "Salvando…";
+    return chamar("lead", Object.assign({ token: token(), slug: slugEscolhido, id: id }, patch)).then(function(j){
+      if(j.error){ if(aviso) aviso.textContent = j.error; else alert(j.error); return; }
+      if(l && j.contatado_em) l.contatado_em = j.contatado_em;
+      if(aviso) aviso.textContent = "Salvo.";
+      D.numeros.esperando = (D.leads || []).filter(function(x){ return x.status === "novo"; }).length;
+    });
+  }
+
+  $("#lista").addEventListener("click", function(e){
+    var ab = e.target.closest(".lead__abre");
+    if(ab){ var id = ab.closest(".lead").getAttribute("data-id"); aberto = aberto === id ? null : id; lista(); return; }
+    var ch = e.target.closest("[data-chamar]");
+    if(ch){
+      // quem é chamado sai da fila de espera sozinho, como no painel do Jimmy
+      var l = (D.leads || []).find(function(x){ return x.id === ch.getAttribute("data-chamar"); });
+      if(l && l.status === "novo"){ salvar(l.id, { status: "contatado" }).then(desenhar); }
+    }
+  });
+  $("#lista").addEventListener("change", function(e){
+    var s = e.target.closest("[data-status]");
+    if(s) salvar(s.getAttribute("data-status"), { status: s.value }).then(desenhar);
+  });
+  $("#lista").addEventListener("focusout", function(e){
+    var t = e.target.closest("[data-nota]");
+    if(!t) return;
+    var l = (D.leads || []).find(function(x){ return x.id === t.getAttribute("data-nota"); });
+    if(l && (l.anotacoes || "") !== t.value) salvar(l.id, { anotacoes: t.value });
+  });
+  $("#busca").addEventListener("input", lista);
+  $("#f-status").addEventListener("change", lista);
+  $("#lic").addEventListener("change", function(){ slugEscolhido = this.value; aberto = null; carregar(); });
+  // volta para a aba: atualiza (lead novo pode ter chegado)
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden && D) carregar(); });
+
+  carregar();
+})();
+</script>

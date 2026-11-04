@@ -425,7 +425,9 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 18 (disparo de mensagens) aplicada em 03/nov/2026 com o "pode aplicar" do
+**19 (painel dos licenciados) pendente** desde 04/nov/2026, junto com a publicação das
+funções `painel` (nova) e `whatsapp` (linha do painel no aviso do espelho).
+18 (disparo de mensagens) aplicada em 03/nov/2026 com o "pode aplicar" do
 Jimmy: `pg_cron` instalado, fila criada e job `disparos-processar` rodando a cada
 minuto (conferido: a função responde 200). Função `disparos` publicada com
 `supabase functions deploy disparos --remote=buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt --yes`
@@ -1185,4 +1187,39 @@ os mesmos testes do renderizador.
   contra Evolution e banco falsos, e as telas em jsdom no modo demonstração.
   Falta: aplicar a 18, publicar a função e mandar o primeiro teste para o
   número dele antes do primeiro disparo real.
+
+## Painel dos licenciados — anovaprofissao.com.br/painel (nov/2026)
+
+Pedido do Jimmy em 04/11/2026: os licenciados com espelho (hoje o Mario) e os
+próximos que ele criar entram num painel próprio, com login por código no
+WhatsApp, como o /painel do igreencel.com.br.
+
+- **Login**: a pessoa digita o WhatsApp cadastrado na tabela `licenciados`
+  (com ou sem o 9, com ou sem 55), recebe um código de 6 números e entra. O
+  código fica só como hash (`acessos_painel`), vale 10 min e 5 tentativas,
+  no máximo 3 pedidos por número a cada 15 min; a resposta é a mesma para
+  qualquer número. A sessão é um token aleatório de 30 dias no localStorage
+  (`anp_painel`), e o banco guarda só o hash (`sessoes_painel`); "Sair" encerra.
+- **O número que manda os códigos** é configurável no /admin (botão
+  **Licenciados**, lista vinda da Evolution pela função `disparos`) e fica em
+  `painel_config.instancia_codigos`. Começa em `1575` (o número do Jimmy final
+  1575, pedido dele); sem escolha, usa a instância dos avisos de lead.
+  "Mandar teste para mim" manda uma mensagem por ela para (48) 99106-7007. A
+  tela mostra também os últimos códigos pedidos (enviado, não saiu, entrou).
+- **O que o licenciado vê**: visitas da página dele (30 dias), leads (30 dias),
+  quantos esperam contato, e a lista dos leads da página dele (um por linha),
+  com detalhe, status, anotações e "Chamar" (marca como contatado). Não apaga
+  lead: pedido de exclusão passa pelo Jimmy.
+- **O Jimmy** (5548991067007, fixo em `ADMINS` na função) entra no mesmo
+  painel e escolhe de qual licenciado ver.
+- **Acesso por licenciado**: coluna `licenciados.painel_ativo`, ligada por
+  padrão; o /admin liga e desliga, e desligar tira a pessoa na hora (a função
+  confere a cada pedido). `ultimo_acesso_painel` aparece no /admin.
+- **Função `painel`** (verify_jwt ligado): ações codigo, entrar, dados, lead e
+  sair com o token no corpo; config, config_salvar e config_teste com o login
+  do /admin. Migração `db/19-painel-licenciados.sql`. Página `painel.html`
+  (`noindex`, `painel` nos slugs reservados). O aviso de lead do espelho
+  termina com "Seus leads: anovaprofissao.com.br/painel".
+- **Para dar acesso a um licenciado novo**: basta a linha dele em
+  `licenciados` com o WhatsApp certo (o mesmo cadastro do espelho).
 

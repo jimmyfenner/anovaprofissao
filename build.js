@@ -337,6 +337,16 @@ fs.writeFileSync(out('integradores', 'agendar', 'index.html'), documento({
   ogAlt: 'Quem instala usina vende uma vez. Quem conecta eletroposto participa de cada recarga.',
 }));
 
+/* Painel dos licenciados (nov/2026): anovaprofissao.com.br/painel. Login por código no
+   WhatsApp e os leads da página de cada licenciado, tudo pela função "painel". */
+const painel = separaCabeca(fs.readFileSync(path.join(__dirname, 'painel.html'), 'utf8'));
+mkdir(out('painel'));
+fs.writeFileSync(out('painel', 'index.html'), documento({
+  body: painel.body, links: painel.links,
+  title: 'Painel do licenciado | ' + SITE.nome,
+  desc: 'Área dos licenciados com página no A Nova Profissão.', canonical: SITE.url + '/painel', noindex: true,
+}));
+
 /* Página "Transição energética". Servida em /transicao-energetica e, pelo
    rewrite por host do vercel.json, na raiz de transicaoenergetica.com.br — o
    endereço canônico, porque o nome do domínio é o ativo.
@@ -461,7 +471,7 @@ PUBLICADOR.forEach(p => {
    home que esqueça de marcar um bloco novo. */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
   'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao',
-  'agendar', 'agendamento', 'home-agendar']);
+  'agendar', 'agendamento', 'home-agendar', 'painel']);
 const LICS = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'licenciados.json'), 'utf8')).licenciados;
 const esc = escHtml;
 

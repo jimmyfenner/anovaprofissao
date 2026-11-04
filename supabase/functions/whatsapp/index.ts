@@ -290,7 +290,8 @@ Deno.serve(async (req) => {
         ? "Teste do A Nova Profissao. Se voce recebeu esta mensagem, os avisos de lead estao funcionando."
         : (ehAgenda ? corpoAgenda : ehDireto ? corpoDireto : ehInteg ? corpoInteg : corpoQuiz).filter((l) => l !== null).join("\n");
       // no espelho, a primeira linha diz de qual página o lead veio
-      const texto = lic && !ehTeste ? `Via a sua pagina anovaprofissao.com.br/${lic.slug}\n\n${corpo}` : corpo;
+      // e a última lembra onde ele acompanha os leads dele (painel dos licenciados, db/19)
+      const texto = lic && !ehTeste ? `Via a sua pagina anovaprofissao.com.br/${lic.slug}\n\n${corpo}\n\nSeus leads: anovaprofissao.com.br/painel` : corpo;
 
       const assuntoBase = ehTeste
         ? "Teste de aviso — A Nova Profissao"

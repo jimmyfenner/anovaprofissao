@@ -390,6 +390,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <div class="wrap top__in">
       <div class="brand">A Nova <em>Profissão</em><small>Painel de leads</small></div>
       <div class="top__act">
+        <button class="btn btn--sm" id="btn-lic">Licenciados</button>
         <button class="btn btn--sm" id="btn-disp">Disparos</button>
         <button class="btn btn--sm" id="btn-vis">Visitas</button>
         <button class="btn btn--sm" id="btn-cont">Conteúdo</button>
@@ -688,6 +689,28 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <div id="dp-lista"><p class="sub">Carregando…</p></div>
       </div>
     </div>
+    <div class="disp hidden" id="tela-lic">
+      <div class="box">
+        <h2>Código de acesso do painel</h2>
+        <p class="sub">Os licenciados entram em <a href="/painel" target="_blank" rel="noopener" style="color:var(--credit)">anovaprofissao.com.br/painel</a> com o WhatsApp cadastrado e recebem um código de 6 números. Você entra com o seu número e vê o painel de qualquer um.</p>
+        <div class="campo"><label for="lc-inst">WhatsApp que manda os códigos</label>
+          <select class="inp" id="lc-inst"><option value="">Carregando…</option></select>
+          <span class="dica">Só as conectadas podem ser escolhidas.</span></div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn btn--primary btn--sm" type="button" id="lc-salvar" disabled>Salvar</button>
+          <button class="btn btn--sm" type="button" id="lc-teste" disabled>Mandar teste para mim</button>
+        </div>
+        <div id="lc-msg"></div>
+        <h2 style="margin-top:1.6rem">Últimos códigos pedidos</h2>
+        <div id="lc-ultimos"><p class="sub">Carregando…</p></div>
+      </div>
+      <div class="box">
+        <div class="dsp-cab"><h2>Licenciados</h2><button class="btn btn--sm" type="button" id="lc-atualizar">Atualizar</button></div>
+        <p class="sub">Cada um vê só os leads da própria página. Desligar o acesso tira a pessoa do painel na hora, sem apagar nada. Para cadastrar um licenciado novo (página, foto e apresentação), peça ao Claude.</p>
+        <div id="lc-lista"><p class="sub">Carregando…</p></div>
+      </div>
+    </div>
+
     <p style="font-size:.78rem;color:var(--muted-dim);margin:1.5rem 0 3rem;max-width:70ch">
       Dados pessoais de terceiros. Trate conforme a LGPD: use apenas para o contato que a pessoa autorizou e atenda pedidos de exclusão.
     </p>
@@ -1355,6 +1378,7 @@ function mostrar(v){
   $("#tela-cont").classList.toggle("hidden", v !== "cont");
   $("#tela-vis").classList.toggle("hidden",  v !== "vis");
   $("#tela-disp").classList.toggle("hidden", v !== "disp");
+  $("#tela-lic").classList.toggle("hidden",  v !== "lic");
   $("#lista").classList.toggle("hidden",     v !== "leads");
   $("#res").classList.toggle("hidden",       v !== "leads");
   $(".filters").classList.toggle("hidden",   v !== "leads");
@@ -1362,16 +1386,19 @@ function mostrar(v){
   $("#btn-cont").textContent = v === "cont" ? "Ver leads" : "Conteúdo";
   $("#btn-vis").textContent  = v === "vis"  ? "Ver leads" : "Visitas";
   $("#btn-disp").textContent = v === "disp" ? "Ver leads" : "Disparos";
+  $("#btn-lic").textContent  = v === "lic"  ? "Ver leads" : "Licenciados";
   if(v !== "wa" && pollQR){ clearInterval(pollQR); pollQR = null; }
   if(v !== "disp" && dispTimer){ clearTimeout(dispTimer); dispTimer = null; }
   if(v === "wa"){ waStatus(); carregarDest(); carregarLog(); }
   if(v === "cont"){ carregarConfig(); carregarDepoimentos(); }
   if(v === "vis"){ carregarVisitas(); }
   if(v === "disp"){ carregarConfigDisp(); carregarDisparos(); }
+  if(v === "lic"){ carregarPainelLic(); }
   if(v === "leads"){ render(); carregarSelos(); }   // a fila andou enquanto a lista estava escondida
   else atualizaSelecao();   // a barra de seleção só aparece na lista
 }
 $("#btn-disp").addEventListener("click", function(){ mostrar(vista === "disp" ? "leads" : "disp"); });
+$("#btn-lic").addEventListener("click",  function(){ mostrar(vista === "lic" ? "leads" : "lic"); });
 $("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
 $("#btn-cont").addEventListener("click", function(){ mostrar(vista === "cont" ? "leads" : "cont"); });
 $("#btn-vis").addEventListener("click",  function(){ mostrar(vista === "vis"  ? "leads" : "vis"); });
@@ -2415,6 +2442,95 @@ $("#cp-enviar").addEventListener("click", function(){
     $("#cp-ver").focus();
   });
 });
+
+/* ---- tela Licenciados: número dos códigos do /painel e acesso de cada um (db/19, função "painel") ---- */
+function fnPainel(action, extra){
+  if(DEMO) return Promise.resolve(action === "config" ? {instancia_codigos: "1575", instancia_avisos: null, ultimos: []} : {ok: true});
+  return sb.auth.getSession().then(function(s){
+    var t = s.data.session && s.data.session.access_token;
+    return fetch(CFG.url + "/functions/v1/painel", {
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":CFG.anonKey,"Authorization":"Bearer "+t},
+      body: JSON.stringify(Object.assign({action:action}, extra||{}))
+    });
+  }).then(function(r){
+    return r.json().catch(function(){ return null; }).then(function(j){
+      j = j && typeof j === "object" ? j : {};
+      if(!r.ok && !j.error) j.error = r.status === 404 ? "A função do painel ainda não foi publicada." : "O servidor recusou o pedido (erro " + r.status + ").";
+      return j;
+    });
+  }).catch(function(){ return {error:"Não consegui falar com o servidor agora. Confira a internet e tente de novo."}; });
+}
+function lcMsg(t, tipo){ $("#lc-msg").innerHTML = t ? '<p class="aviso aviso--'+(tipo||"erro")+'">'+esc(t)+'</p>' : ""; }
+function carregarPainelLic(){
+  var s = $("#lc-inst");
+  s.innerHTML = '<option value="">Carregando…</option>';
+  $("#lc-salvar").disabled = true; $("#lc-teste").disabled = true;
+  lcMsg("");
+  Promise.all([fnPainel("config"), carregarInstancias(true)]).then(function(res){
+    if(vista !== "lic") return;
+    var c = res[0], r = res[1];
+    if(c.error){ lcMsg(c.error); }
+    else if(r.error){ lcMsg(r.error); }
+    var atual = c.instancia_codigos || "";
+    var fora = atual && !(r.instancias || []).some(function(i){ return i.nome === atual; });
+    s.innerHTML = '<option value="">Sem escolha (usa a dos avisos de lead' + (c.instancia_avisos ? ": " + esc(c.instancia_avisos) : "") + ')</option>' +
+      (fora ? '<option value="'+esc(atual)+'">'+esc(atual)+' (fora da lista agora)</option>' : "") +
+      opcoesInst(r, atual, atual);
+    s.value = atual;
+    $("#lc-salvar").disabled = !!c.error; $("#lc-teste").disabled = !!c.error;
+    $("#lc-ultimos").innerHTML = (c.ultimos || []).length
+      ? '<dl class="dl">' + c.ultimos.map(function(u){
+          var st = u.usado_em ? "entrou" : u.envio_ok === false ? "não saiu: " + (u.envio_erro || "erro") : u.envio_ok ? "enviado" : "enviando…";
+          return '<div class="dl__r"><dt>' + esc(new Date(u.criado_em).toLocaleString("pt-BR")) + '</dt><dd>' + esc(fmtNumero(u.whatsapp) + " · " + st) + '</dd></div>';
+        }).join("") + '</dl>'
+      : '<p class="sub">Nenhum código pedido ainda.</p>';
+  });
+  carregarLicenciados();
+}
+function carregarLicenciados(){
+  if(DEMO){ $("#lc-lista").innerHTML = '<p class="sub">Sem licenciados no modo de demonstração.</p>'; return; }
+  sb.from("licenciados").select("slug,nome,whatsapp,email,ativo,painel_ativo,ultimo_acesso_painel").order("nome").then(function(r){
+    if(r.error){ $("#lc-lista").innerHTML = '<p class="aviso aviso--erro">'+esc(/painel_ativo/.test(r.error.message) ? "Falta aplicar a migração db/19-painel-licenciados.sql." : r.error.message)+'</p>'; return; }
+    var ls = r.data || [];
+    if(!ls.length){ $("#lc-lista").innerHTML = '<p class="sub">Nenhum licenciado cadastrado.</p>'; return; }
+    $("#lc-lista").innerHTML = ls.map(function(l){
+      var n = leads.filter(function(x){ return x.licenciado === l.slug; }).length;
+      var ligado = l.painel_ativo && l.ativo;
+      return '<div style="padding:.8rem 0;border-bottom:1px solid var(--line)">' +
+        '<div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap">' +
+          '<div><strong>'+esc(l.nome)+'</strong><br><span class="sub" style="margin:0">'+esc(fmtNumero(l.whatsapp))+' · <a href="/'+esc(l.slug)+'" target="_blank" rel="noopener" style="color:var(--credit)">/'+esc(l.slug)+'</a> · '+n+' lead'+(n===1?"":"s")+'</span><br>' +
+          '<span class="sub" style="margin:0">'+(l.ultimo_acesso_painel ? "Último acesso ao painel: " + esc(new Date(l.ultimo_acesso_painel).toLocaleString("pt-BR")) : "Ainda não entrou no painel")+(l.ativo ? "" : " · página desativada")+'</span></div>' +
+          '<button class="btn btn--sm'+(ligado?"":" btn--primary")+'" type="button" data-lc-acesso="'+esc(l.slug)+'" data-lc-v="'+(l.painel_ativo?"0":"1")+'">'+(l.painel_ativo ? "Desligar acesso" : "Ligar acesso")+'</button>' +
+        '</div></div>';
+    }).join("");
+  });
+}
+$("#lc-lista").addEventListener("click", function(e){
+  var b = e.target.closest("[data-lc-acesso]");
+  if(!b) return;
+  b.disabled = true;
+  sb.from("licenciados").update({painel_ativo: b.getAttribute("data-lc-v") === "1"}).eq("slug", b.getAttribute("data-lc-acesso")).select().then(function(r){
+    if(r.error || !r.data || !r.data.length){ b.disabled = false; alert("Não consegui mudar o acesso: " + (r.error ? r.error.message : "o banco não confirmou.")); return; }
+    carregarLicenciados();
+  });
+});
+$("#lc-salvar").addEventListener("click", function(){
+  var b = this; b.disabled = true; b.textContent = "Salvando…";
+  fnPainel("config_salvar", {instancia_codigos: $("#lc-inst").value || null}).then(function(r){
+    b.disabled = false; b.textContent = "Salvar";
+    if(r.error){ lcMsg(r.error); return; }
+    lcMsg("Salvo. Os próximos códigos saem por este número.", "ok");
+  });
+});
+$("#lc-teste").addEventListener("click", function(){
+  var b = this; b.disabled = true; b.textContent = "Enviando…";
+  fnPainel("config_teste", {instancia: $("#lc-inst").value || null}).then(function(r){
+    b.disabled = false; b.textContent = "Mandar teste para mim";
+    lcMsg(r.error || "Teste enviado para (48) 99106-7007.", r.error ? "erro" : "ok");
+  });
+});
+$("#lc-atualizar").addEventListener("click", carregarPainelLic);
 
 /* ---- tela Disparos: instância padrão, número de teste e acompanhamento ---- */
 function dpMsg(t, tipo){ $("#dp-msg").innerHTML = t ? '<p class="aviso aviso--'+(tipo||"erro")+'">'+esc(t)+'</p>' : ""; }
