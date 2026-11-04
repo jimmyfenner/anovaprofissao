@@ -425,8 +425,10 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-**19 (painel dos licenciados) pendente** desde 04/nov/2026, junto com a publicação das
-funções `painel` (nova) e `whatsapp` (linha do painel no aviso do espelho).
+Nenhuma. 19 (painel dos licenciados) aplicada em 04/nov/2026 com o "pode aplicar" do
+Jimmy, com as funções `painel` (nova) e `whatsapp` publicadas pela CLI. Conferido no ar:
+token falso dá 401, config sem login dá 403, número sem acesso não gera código, e o
+código pedido para 5548991067007 saiu pela instância 1575 (`envio_ok`).
 18 (disparo de mensagens) aplicada em 03/nov/2026 com o "pode aplicar" do
 Jimmy: `pg_cron` instalado, fila criada e job `disparos-processar` rodando a cada
 minuto (conferido: a função responde 200). Função `disparos` publicada com
