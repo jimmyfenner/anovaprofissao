@@ -425,14 +425,14 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-**18 (disparo de mensagens) pendente** desde 03/nov/2026: `db/18-disparos.sql`
-(instala o `pg_cron`, cria a fila e agenda o job `disparos-processar`). Aplicar
-com `supabase db query --linked --project-ref buapklmgdjcoyzrmhhcd -f db/18-disparos.sql`
-e, na sequência, publicar a função com
-`supabase functions deploy disparos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`
-(essa é a única função daqui com `verify_jwt` desligado, ver "Disparo de mensagens
-pelo painel"). Sem a migração, a tela Disparos mostra o erro e o resto do painel
-segue normal; excluir lead funciona antes e depois.
+Nenhuma. 18 (disparo de mensagens) aplicada em 03/nov/2026 com o "pode aplicar" do
+Jimmy: `pg_cron` instalado, fila criada e job `disparos-processar` rodando a cada
+minuto (conferido: a função responde 200). Função `disparos` publicada com
+`supabase functions deploy disparos --remote=buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt --yes`
+(a única daqui com `verify_jwt` desligado, ver "Disparo de mensagens pelo painel").
+Teste real no mesmo dia: um disparo de 1 mensagem para o número do Jimmy, montado
+direto no banco, saiu pela instância dos avisos em 2,4 s com "boa noite, Jimmy". A
+CLI nova pede `--remote=<ref>` e `--yes` para gravar em produção.
 
 17 (agendamento) aplicada em 03/nov/2026, com os secrets `GOOGLE_CLIENT_ID`,
 `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (os mesmos do querocarregador) e
