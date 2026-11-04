@@ -177,7 +177,9 @@ p{margin:0}
 .selbar__x{padding:.48em .62em}
 body.tem-selbar main{padding-bottom:4.5rem}
 body.modal-aberto{overflow:hidden}
-.modal{position:fixed;inset:0;z-index:60;display:flex;justify-content:center;align-items:flex-start;padding:clamp(12px,4vh,44px) 16px;background:rgba(4,6,5,.74);backdrop-filter:blur(3px);overflow-y:auto;overscroll-behavior:contain}
+/* Nome próprio (anp-modal) de propósito: extensões do Chrome estilizam a classe genérica "modal" e, em 04/11/2026,
+   uma delas encolheu esta janela para 88 px de altura no navegador do Jimmy. O tamanho também vai explícito. */
+.anp-modal{position:fixed;inset:0;top:0;left:0;width:100%;height:100%;max-height:none;margin:0;color:var(--text);font-family:var(--body);transition:none;z-index:60;display:flex;justify-content:center;align-items:flex-start;padding:clamp(12px,4vh,44px) 16px;background:rgba(4,6,5,.74);backdrop-filter:blur(3px);overflow-y:auto;overscroll-behavior:contain}
 .modal__box{width:100%;max-width:640px;margin-block:auto;box-shadow:0 24px 60px rgba(0,0,0,.5)}
 .modal__top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.1rem}
 .modal__top .sub{margin:.25rem 0 0}
@@ -201,8 +203,8 @@ body.modal-aberto{overflow:hidden}
 .dica.is-erro{color:var(--st-perdido)}
 .aviso--alerta{background:rgba(224,168,60,.09);border:1px solid rgba(224,168,60,.3);color:#E0A83C;margin-top:.6rem}
 .cp-feito{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.55rem}
-.modal .dica{font-size:.78rem;color:var(--muted-dim);line-height:1.5}
-.modal .campo > .inp{width:100%;max-width:100%}
+.anp-modal .dica{font-size:.78rem;color:var(--muted-dim);line-height:1.5}
+.anp-modal .campo > .inp{width:100%;max-width:100%}
 .disp{display:grid;gap:1.2rem;margin-block:clamp(1.5rem,3vw,2.2rem)}
 @media(min-width:900px){.disp{grid-template-columns:minmax(0,1fr) minmax(0,1.8fr);align-items:start}}
 .disp .campo .inp{width:100%}
@@ -697,7 +699,7 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <button class="btn btn--sm selbar__x" type="button" id="selbar-x" aria-label="Limpar seleção" title="Limpar seleção">✕</button>
   </div>
 
-  <div class="modal hidden" id="comp">
+  <div class="anp-modal hidden" id="comp">
     <div class="box modal__box" role="dialog" aria-modal="true" aria-labelledby="cp-tit">
       <div class="modal__top">
         <div><h2 id="cp-tit">Mensagem</h2><p class="sub" id="cp-sub"></p></div>
