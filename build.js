@@ -250,21 +250,31 @@ fs.writeFileSync(out('home', 'index.html'), documento({
 }));
 
 const admin = separaCabeca(fs.readFileSync(path.join(__dirname, 'admin.html'), 'utf8'));
-/* Renderizador das mensagens do disparo (nov/2026): o mesmo arquivo que a Edge
-   Function "disparos" importa. Entra no script do painel no lugar do marcador,
-   sem as palavras de exportação (o arquivo é ES5 de propósito para isso). */
-const MARCA_MENSAGEM = '/*@@MENSAGEM@@*/';
-const mensagemJs = fs.readFileSync(path.join(__dirname, 'supabase', 'functions', '_shared', 'mensagem.mjs'), 'utf8')
-  .replace(/^export\s+/gm, '');
-if (admin.body.split(MARCA_MENSAGEM).length !== 2) {
-  console.error(`ERRO: admin.html precisa ter o marcador ${MARCA_MENSAGEM} uma vez só, dentro do <script> do painel (é onde entra o renderizador das mensagens do disparo).`);
-  process.exit(1);
+/* Código ES5 colado no script do painel, cada um no lugar do seu marcador e
+   sem as palavras de exportação (os arquivos são ES5 de propósito para isso):
+   - o renderizador das mensagens do disparo (nov/2026), o mesmo arquivo que a
+     Edge Function "disparos" importa;
+   - o selo "mensagem agendada" da lista de leads (nov/2026), só do painel. */
+const COLAGENS = [
+  { marca: '/*@@MENSAGEM@@*/', arquivo: 'supabase/functions/_shared/mensagem.mjs', o_que: 'o renderizador das mensagens do disparo' },
+  { marca: '/*@@SELO@@*/', arquivo: 'painel/selo.mjs', o_que: 'o selo de mensagem agendada da lista de leads' },
+];
+for (const c of COLAGENS) {
+  const js = fs.readFileSync(path.join(__dirname, ...c.arquivo.split('/')), 'utf8').replace(/^export\s+/gm, '');
+  if (admin.body.split(c.marca).length !== 2) {
+    console.error(`ERRO: admin.html precisa ter o marcador ${c.marca} uma vez só, dentro do <script> do painel (é onde entra ${c.o_que}).`);
+    process.exit(1);
+  }
+  if (/\bexport\s/.test(js)) {
+    console.error(`ERRO: ${c.arquivo} ainda tem "export" fora do começo da linha; o painel não roda módulo.`);
+    process.exit(1);
+  }
+  if (js.includes('@@')) {
+    console.error(`ERRO: ${c.arquivo} não pode ter "@@" (é a forma dos marcadores do build).`);
+    process.exit(1);
+  }
+  admin.body = admin.body.replace(c.marca, () => js);
 }
-if (/\bexport\s/.test(mensagemJs)) {
-  console.error('ERRO: supabase/functions/_shared/mensagem.mjs ainda tem "export" fora do começo da linha; o painel não roda módulo.');
-  process.exit(1);
-}
-admin.body = admin.body.replace(MARCA_MENSAGEM, () => mensagemJs);
 fs.writeFileSync(out('admin', 'index.html'), documento({
   body: admin.body, links: admin.links,
   title: 'Painel de Leads | ' + SITE.nome,

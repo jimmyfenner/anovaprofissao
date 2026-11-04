@@ -1094,6 +1094,17 @@ os mesmos testes do renderizador.
   tela **Disparos** no topo (instância padrão, número de teste e o
   acompanhamento, com Pausar, Retomar, Cancelar e a lista de cada pessoa, que se
   atualiza a cada 5 s enquanto houver disparo ativo).
+- **Selo "mensagem agendada"** (pedido de 03/11/2026): quem está na fila de um
+  disparo ativo ou pausado ganha um pill na linha, embaixo do nome e da cidade
+  (dentro de `.lead__who`: entre 561 e ~880 px a linha não quebra, e no meio dos
+  outros pills ele apagava o nome) ("Agendada hoje 18:00", "A
+  partir de amanhã 09:30", "Na fila", "Pausada" ou "Enviando", com o texto
+  completo no `title`) e a linha "Mensagem" no detalhe com "Ver em Disparos",
+  lido com o login do painel em `disparos`/`disparo_envios` pelo `whatsapp_e164`
+  ao abrir, a cada minuto, ao voltar para a lista e logo depois de criar,
+  pausar, retomar ou cancelar, e some quando a mensagem sai; o cálculo é a
+  função pura `painel/selo.mjs` (ES5, colada pelo build no lugar de
+  `/*@@SELO@@*/`, testes em `tests/selo.test.mjs`).
 - **Compositor** (modal próprio, fecha com Esc e no fundo): instância (lista da
   Evolution com perfil, número e nome, só as conectadas podem ser escolhidas; a
   escolhida pode virar padrão em `disparo_config`; sem padrão, vem a dos avisos,

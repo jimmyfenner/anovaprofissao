@@ -68,7 +68,7 @@ p{margin:0}
 .lead.is-novo .lead__head{border-left-color:var(--credit)}
 .lead__who{flex:1;min-width:0}
 .lead__who strong{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lead__who span{font-size:.8rem;color:var(--muted-dim)}
+.lead__who > span:not(.pill){font-size:.8rem;color:var(--muted-dim)}
 .lead__when{font-family:var(--mono);font-size:.74rem;color:var(--muted-dim);white-space:nowrap;font-variant-numeric:tabular-nums}
 .lead__chev{color:var(--muted-dim);flex:none;transition:transform .2s}
 .lead.is-open .lead__chev{transform:rotate(90deg)}
@@ -236,6 +236,17 @@ body.modal-aberto{overflow:hidden}
 .pill--pausado{color:#E0A83C;border-color:rgba(224,168,60,.4);background:rgba(224,168,60,.1)}
 .pill--agendado{color:var(--st-contatado);border-color:rgba(107,168,216,.35);background:rgba(107,168,216,.09)}
 .pill--cancelado,.pill--concluido{color:var(--muted);border-color:var(--line);background:transparent}
+/* selo "mensagem agendada": fica no bloco do nome, numa linha embaixo do nome e da cidade, para
+   não disputar a largura da linha com os outros pills (entre 561 e ~880 px a linha não quebra e o
+   nome sumia). Se o bloco do nome for estreito, o texto do selo quebra em duas linhas, sem cortar a hora. */
+.pill--msg{color:var(--st-contatado);border-color:rgba(107,168,216,.45);background:rgba(107,168,216,.1);font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.lead__who .pill--msg{display:block;width:fit-content;margin-top:.3rem;white-space:normal;overflow-wrap:anywhere}
+.pill--msg.is-fila{border-style:dashed;background:transparent}
+.pill--msg.is-enviando{color:var(--credit);border-color:rgba(52,219,139,.4);background:rgba(52,219,139,.1)}
+.pill--msg.is-pausado{color:#E0A83C;border-color:rgba(224,168,60,.45);background:rgba(224,168,60,.1)}
+.dl__msg{min-width:0;overflow-wrap:anywhere}
+.dl__lnk{display:inline;margin-left:.35rem;padding:0;border:0;background:none;color:var(--credit);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;white-space:nowrap}
+.dl__lnk:hover{color:#4BEA9C}
 
 /* detail */
 .detail{padding:0 1.15rem 1.35rem;display:grid;gap:1.3rem}
@@ -742,6 +753,10 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
    supabase/functions/_shared/mensagem.mjs (o mesmo que a função usa). */
 /*@@MENSAGEM@@*/
 
+/* Selo "mensagem agendada" na lista de leads: o build.js cola aqui o arquivo
+   painel/selo.mjs (função pura, com testes em tests/selo.test.mjs). */
+/*@@SELO@@*/
+
 /* ============ CONFIGURAÇÃO ============
    Preencha depois de criar o projeto no Supabase.
    Enquanto estiver vazio, o painel roda em modo demonstração. */
@@ -811,6 +826,7 @@ function carregar(){
       leads = r.data || [];
       abrirPainel();
       carregarResumo();
+      carregarSelos();   // selo "mensagem agendada" (desenha de novo só se houver)
     });
 }
 
@@ -1018,12 +1034,22 @@ $("#res-fila").addEventListener("click", function(){
 });
 
 // Atualiza sozinho a cada minuto, menos quando a pessoa está escrevendo numa anotação.
-setInterval(function(){
-  if(DEMO || !sb || document.hidden || vista !== "leads") return;
+// Junto vêm os selos de mensagem agendada (no modo demonstração, só eles).
+function podeRedesenhar(){
   var foco = document.activeElement && document.activeElement.tagName;
-  if(foco === "TEXTAREA" || (foco === "INPUT" && document.activeElement.id !== "busca")) return;
-  sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000).then(function(r){
-    if(!r.error){ leads = r.data || []; render(); }
+  return !(foco === "TEXTAREA" || (foco === "INPUT" && document.activeElement.id !== "busca"));
+}
+setInterval(function(){
+  if(document.hidden || vista !== "leads" || !podeRedesenhar() || $("#tela-painel").classList.contains("hidden")) return;   // na tela de login, nada
+  if(DEMO){ carregarSelos(); return; }
+  if(!sb) return;
+  Promise.all([
+    sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000),
+    carregarSelos(true)
+  ]).then(function(rs){
+    var r = rs[0];
+    if(!r.error) leads = r.data || [];
+    if(!r.error || rs[1]) render();
   });
   carregarResumo();
 }, 60000);
@@ -1043,6 +1069,7 @@ function linkChamar(l){
 /* ---------- render ---------- */
 function render(){
   renderResultados();
+  selosSujos = false;   // a lista abaixo já sai com os selos de agora
 
   var fs = filtrados(), lista = $("#lista");
   $("#contador").textContent = fs.length + (fs.length===1?" lead":" leads");
@@ -1057,7 +1084,7 @@ function render(){
   lista.innerHTML = fs.map(function(l){
     var aberta = aberto === l.id;
     var espera = l.status === "novo" && Date.now() - new Date(l.criado_em).getTime() > 86400e3;
-    var semMsg = motivoSemMensagem(l);
+    var semMsg = motivoSemMensagem(l), selo = seloDe(l);
     return '<div class="lead '+(l.status==="novo"?"is-novo ":"")+(sel[l.id]?"is-sel ":"")+(aberta?"is-open":"")+'" data-id="'+l.id+'">'+
       '<div class="lead__linha">'+
       '<label class="lead__sel'+(semMsg?' is-off':'')+'" title="'+esc(semMsg || "Selecionar para mandar mensagem")+'">'+
@@ -1065,7 +1092,9 @@ function render(){
       '</label>'+
       '<button class="lead__head" type="button" aria-expanded="'+aberta+'">'+
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto"||l.tipo==="agendamento" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span></span>'+
+        '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto"||l.tipo==="agendamento" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span>'+
+          (selo ? '<span class="pill pill--msg is-'+selo.tipo+'" title="'+esc(selo.titulo)+'">'+esc(selo.curto)+'</span>' : '')+
+        '</span>'+
         (l.tipo==="agendamento" ? '<span class="pill pill--agenda" title="'+esc(dataReuniao(l.agenda_inicio))+'">Reunião '+esc(diaReuniao(l.agenda_inicio))+'</span>' : '')+
         (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
         (ehInteg(l) ? '<span class="pill pill--integ">Integrador</span>' : '')+
@@ -1103,6 +1132,13 @@ function render(){
     b.addEventListener("click", function(){
       var id = b.getAttribute("data-msg"), l = leads.find(function(x){ return x.id === id; });
       if(l) abrirCompositor([l]);
+    });
+  });
+  $$("[data-verdisp]").forEach(function(b){
+    b.addEventListener("click", function(){
+      dispAberto = b.getAttribute("data-verdisp") || null;   // abre o disparo já com a lista de pessoas
+      mostrar("disp");
+      window.scrollTo(0, 0);
     });
   });
   $$("[data-chamar]").forEach(function(a){
@@ -1149,9 +1185,11 @@ function diaReuniao(iso){ return iso ? new Date(iso).toLocaleString("pt-BR", {ti
 function dataReuniao(iso){ return iso ? new Date(iso).toLocaleString("pt-BR", {timeZone:"America/Sao_Paulo", weekday:"long", day:"2-digit", month:"long", hour:"2-digit", minute:"2-digit"}) : "?"; }
 
 function detalhe(l){
-  var semMsg = motivoSemMensagem(l);
+  var semMsg = motivoSemMensagem(l), selo = seloDe(l);
   return '<div class="detail">'+
     '<dl class="dl">'+
+      (selo ? '<div class="dl__r"><dt>Mensagem</dt><dd class="dl__msg">'+esc(selo.titulo)+'.'+
+        '<button class="dl__lnk" type="button" data-verdisp="'+esc(selo.disparo_id)+'">Ver em Disparos</button></dd></div>' : "")+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
       (l.tipo==="agendamento" ? linha("Reunião", dataReuniao(l.agenda_inicio) + " (30 min, Google Meet)" + (new Date(l.agenda_fim) < new Date() ? " — já passou" : "")) +
                                 linha("Confirmou", l.agenda_aceite) +
@@ -1328,7 +1366,8 @@ function mostrar(v){
   if(v === "cont"){ carregarConfig(); carregarDepoimentos(); }
   if(v === "vis"){ carregarVisitas(); }
   if(v === "disp"){ carregarConfigDisp(); carregarDisparos(); }
-  if(v === "leads") render(); else atualizaSelecao();   // a barra de seleção só aparece na lista
+  if(v === "leads"){ render(); carregarSelos(); }   // a fila andou enquanto a lista estava escondida
+  else atualizaSelecao();   // a barra de seleção só aparece na lista
 }
 $("#btn-disp").addEventListener("click", function(){ mostrar(vista === "disp" ? "leads" : "disp"); });
 $("#btn-wa").addEventListener("click",   function(){ mostrar(vista === "wa"   ? "leads" : "wa"); });
@@ -1993,6 +2032,66 @@ function quandoBR(ms){
   return "em " + new Date(ms).toLocaleDateString("pt-BR", {timeZone:"America/Sao_Paulo", day:"2-digit", month:"2-digit"}) + " às " + horaBR(ms);
 }
 function nomeDe(d){ return (TEM_MENSAGEM ? formatarNome(d.nome) : d.nome) || fmtNumero(d.numero) || "Sem nome"; }
+
+/* ---- selo "mensagem agendada" na lista de leads ----
+   Quem tem envio na fila (pendente ou saindo) de disparo ativo ou pausado ganha
+   um pill na linha ("Agendada hoje 18:00", "Na fila", "Pausada", "Enviando") e
+   a linha "Mensagem" no detalhe. O cálculo é o painel/selo.mjs (colado pelo
+   build); aqui só a busca, com o login do painel (o banco não muda). Busca ao
+   abrir, a cada minuto, ao voltar para a lista e logo depois de criar, pausar,
+   retomar ou cancelar disparo. Quando a mensagem sai, o selo some. */
+var TEM_SELO = typeof selosMensagem === "function";   // false só no admin.html cru, sem o build
+var selosMsg = {};           // número (55 + DDD + número) -> selo
+var selosSujos = false;      // mudaram e a lista ainda não foi redesenhada
+var pedidoSelos = 0;
+function seloDe(l){ return TEM_SELO ? seloDoNumero(selosMsg, l.whatsapp_e164) : null; }
+function assinaturaSelos(m){
+  return Object.keys(m).sort().map(function(k){ return k + "|" + m[k].curto + "|" + m[k].titulo + "|" + m[k].disparo_id; }).join("\n");
+}
+// semDesenhar: quem chamou redesenha a lista (a atualização de 1 minuto junta com os leads)
+function carregarSelos(semDesenhar){
+  if(!TEM_SELO) return Promise.resolve(false);
+  var meu = ++pedidoSelos;   // só a resposta do último pedido vale
+  return (DEMO ? Promise.resolve(demoFilaSelos()) : buscarFilaSelos()).then(function(r){
+    if(!r || meu !== pedidoSelos) return false;   // sem resposta: ficam os selos de antes
+    var novos = selosMensagem(r.envios, r.disparos, Date.now());
+    if(assinaturaSelos(novos) !== assinaturaSelos(selosMsg)){ selosMsg = novos; selosSujos = true; }
+    if(!selosSujos) return false;
+    if(semDesenhar) return true;
+    if(vista === "leads" && !$("#tela-painel").classList.contains("hidden") && podeRedesenhar()) render();
+    return true;
+  }).catch(function(e){ console.error(e); return false; });
+}
+function faltaTabelaDisp(e){
+  // antes da migração 18 as tabelas não existem: nenhum selo, sem erro na tela
+  return e && (e.code === "PGRST205" || e.code === "42P01" || /schema cache/i.test(e.message || ""));
+}
+function buscarFilaSelos(){
+  var nada = {disparos: [], envios: []};
+  return sb.from("disparos").select("id,status,inicio,total,motivo").in("status", ["ativo", "pausado"]).limit(1000).then(function(r){
+    if(r.error){
+      if(faltaTabelaDisp(r.error)) return nada;
+      console.error(r.error);
+      return null;
+    }
+    var ds = r.data || [];
+    if(!ds.length) return nada;
+    return buscarEnviosSelos(ds.map(function(d){ return d.id; }), 0, []).then(function(es){
+      return es ? {disparos: ds, envios: es} : null;
+    });
+  });
+}
+// de 1.000 em 1.000 (limite do Supabase por consulta), até 10.000 pessoas na fila
+function buscarEnviosSelos(ids, de, acc){
+  return sb.from("disparo_envios").select("disparo_id,numero,status,agendado_para,ordem")
+    .in("disparo_id", ids).in("status", ["pendente", "enviando"]).order("id").range(de, de + 999)
+    .then(function(r){
+      if(r.error){ console.error(r.error); return null; }
+      var lote = r.data || [];
+      acc = acc.concat(lote);
+      return lote.length === 1000 && de < 9000 ? buscarEnviosSelos(ids, de + 1000, acc) : acc;
+    });
+}
 function lerLocal(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function gravarLocal(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
 
@@ -2300,6 +2399,7 @@ $("#cp-enviar").addEventListener("click", function(){
     if($("#cp-padrao").checked && instCache) instCache.padrao = inst;
     sel = {};
     render();
+    carregarSelos();   // quem entrou na fila já aparece com o selo
     var pronto = r.repetido ? "Esta mensagem já estava na fila: o pedido anterior chegou ao servidor."
       : r.total === 1 ? "Pronto: 1 mensagem na fila." : "Pronto: " + r.total + " mensagens na fila.";
     if(comp !== c){ alert(pronto + " Acompanhe em Disparos."); return; }
@@ -2444,6 +2544,7 @@ function renderDisparos(r){
       fnDisp(acao, {id: b.getAttribute("data-did")}).then(function(x){
         if(x.error){ alert(x.error); b.disabled = false; return; }
         carregarDisparos();
+        carregarSelos();   // o selo dos leads acompanha (pausada, na fila ou some)
       });
     });
   });
@@ -2509,6 +2610,16 @@ function demoResumo(d){
   });
   return {id:d.id, criado_em:d.criado_em, instancia:d.instancia, modelo:d.modelo, intervalo_min:d.intervalo_min, intervalo_max:d.intervalo_max,
     marcar_contatado:d.marcar_contatado, status:d.status, motivo:d.motivo, total:d.total, inicio:d.inicio, contagem:c, proximo:prox, erros:erros};
+}
+// selos da demonstração: lê a fila simulada como está (quem anda com ela é a tela Disparos)
+function demoFilaSelos(){
+  var envios = [];
+  DEMO_D.lista.forEach(function(d){
+    d.envios.forEach(function(e){
+      envios.push({disparo_id: d.id, numero: e.numero, status: e.status, agendado_para: e.agendado_para, ordem: e.ordem});
+    });
+  });
+  return {disparos: DEMO_D.lista, envios: envios};
 }
 function demoAvanca(){
   var agora = Date.now();
