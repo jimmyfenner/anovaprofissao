@@ -1370,9 +1370,22 @@ neste banco por decisão dele ("pra não termos que criar novos bancos de dados"
   programados saem pela `pessoal` com `mentionsEveryOne`, de 4 a 9 s entre grupos; teste
   vai para o WhatsApp dele pela 1575. Ao ligar um grupo, traz os últimos 3 dias já
   marcados como lidos (sem aviso).
-- **IA**: OpenRouter (`OPENROUTER_API_KEY` nos secrets do Supabase, modelo em
-  `grupos_config.modelo`), toda chamada em `ai_usage` (+ `ai_usage_daily`). Sem a chave,
-  triagem, resumos e perguntas ficam desligados e o painel avisa.
+- **IA** (toda chamada em `ai_usage` com tokens e custo): modelo por tarefa em `grupos_config`.
+  `claude-*` vai direto à API da Anthropic (`ANTHROPIC_API_KEY`, SDK oficial), o resto à
+  OpenRouter (`OPENROUTER_API_KEY`). O sufixo `@low|medium|high|xhigh|max` escolhe o esforço.
+  Triagem e resumo: `claude-haiku-5-5@high` (`modelo_triagem`, `modelo_resumo`). Áudio:
+  `google/gemini-2.5-flash` pela OpenRouter (`modelo_audio`). **Perguntar: `claude-opus-5-5@high`**
+  (pedido do Jimmy em 05/11/2026, "uma mais inteligente"; constante `MODELO_PERGUNTA`, ou a coluna
+  `modelo_pergunta` se um dia for criada). Na pergunta dele sobre kWh de eletroposto o Haiku
+  misturou regra de cliente de energia com eletroposto e o Opus separou e achou as mensagens do
+  grupo do Mob: US$ 0,15 e 25 s contra US$ 0,005 e 22 s. A resposta diz qual modelo respondeu.
+  Teste sem login: ação `teste_pergunta` com a chave de uso único de `teste_hash` (como `comparar`).
+- **Imagem ou vídeo nos envios** (`db/26-grupos-midia.sql`): o painel converte a imagem para JPEG
+  e só aceita vídeo MP4; sobe direto no bucket público `grupos-midia` (`envios/<uuid>.jpg|mp4`,
+  até 10 MB a imagem e 50 MB o vídeo) por link assinado da ação `midia_link`. A mensagem vira
+  legenda e o "mencionar todos" vale junto (`/message/sendMedia`). Um vídeo para muitos grupos não
+  cabe numa chamada: `pendentes` guarda os grupos que faltam na vez atual e a próxima chamada
+  continua dali. Arquivo sem envio há mais de 1 dia é apagado na sincronização diária.
 - **Banco**: `db/23-grupos.sql` (grupos, grupo_mensagens, grupo_itens, grupo_resumos,
   grupo_envios, grupo_envios_log, grupos_config, ai_usage, função `grupos_buscar`, job).
   RLS sem policy; tudo pela função. A lista inicial dos 284 grupos (com papel, movimento e
