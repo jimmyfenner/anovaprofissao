@@ -1374,11 +1374,15 @@ neste banco por decisão dele ("pra não termos que criar novos bancos de dados"
   `claude-*` vai direto à API da Anthropic (`ANTHROPIC_API_KEY`, SDK oficial), o resto à
   OpenRouter (`OPENROUTER_API_KEY`). O sufixo `@low|medium|high|xhigh|max` escolhe o esforço.
   Triagem e resumo: `claude-haiku-5-5@high` (`modelo_triagem`, `modelo_resumo`). Áudio:
-  `google/gemini-2.5-flash` pela OpenRouter (`modelo_audio`). **Perguntar: `claude-opus-5-5@high`**
-  (pedido do Jimmy em 05/11/2026, "uma mais inteligente"; constante `MODELO_PERGUNTA`, ou a coluna
-  `modelo_pergunta` se um dia for criada). Na pergunta dele sobre kWh de eletroposto o Haiku
-  misturou regra de cliente de energia com eletroposto e o Opus separou e achou as mensagens do
-  grupo do Mob: US$ 0,15 e 25 s contra US$ 0,005 e 22 s. A resposta diz qual modelo respondeu.
+  `google/gemini-2.5-flash` pela OpenRouter (`modelo_audio`). **Perguntar: `claude-sonnet-5-5@high`**
+  (constante `MODELO_PERGUNTA`, ou a coluna `modelo_pergunta` se um dia for criada). Em 05/11/2026 o
+  Jimmy pediu "uma mais inteligente" que o Haiku e achou caro o Opus (US$ 0,15 na pergunta de teste,
+  dois terços disso só de leitura); na mesma pergunta o Sonnet respondeu quase igual ao Opus, e ele
+  escolheu o Sonnet. **O contexto da pergunta tem teto**: mensagens pela busca do banco até 24 mil
+  caracteres, e só as instruções (8 mil) e as linhas de resumo (10 mil) que têm as palavras da
+  pergunta. Antes ia tudo do período e o custo cresceria com os dias de resumo guardados (30 dias
+  passariam de 100 mil tokens). Com o teto: 17,6 mil tokens, US$ 0,054, 14 s. A resposta diz qual
+  modelo respondeu.
   Teste sem login: ação `teste_pergunta` com a chave de uso único de `teste_hash` (como `comparar`).
 - **Imagem ou vídeo nos envios** (`db/26-grupos-midia.sql`): o painel converte a imagem para JPEG
   e só aceita vídeo MP4; sobe direto no bucket público `grupos-midia` (`envios/<uuid>.jpg|mp4`,

@@ -306,9 +306,11 @@ const PRECOS: Record<string, [number, number]> = {
 // "claude-haiku-5-5@high": o sufixo escolhe o esforço de raciocínio (low, medium, high, xhigh, max);
 // sem sufixo, medium.
 const ESFORCOS = ["low", "medium", "high", "xhigh", "max"];
-// Perguntar: pedido do Jimmy (05/11/2026) de uma IA mais inteligente que a da triagem e dos resumos.
-// É chamada à mão e rara, então vale o Opus (~US$ 0,15 a 0,30 por pergunta, contra ~0,004 do Haiku).
-const MODELO_PERGUNTA = "claude-opus-5-5@high";
+// Perguntar: o Jimmy pediu (05/11/2026) uma IA mais inteligente que a da triagem e dos resumos, e
+// achou caro o Opus (US$ 0,15 na pergunta de teste, 2/3 disso só para ler o contexto). Na mesma
+// pergunta o Sonnet @high respondeu quase igual ao Opus pela metade do preço; e o contexto passou a
+// ter teto (ver perguntar), senão cresceria com os dias de resumo guardados.
+const MODELO_PERGUNTA = "claude-sonnet-5-5@high";
 const NOMES_MODELO: Record<string, string> = {
   "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-opus-5-5": "Claude Opus 5.5",
 };
@@ -982,25 +984,42 @@ async function perguntar(cfg: any, b: any, t: Teste = {}) {
     }) ?? [];
   }
   const resumos = await linhas(
-    `grupo_resumos?dia=gte.${diaBrt(desde)}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,dia,texto&order=dia.desc&limit=60`,
+    `grupo_resumos?dia=gte.${diaBrt(desde)}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,dia,texto&order=dia.desc&limit=200`,
   );
   const itens = await linhas(
-    `grupo_itens?ts=gte.${q(desde.toISOString())}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,tipo,titulo,detalhe,autor_nome,ts&order=ts.desc&limit=120`,
+    `grupo_itens?ts=gte.${q(desde.toISOString())}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,tipo,titulo,detalhe,autor_nome,ts&order=ts.desc&limit=400`,
   );
   const nomes = new Map((await linhas("grupos?select=jid,nome")).map((g) => [g.jid, g.nome]));
   const fmt = (ts: string) => `${diaBrt(new Date(ts)).split("-").reverse().slice(0, 2).join("/")} ${horaBrt(new Date(ts))}`;
+  // O custo é quase todo leitura: cada fonte tem um teto de caracteres e entra só o que é do assunto.
+  // Instruções e linhas de resumo valem pelas raízes das palavras da pergunta, só no começo de palavra
+  // ("green" não casa com "igreen"; "eletropostos" casa com "eletroposto"). Sem palavra útil, as mais novas.
+  const raizes = chave.map((p) => p.slice(0, Math.max(4, p.length - 2)));
+  const norm = (x: string) => " " + x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const nota = (x: string) => raizes.length ? raizes.filter((r) => new RegExp(`[^a-z0-9]${r}`).test(norm(x))).length : 1;
+  function teto<T>(lista: T[], linha: (x: T) => string, max: number) {
+    const out: { x: T; l: string }[] = [];
+    let n = 0;
+    for (const x of lista) { const l = linha(x); if (n + l.length <= max) { out.push({ x, l }); n += l.length; } }
+    return out;
+  }
+  const msgs = teto(achadas, (m) => `- [${m.grupo}] ${fmt(m.ts)} ${m.autor_nome ?? "alguém"}: ${comJimmy(String(m.texto).slice(0, 800))}`, 24_000)
+    .sort((a, b) => a.x.ts.localeCompare(b.x.ts));
+  const its = teto(
+    itens.map((i) => ({ i, n: nota(`${i.titulo} ${i.detalhe ?? ""}`) })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n),
+    ({ i }) => `- [${nomes.get(i.jid) ?? "grupo"}] ${fmt(i.ts)} ${i.tipo}: ${i.titulo}${i.detalhe ? " — " + String(i.detalhe).slice(0, 300) : ""}`, 8_000);
+  const trechos = teto(
+    resumos.flatMap((r) => String(r.texto).split("\n").map((l) => l.trim()).filter((l) => l.length > 3)
+      .map((l) => ({ r, l, n: nota(l) }))).filter((x) => x.n > 0).sort((a, b) => b.n - a.n),
+    ({ r, l }) => `- [${nomes.get(r.jid) ?? "grupo"}] ${r.dia.split("-").reverse().join("/")}: ${l}`, 10_000);
   const fontes =
-    `MENSAGENS QUE BATEM COM A PERGUNTA:\n` +
-    (achadas.length ? achadas.sort((a, b) => a.ts.localeCompare(b.ts)).map((m) =>
-      `- [${m.grupo}] ${fmt(m.ts)} ${m.autor_nome ?? "alguém"}: ${comJimmy(String(m.texto).slice(0, 1000))}`).join("\n") : "(nenhuma)") +
-    `\n\nINSTRUÇÕES E PENDÊNCIAS REGISTRADAS:\n` +
-    (itens.length ? itens.map((i) => `- [${nomes.get(i.jid) ?? "grupo"}] ${fmt(i.ts)} ${i.tipo}: ${i.titulo}${i.detalhe ? " — " + String(i.detalhe).slice(0, 300) : ""}`).join("\n") : "(nenhuma)") +
-    `\n\nRESUMOS DOS DIAS:\n` +
-    (resumos.length ? resumos.map((r) => `- [${nomes.get(r.jid) ?? "grupo"}] ${r.dia.split("-").reverse().join("/")}:\n${r.texto}`).join("\n") : "(nenhum)");
+    `MENSAGENS QUE BATEM COM A PERGUNTA:\n` + (msgs.length ? msgs.map((x) => x.l).join("\n") : "(nenhuma)") +
+    `\n\nINSTRUÇÕES E PENDÊNCIAS REGISTRADAS SOBRE O ASSUNTO:\n` + (its.length ? its.map((x) => x.l).join("\n") : "(nenhuma)") +
+    `\n\nTRECHOS DOS RESUMOS DOS DIAS SOBRE O ASSUNTO:\n` + (trechos.length ? trechos.map((x) => x.l).join("\n") : "(nenhum)");
   const resposta = (await ia(t.seco ? "grupos_teste_pergunta" : "grupos_pergunta", modelo,
-    QUEM + " Responda só com base nas fontes abaixo. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar.",
+    QUEM + " Responda só com base nas fontes abaixo, que são os trechos achados pelas palavras da pergunta. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar.",
     `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}`, { max: 16000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
-  return { resposta, modelo: nomeModelo(modelo), fontes: { mensagens: achadas.length, itens: itens.length, resumos: resumos.length } };
+  return { resposta, modelo: nomeModelo(modelo), fontes: { mensagens: msgs.length, itens: its.length, resumos: trechos.length } };
 }
 
 Deno.serve(async (req) => {
