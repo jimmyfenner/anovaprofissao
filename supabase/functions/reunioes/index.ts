@@ -535,6 +535,8 @@ Deno.serve(async (req) => {
       if (acao === "lembrete_criar") return json({ lembrete: await criarLembrete(b.lembrete) });
       if (acao === "lembrete_patch") return json({ lembrete: await patchLembrete(idLembrete(b.id), b.campos ?? {}) });
       if (acao === "reuniao_patch") return json({ reuniao: await patchReuniao(String(b.chave ?? ""), b.campos ?? {}) });
+      // só leitura: o Mac vê os follow-ups agendados no Turbo, mas não agenda nem cancela
+      if (acao === "agendados") return json(await agendados());
       return json({ error: "Ação inválida." }, 400);
     }
 
