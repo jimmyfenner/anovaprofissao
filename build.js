@@ -360,7 +360,7 @@ fs.writeFileSync(out('reunioes', 'index.html'), documento({
 
 /* Grupos do WhatsApp do Jimmy (nov/2026): grupos.anovaprofissao.com.br (rewrite por host
    no vercel.json) e anovaprofissao.com.br/grupos. Login por código no WhatsApp (função
-   "painel", só o número dele) e tudo pela função "grupos" (db/22-grupos.sql). */
+   "painel", só o número dele) e tudo pela função "grupos" (db/23-grupos.sql). */
 const gruposPg = separaCabeca(fs.readFileSync(path.join(__dirname, 'grupos.html'), 'utf8'));
 mkdir(out('grupos'));
 fs.writeFileSync(out('grupos', 'index.html'), documento({
