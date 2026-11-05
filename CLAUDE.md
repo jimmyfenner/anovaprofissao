@@ -1303,6 +1303,8 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   mão (`temperatura_por` / `status_por = 'jimmy'`) não são sobrescritos pela próxima leitura
   da transcrição.
 - Publicar: `supabase functions deploy reunioes --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.
+  A função `painel` foi republicada no mesmo dia (versão 4, `verify_jwt` ligado) só para
+  reservar o endereço `reunioes`; conferido: sem chave 401, chave anon 403.
 
 ## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
 
