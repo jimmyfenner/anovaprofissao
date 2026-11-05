@@ -1303,3 +1303,21 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   mão (`temperatura_por` / `status_por = 'jimmy'`) não são sobrescritos pela próxima leitura
   da transcrição.
 - Publicar: `supabase functions deploy reunioes --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.
+
+## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
+
+Avisos (`whatsapp_config.instancia`) e disparos (`disparo_config.instancia`) saem
+pela instância **`pessoal`** da Evolution, a do iGreen Turbo. A antiga
+`anovaprofissao-20260912-153444` foi desconectada: duas sessões do mesmo número
+no mesmo servidor travaram o recebimento das duas em 04/11/2026 (a `pessoal`
+ficou "open", enviando, mas sem receber nada, duas vezes no mesmo dia).
+
+- **Nunca criar outra sessão do 48 99106-7007.** O botão Conectar do painel cria
+  uma instância nova (`anovaprofissao-<data>`) e, ao escanear o QR, ela vira uma
+  segunda sessão do mesmo número. Se um dia precisar, desligar antes a outra.
+- A função `whatsapp` só faz logout/delete de instância `anovaprofissao-*`
+  (`criadaPeloSite`); Conectar e Desconectar com a `pessoal` configurada só
+  deixam de usá-la. Assim o painel nunca derruba o Turbo.
+- O código de acesso do /painel dos licenciados segue pela `1575` (outro número).
+- O querocarregador fez o mesmo: envia pela `carregador` e o `evolution-manager`
+  recusa desconectar `pessoal` e `carregador`.
