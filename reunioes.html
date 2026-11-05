@@ -1,0 +1,605 @@
+<title>Diário de reuniões</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+
+<!-- Diário de reuniões do Jimmy (nov/2026): leads das chamadas do Meet, status das reuniões,
+     lembretes, comentários e mensagem ao lead. Mesmo login do /admin; tudo passa pela função
+     "reunioes" (db/21-reunioes.sql). Quem preenche é o assistente do Mac
+     (Reunioes/_ferramentas/assistente), que também manda os lembretes no WhatsApp (1575).
+     Demonstração sem login: /reunioes?demo -->
+
+<style>
+:root{
+  --ink:#0A0D0C; --surface:#111614; --surface-2:#171E1B; --line:#232E29; --line-soft:#1A211E;
+  --text:#EAF2ED; --muted:#8FA39A; --muted-dim:#61736B;
+  --credit:#34DB8B; --credit-dim:#1F7D52;
+  --quente:#F07B4F; --morno:#E0A83C; --frio:#6BA8D8; --perigo:#C4785A;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em;line-height:1.15}
+p{margin:0}
+a{color:var(--credit)}
+:focus-visible{outline:2px solid var(--credit);outline-offset:2px;border-radius:3px}
+.wrap{max-width:980px;margin-inline:auto;padding-inline:clamp(14px,3.5vw,28px)}
+.hidden{display:none !important}
+.mono{font-family:var(--mono)}
+.mudo{color:var(--muted)}
+.mini{font-size:.8rem}
+
+.top{position:sticky;top:0;z-index:40;background:rgba(10,13,12,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft)}
+.top__in{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding-block:.8rem;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:-.02em}
+.brand em{font-style:normal;color:var(--credit)}
+.brand small{display:block;font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-dim);font-weight:400;margin-top:.15rem}
+.top__act{display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}
+
+.btn{font-family:var(--body);font-size:.86rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:.45em;padding:.58em 1em;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;text-decoration:none;transition:border-color .16s,background .16s;white-space:nowrap}
+.btn:hover{border-color:var(--muted-dim);background:var(--surface)}
+.btn--primary{background:var(--credit);border-color:var(--credit);color:#04120B}
+.btn--primary:hover{background:#4BEA9C;border-color:#4BEA9C}
+.btn--sm{font-size:.78rem;padding:.42em .75em}
+.btn--perigo{border-color:rgba(196,120,90,.5);color:#E3A58C}
+.btn--perigo:hover{background:rgba(196,120,90,.12);border-color:var(--perigo)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.inp,.sel,textarea.inp{font-family:var(--body);font-size:.88rem;padding:.55em .8em;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);min-width:0}
+.inp::placeholder{color:var(--muted-dim)}
+.inp:focus,.sel:focus{outline:none;border-color:var(--credit-dim)}
+textarea.inp{width:100%;min-height:84px;resize:vertical;line-height:1.45}
+label.campo{display:flex;flex-direction:column;gap:.25rem;font-size:.76rem;color:var(--muted);font-family:var(--mono);letter-spacing:.04em}
+label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
+
+.demo{background:rgba(224,168,60,.1);border-bottom:1px solid rgba(224,168,60,.3);color:#E0A83C;font-family:var(--mono);font-size:.74rem;padding:.6rem 0}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-block:1.3rem}
+@media(min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--surface);padding:.9rem 1.1rem}
+.stat dt{font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.35rem}
+.stat dd{margin:0;font-family:var(--display);font-weight:700;font-size:1.6rem;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.stat--hi dd{color:var(--credit)}
+
+.abas{display:flex;gap:.3rem;border-bottom:1px solid var(--line);margin-bottom:1rem;overflow-x:auto}
+.aba{font-family:var(--body);font-weight:600;font-size:.9rem;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:.65rem .9rem;cursor:pointer;white-space:nowrap}
+.aba[aria-selected="true"]{color:var(--text);border-bottom-color:var(--credit)}
+.aba .n{font-family:var(--mono);font-size:.72rem;color:var(--muted-dim);margin-left:.3rem}
+
+.filtros{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.9rem}
+.filtros .inp{flex:1;min-width:160px}
+
+.lista{display:flex;flex-direction:column;gap:.55rem;margin-bottom:3rem}
+.vazio{border:1px dashed var(--line);border-radius:10px;padding:1.4rem;text-align:center;color:var(--muted)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.card__cab{display:flex;gap:.75rem;align-items:flex-start;padding:.85rem 1rem;cursor:pointer}
+.card__cab:hover{background:var(--surface-2);border-radius:10px}
+.card__qm{flex:1;min-width:0}
+.card__nome{font-weight:600;font-size:1rem;display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}
+.card__meta{font-size:.82rem;color:var(--muted);margin-top:.15rem;overflow-wrap:anywhere}
+.card__prox{font-size:.82rem;margin-top:.3rem;color:var(--text)}
+.card__dir{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0}
+.card__corpo{border-top:1px solid var(--line-soft);padding:1rem;display:flex;flex-direction:column;gap:1.15rem}
+.seta{color:var(--muted-dim);font-size:.8rem;transition:transform .15s}
+.card.aberto .seta{transform:rotate(90deg)}
+
+.pill{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;padding:.12rem .5rem;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill--quente{color:var(--quente);border-color:rgba(240,123,79,.45)}
+.pill--morno{color:var(--morno);border-color:rgba(224,168,60,.45)}
+.pill--frio{color:var(--frio);border-color:rgba(107,168,216,.45)}
+.pill--ganho{color:var(--credit);border-color:var(--credit-dim)}
+.pill--perdido{color:#E3A58C;border-color:rgba(196,120,90,.45)}
+.pill--pausado{color:var(--muted-dim)}
+.pill--aberto{color:var(--text)}
+
+.bloco h3{font-family:var(--mono);font-weight:500;font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.55rem}
+.linha-acoes{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.grade{display:grid;grid-template-columns:1fr;gap:.6rem}
+@media(min-width:620px){.grade{grid-template-columns:1fr 1fr}}
+
+.reuniao{border-left:2px solid var(--line);padding:.1rem 0 .1rem .8rem;margin-bottom:.8rem}
+.reuniao__cab{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.86rem}
+.reuniao p{font-size:.88rem;margin-top:.3rem}
+.reuniao ul{margin:.35rem 0 0;padding-left:1.1rem;font-size:.85rem;color:var(--muted)}
+.reuniao ul li{margin-bottom:.15rem}
+
+.lemb{display:flex;gap:.6rem;align-items:flex-start;padding:.7rem .85rem;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.bloco .lemb{background:var(--surface-2)}
+.lemb__q{font-family:var(--mono);font-size:.74rem;color:var(--credit);white-space:nowrap;min-width:6.2rem;padding-top:.1rem}
+.lemb__q.atrasado{color:var(--quente)}
+.lemb__t{flex:1;min-width:0;font-size:.9rem}
+.lemb__t small{display:block;color:var(--muted);font-size:.78rem}
+.lemb__a{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
+.lemb.feito .lemb__t{color:var(--muted-dim);text-decoration:line-through}
+@media(max-width:560px){.lemb{flex-wrap:wrap}.lemb__a{width:100%;justify-content:flex-start}}
+
+.coment{font-size:.88rem;padding:.55rem .75rem;background:var(--surface-2);border-radius:6px;margin-bottom:.4rem;display:flex;gap:.5rem}
+.coment div{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}
+.coment small{display:block;font-family:var(--mono);font-size:.68rem;color:var(--muted-dim);margin-bottom:.15rem}
+.xis{background:none;border:0;color:var(--muted-dim);cursor:pointer;font-size:1rem;line-height:1;padding:.1rem .25rem}
+.xis:hover{color:#E3A58C}
+
+.envio{font-size:.8rem;color:var(--muted);margin-top:.35rem}
+.envio b{font-weight:500;color:var(--text)}
+
+.dia{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim);margin:1rem 0 .45rem}
+
+.login{min-height:70vh;display:grid;place-items:center}
+.login__box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.6rem;display:flex;flex-direction:column;gap:.85rem}
+.erro{color:#E3A58C;font-size:.84rem}
+
+.toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--line);color:var(--text);padding:.65rem 1rem;border-radius:8px;font-size:.88rem;z-index:80;max-width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast.erro{border-color:rgba(196,120,90,.6);color:#F0B49C}
+</style>
+
+<header class="top">
+  <div class="wrap top__in">
+    <div class="brand">Diário de <em>reuniões</em><small>leads das chamadas · lembretes</small></div>
+    <div class="top__act">
+      <a class="btn btn--sm" href="/admin">Painel de leads</a>
+      <button class="btn btn--sm" id="btn-atualizar" type="button">Atualizar</button>
+      <button class="btn btn--sm" id="btn-sair" type="button">Sair</button>
+    </div>
+  </div>
+</header>
+<div class="demo hidden" id="demo-banner"><div class="wrap">Demonstração com dados de exemplo: nada é gravado nem enviado.</div></div>
+
+<main class="wrap">
+  <div class="login hidden" id="tela-login">
+    <form class="login__box" id="form-login">
+      <h2>Entrar</h2>
+      <p class="mudo mini">O mesmo e-mail e senha do painel de leads.</p>
+      <label class="campo">E-mail<input class="inp" id="l-email" type="email" autocomplete="username" required></label>
+      <label class="campo">Senha<input class="inp" id="l-senha" type="password" autocomplete="current-password" required></label>
+      <p class="erro hidden" id="l-erro"></p>
+      <button class="btn btn--primary" id="l-go" type="submit">Entrar</button>
+    </form>
+  </div>
+
+  <div class="hidden" id="app">
+    <dl class="stats">
+      <div class="stat stat--hi"><dt>Leads em aberto</dt><dd id="st-abertos">0</dd></div>
+      <div class="stat"><dt>Quentes</dt><dd id="st-quentes">0</dd></div>
+      <div class="stat"><dt>Lembretes hoje</dt><dd id="st-hoje">0</dd></div>
+      <div class="stat"><dt>Reuniões em 7 dias</dt><dd id="st-semana">0</dd></div>
+    </dl>
+
+    <nav class="abas" role="tablist">
+      <button class="aba" role="tab" data-aba="leads" aria-selected="true">Leads<span class="n" id="n-leads"></span></button>
+      <button class="aba" role="tab" data-aba="lembretes" aria-selected="false">Lembretes<span class="n" id="n-lembretes"></span></button>
+      <button class="aba" role="tab" data-aba="reunioes" aria-selected="false">Reuniões<span class="n" id="n-reunioes"></span></button>
+    </nav>
+
+    <section id="aba-leads">
+      <div class="filtros">
+        <input class="inp" id="busca" type="search" placeholder="Buscar por nome, cidade ou telefone">
+        <select class="sel" id="f-situacao" aria-label="Situação">
+          <option value="aberto">Em aberto</option>
+          <option value="">Todos</option>
+          <option value="ganho">Ganhos</option>
+          <option value="perdido">Perdidos</option>
+          <option value="pausado">Pausados</option>
+        </select>
+      </div>
+      <div class="lista" id="lista-leads"></div>
+    </section>
+
+    <section id="aba-lembretes" class="hidden">
+      <form class="card" id="form-lembrete" style="padding:1rem;margin-bottom:1rem">
+        <div class="grade">
+          <label class="campo" style="grid-column:1/-1">Novo lembrete<input class="inp" id="nl-texto" maxlength="1000" placeholder="Ex.: ligar para o Pablo sobre a vistoria" required></label>
+          <label class="campo">Quando<input class="inp" id="nl-quando" type="datetime-local" required></label>
+          <label class="campo">Lead (opcional)<select class="sel" id="nl-lead"><option value="">Nenhum</option></select></label>
+        </div>
+        <div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary btn--sm" type="submit">Criar lembrete</button>
+          <span class="mudo mini">Chega no seu WhatsApp pelo 1575 na hora marcada.</span></div>
+      </form>
+      <div class="filtros"><label class="mini mudo"><input type="checkbox" id="f-concluidos"> mostrar feitos e apagados</label></div>
+      <div class="lista" id="lista-lembretes"></div>
+    </section>
+
+    <section id="aba-reunioes" class="hidden">
+      <div class="lista" id="lista-reunioes"></div>
+    </section>
+  </div>
+</main>
+
+<div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var CFG = {
+  url: "https://buapklmgdjcoyzrmhhcd.supabase.co",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y"
+};
+var DEMO = /[?&]demo\b/.test(location.search) || !CFG.url;
+var TZ = "America/Sao_Paulo";
+var sb = null;
+var D = { leads: [], reunioes: [], lembretes: [], comentarios: [], envios: [] };
+var abertos = {};          // leads expandidos
+var instCache = null;      // instâncias da Evolution (carregadas uma vez)
+
+function $(s, el){ return (el || document).querySelector(s); }
+function esc(t){ return String(t == null ? "" : t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function digitos(t){ return String(t || "").replace(/\D/g, ""); }
+
+/* ---------- datas (sempre no fuso de Brasília) ---------- */
+function partes(d){
+  var f = new Intl.DateTimeFormat("pt-BR", {timeZone:TZ, year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", weekday:"short", hour12:false});
+  var o = {}; f.formatToParts(new Date(d)).forEach(function(p){ o[p.type] = p.value; });
+  return o;
+}
+function chaveDia(d){ var p = partes(d); return p.year + "-" + p.month + "-" + p.day; }
+function hhmm(d){ var p = partes(d); return (p.hour === "24" ? "00" : p.hour) + ":" + p.minute; }
+function quandoCurto(d){
+  var hoje = chaveDia(new Date()), amanha = chaveDia(Date.now() + 864e5), ontem = chaveDia(Date.now() - 864e5), k = chaveDia(d);
+  var p = partes(d);
+  var dia = k === hoje ? "hoje" : k === amanha ? "amanhã" : k === ontem ? "ontem" : p.weekday.replace(".", "") + " " + p.day + "/" + p.month;
+  return dia + " " + hhmm(d);
+}
+function dataCurta(iso){ if(!iso) return ""; var s = String(iso).slice(0,10).split("-"); return s[2] + "/" + s[1]; }
+// valor de <input type=datetime-local> (hora de Brasília) → ISO
+function deLocal(v){ return v ? new Date(v + ":00-03:00").toISOString() : null; }
+function paraLocal(d){ var p = partes(d); return p.year + "-" + p.month + "-" + p.day + "T" + hhmm(d); }
+function amanhaAs(h){ var p = partes(Date.now() + 864e5); return new Date(p.year + "-" + p.month + "-" + p.day + "T" + (h < 10 ? "0" + h : h) + ":00:00-03:00"); }
+
+/* ---------- textos ---------- */
+var STATUS = {realizada:"✅ realizada", curta:"⚪ curta", sem_gravacao:"❔ sem gravação", nao_compareceu:"❌ não compareceu", remarcada:"🔁 remarcada", agendada:"🗓️ agendada"};
+var SITUACAO = {aberto:"em aberto", ganho:"ganho", perdido:"perdido", pausado:"pausado"};
+var TEMP = {quente:"🔥 quente", morno:"🟡 morno", frio:"🧊 frio"};
+var PRODUTO = {"licenca-igreen":"Licença iGreen", mob:"Mob", telecom:"Telecom", outro:"Outro"};
+function opcoes(mapa, atual, vazio){
+  var h = vazio ? '<option value="">' + esc(vazio) + '</option>' : "";
+  Object.keys(mapa).forEach(function(k){ h += '<option value="' + k + '"' + (k === atual ? " selected" : "") + ">" + esc(mapa[k]) + "</option>"; });
+  return h;
+}
+function toast(msg, erro){
+  var t = $("#toast"); t.textContent = msg; t.className = "toast" + (erro ? " erro" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(function(){ t.classList.add("hidden"); }, erro ? 6000 : 2600);
+}
+
+/* ---------- servidor ---------- */
+function chamar(acao, dados){
+  if(DEMO) return demoChamar(acao, dados || {});
+  return sb.auth.getSession().then(function(s){
+    var t = s.data.session && s.data.session.access_token;
+    if(!t){ location.reload(); throw new Error("sessão"); }
+    return fetch(CFG.url + "/functions/v1/reunioes", {
+      method:"POST",
+      headers:{"Content-Type":"application/json", "apikey":CFG.anonKey, "Authorization":"Bearer " + t},
+      body: JSON.stringify(Object.assign({action:acao}, dados || {}))
+    });
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(j){
+      if(r.status === 401){ $("#app").classList.add("hidden"); $("#tela-login").classList.remove("hidden"); }
+      if(!r.ok) throw new Error(j.error || "Não deu certo agora.");
+      return j;
+    });
+  });
+}
+function carregar(){
+  return chamar("estado").then(function(j){
+    D = j; $("#tela-login").classList.add("hidden"); $("#app").classList.remove("hidden"); render();
+  }).catch(function(e){ toast(e.message, true); });
+}
+// executa, recarrega e avisa
+function fazer(acao, dados, msg){
+  return chamar(acao, dados).then(function(j){ if(msg) toast(msg); return carregar().then(function(){ return j; }); })
+    .catch(function(e){ toast(e.message, true); throw e; });
+}
+
+/* ---------- derivados ---------- */
+function reunioesDe(id){ return D.reunioes.filter(function(r){ return r.lead_id === id; }).sort(function(a,b){ return String(b.data + b.hora).localeCompare(String(a.data + a.hora)); }); }
+function lembretesDe(id){ return D.lembretes.filter(function(l){ return l.lead_id === id && (l.status === "pendente" || l.status === "enviado"); }); }
+function aberto(l){ return l.status === "pendente" || l.status === "enviado"; }
+function nomeLead(id){ var l = D.leads.find(function(x){ return x.id === id; }); return l ? l.nome : ""; }
+function ultimaData(lead){ var r = reunioesDe(lead.id)[0]; return r ? r.data + " " + (r.hora || "") : String(lead.atualizado_em || ""); }
+
+function render(){
+  var hoje = chaveDia(new Date()), semana = chaveDia(Date.now() - 7 * 864e5);
+  $("#st-abertos").textContent = D.leads.filter(function(l){ return l.situacao === "aberto"; }).length;
+  $("#st-quentes").textContent = D.leads.filter(function(l){ return l.situacao === "aberto" && l.temperatura === "quente"; }).length;
+  $("#st-hoje").textContent = D.lembretes.filter(function(l){ return aberto(l) && chaveDia(l.quando) <= hoje; }).length;
+  $("#st-semana").textContent = D.reunioes.filter(function(r){ return r.data >= semana; }).length;
+  $("#n-leads").textContent = D.leads.length;
+  $("#n-lembretes").textContent = D.lembretes.filter(aberto).length;
+  $("#n-reunioes").textContent = D.reunioes.length;
+  var sel = $("#nl-lead"), v = sel.value;
+  sel.innerHTML = '<option value="">Nenhum</option>' + D.leads.slice().sort(function(a,b){ return a.nome.localeCompare(b.nome); })
+    .map(function(l){ return '<option value="' + l.id + '">' + esc(l.nome) + "</option>"; }).join("");
+  sel.value = v;
+  if(!$("#nl-quando").value) $("#nl-quando").value = paraLocal(amanhaAs(9));
+  renderLeads(); renderLembretes(); renderReunioes();
+}
+
+/* ---------- aba Leads ---------- */
+function renderLeads(){
+  var q = $("#busca").value.trim().toLowerCase(), sit = $("#f-situacao").value;
+  var lista = D.leads.filter(function(l){
+    if(sit && l.situacao !== sit) return false;
+    if(!q) return true;
+    return [l.nome, l.cidade, l.empresa, l.telefone].join(" ").toLowerCase().indexOf(q) >= 0 || (q.replace(/\D/g,"") && digitos(l.telefone).indexOf(q.replace(/\D/g,"")) >= 0);
+  }).sort(function(a,b){ return ultimaData(b).localeCompare(ultimaData(a)); });
+  var el = $("#lista-leads");
+  if(!lista.length){ el.innerHTML = '<div class="vazio">' + (D.leads.length ? "Nenhum lead com esse filtro." : "Nenhum lead ainda. Eles aparecem aqui depois das reuniões no Meet.") + "</div>"; return; }
+  el.innerHTML = lista.map(cardLead).join("");
+}
+function cardLead(l){
+  var rs = reunioesDe(l.id), ult = rs[0], lb = lembretesDe(l.id).sort(function(a,b){ return a.quando.localeCompare(b.quando); })[0];
+  var meta = [PRODUTO[l.produto] || "", l.cidade || "", ult ? "última reunião " + dataCurta(ult.data) + " " + (ult.hora || "") : ""].filter(Boolean).join(" · ");
+  var prox = lb ? "⏰ " + (lb.status === "enviado" ? "enviado, sem resposta" : quandoCurto(lb.quando)) + ": " + esc(lb.texto) : "";
+  var h = '<article class="card' + (abertos[l.id] ? " aberto" : "") + '" data-lead="' + l.id + '">';
+  h += '<div class="card__cab" data-acao="abrir"><div class="card__qm"><div class="card__nome"><span class="seta">▸</span>' + esc(l.nome);
+  if(l.temperatura) h += ' <span class="pill pill--' + l.temperatura + '">' + TEMP[l.temperatura] + "</span>";
+  h += ' <span class="pill pill--' + l.situacao + '">' + SITUACAO[l.situacao] + "</span></div>";
+  h += '<div class="card__meta">' + esc(meta) + "</div>" + (prox ? '<div class="card__prox">' + prox + "</div>" : "") + "</div>";
+  h += '<div class="card__dir">' + (l.telefone ? '<a class="btn btn--sm" href="https://wa.me/' + digitos(l.telefone) + '" target="_blank" rel="noopener" data-acao="nada">WhatsApp</a>' : '<span class="mudo mini">sem telefone</span>') + "</div></div>";
+  if(abertos[l.id]) h += corpoLead(l, rs);
+  return h + "</article>";
+}
+function corpoLead(l, rs){
+  var h = '<div class="card__corpo">';
+  // situação, temperatura e ações
+  h += '<div class="linha-acoes"><select class="sel" data-acao="situacao" aria-label="Situação">' + opcoes(SITUACAO, l.situacao) + "</select>";
+  h += '<select class="sel" data-acao="temperatura" aria-label="Temperatura">' + opcoes(TEMP, l.temperatura, "sem temperatura") + "</select>";
+  h += '<button class="btn btn--sm" data-acao="editar">Editar</button><button class="btn btn--sm" data-acao="mensagem">Mandar mensagem</button>';
+  h += '<button class="btn btn--sm btn--perigo" data-acao="remover">Remover</button></div>';
+  // editar
+  h += '<form class="bloco hidden" data-form="editar"><h3>Editar lead</h3><div class="grade">';
+  h += '<label class="campo">Nome<input class="inp" name="nome" value="' + esc(l.nome) + '" required maxlength="200"></label>';
+  h += '<label class="campo">WhatsApp (com DDD)<input class="inp" name="telefone" value="' + esc(l.telefone || "") + '" inputmode="tel"></label>';
+  h += '<label class="campo">Cidade<input class="inp" name="cidade" value="' + esc(l.cidade || "") + '"></label>';
+  h += '<label class="campo">Empresa<input class="inp" name="empresa" value="' + esc(l.empresa || "") + '"></label>';
+  h += '<label class="campo">Produto<select class="sel" name="produto">' + opcoes(PRODUTO, l.produto, "—") + "</select></label></div>";
+  h += '<div class="linha-acoes" style="margin-top:.7rem"><button class="btn btn--primary btn--sm" type="submit">Salvar</button><button class="btn btn--sm" type="button" data-acao="fechar-form">Cancelar</button></div></form>';
+  // mensagem
+  var envios = D.envios.filter(function(e){ return e.lead_id === l.id; }).slice(0, 3);
+  h += '<form class="bloco hidden" data-form="mensagem"><h3>Mandar mensagem no WhatsApp</h3>';
+  h += l.telefone ? "" : '<p class="erro" style="margin-bottom:.5rem">Este lead não tem telefone: use Editar antes.</p>';
+  h += '<textarea class="inp" name="texto" maxlength="4096" placeholder="Oi, ' + esc(l.nome.split(" ")[0]) + '! …" required></textarea>';
+  h += '<div class="linha-acoes" style="margin-top:.6rem"><select class="sel" name="instancia" aria-label="De qual WhatsApp"><option value="">Carregando números…</option></select>';
+  h += '<button class="btn btn--primary btn--sm" type="submit"' + (l.telefone ? "" : " disabled") + '>Enviar</button><button class="btn btn--sm" type="button" data-acao="fechar-form">Cancelar</button></div>';
+  envios.forEach(function(e){ h += '<div class="envio">' + (e.status === "ok" ? "✅" : e.status === "incerto" ? "⚠️" : "❌") + " " + quandoCurto(e.criado_em) + " pelo " + esc(e.instancia) + ": <b>" + esc(e.texto.slice(0, 120)) + "</b>" + (e.erro ? " · " + esc(e.erro) : "") + "</div>"; });
+  h += "</form>";
+  // reuniões
+  h += '<div class="bloco"><h3>Reuniões</h3>';
+  if(!rs.length) h += '<p class="mudo mini">Nenhuma reunião registrada.</p>';
+  rs.forEach(function(r){ h += blocoReuniao(r, false); });
+  h += "</div>";
+  // lembretes do lead
+  var lbs = lembretesDe(l.id).sort(function(a,b){ return a.quando.localeCompare(b.quando); });
+  h += '<div class="bloco"><h3>Lembretes</h3>' + (lbs.length ? "" : '<p class="mudo mini" style="margin-bottom:.4rem">Nenhum em aberto.</p>');
+  lbs.forEach(function(x){ h += linhaLembrete(x, true); });
+  h += '<button class="btn btn--sm" data-acao="novo-lembrete" style="margin-top:.4rem">+ Lembrete para este lead</button></div>';
+  // comentários
+  var cs = D.comentarios.filter(function(c){ return c.lead_id === l.id; });
+  h += '<div class="bloco"><h3>Comentários</h3>';
+  cs.forEach(function(c){ h += '<div class="coment"><div><small>' + quandoCurto(c.criado_em) + "</small>" + esc(c.texto) + '</div><button class="xis" title="Apagar comentário" data-acao="apagar-comentario" data-id="' + c.id + '">×</button></div>'; });
+  h += '<form data-form="comentar"><textarea class="inp" name="texto" maxlength="4000" placeholder="Anote o que quiser sobre este lead" required></textarea>';
+  h += '<button class="btn btn--sm" type="submit" style="margin-top:.45rem">Comentar</button></form></div>';
+  return h + "</div>";
+}
+function blocoReuniao(r, comLead){
+  var h = '<div class="reuniao" data-reuniao="' + esc(r.chave) + '"><div class="reuniao__cab"><span class="mono mini">' + dataCurta(r.data) + " " + esc(r.hora || "") + "</span>";
+  if(comLead) h += "<b>" + esc((r.lead && r.lead.nome) || r.titulo || "") + "</b>";
+  h += '<select class="sel btn--sm" data-acao="status-reuniao" aria-label="Status">' + opcoes(STATUS, r.status) + "</select>";
+  if(r.duracao_min) h += '<span class="mudo mini">' + r.duracao_min + " min</span>";
+  if(r.doc_id) h += '<a class="mini" href="https://docs.google.com/document/d/' + encodeURIComponent(r.doc_id) + '/edit" target="_blank" rel="noopener">anotações do Gemini</a>';
+  h += "</div>";
+  if(comLead && r.titulo) h += '<p class="mudo mini">' + esc(r.titulo) + "</p>";
+  if(r.resumo) h += "<p>" + esc(r.resumo) + "</p>";
+  if(r.temperatura_porque) h += '<p class="mudo mini">Temperatura: ' + esc(r.temperatura_porque) + "</p>";
+  if((r.objecoes || []).length) h += '<p class="mudo mini">Travas: ' + esc(r.objecoes.join("; ")) + "</p>";
+  if((r.proximos_passos || []).length){
+    h += "<ul>" + r.proximos_passos.map(function(p){ return "<li>" + esc((p.quem ? p.quem + ": " : "") + p.o_que + (p.quando_dito ? " (" + p.quando_dito + ")" : "")) + (p.minuto ? ' <span class="mono">[' + esc(p.minuto) + "]</span>" : "") + "</li>"; }).join("") + "</ul>";
+  }
+  if(!comLead) h += '<button class="btn btn--sm btn--perigo" data-acao="remover-reuniao" style="margin-top:.5rem">Remover reunião</button>';
+  return h + "</div>";
+}
+
+/* ---------- aba Lembretes ---------- */
+function linhaLembrete(l, dentroDoLead){
+  var atras = aberto(l) && new Date(l.quando) < new Date();
+  var q = l.status === "enviado" ? "enviado" : l.status === "feito" ? "feito" : l.status === "apagado" ? "apagado" : quandoCurto(l.quando);
+  var h = '<div class="lemb' + (aberto(l) ? "" : " feito") + '" data-lembrete="' + l.id + '"><div class="lemb__q' + (atras && l.status === "pendente" ? " atrasado" : "") + '">#' + l.id + " " + q + "</div>";
+  h += '<div class="lemb__t">' + esc(l.texto) + (!dentroDoLead && (l.lead_id || l.lead) ? "<small>" + esc(nomeLead(l.lead_id) || l.lead) + "</small>" : "");
+  if(l.status === "enviado") h += "<small>chegou no WhatsApp " + quandoCurto(l.enviado_em) + ", sem resposta</small>";
+  h += '<form class="hidden" data-form="editar-lembrete" style="margin-top:.5rem"><input class="inp" name="texto" value="' + esc(l.texto) + '" style="width:100%;margin-bottom:.4rem" required>';
+  h += '<input class="inp" name="quando" type="datetime-local" value="' + paraLocal(l.quando) + '"> <button class="btn btn--primary btn--sm" type="submit">Salvar</button></form></div>';
+  h += '<div class="lemb__a">';
+  if(aberto(l)){
+    h += '<button class="btn btn--sm" data-acao="feito">Feito</button>';
+    h += '<button class="btn btn--sm" data-acao="adiar-1h">+1 h</button><button class="btn btn--sm" data-acao="adiar-amanha">Amanhã 9h</button>';
+    h += '<button class="btn btn--sm" data-acao="editar-lembrete">Editar</button><button class="btn btn--sm btn--perigo" data-acao="apagar-lembrete">Apagar</button>';
+  } else {
+    h += '<button class="btn btn--sm" data-acao="reabrir">Reabrir</button>';
+  }
+  return h + "</div></div>";
+}
+function renderLembretes(){
+  var todos = $("#f-concluidos").checked;
+  var lista = D.lembretes.filter(function(l){ return todos || aberto(l); }).sort(function(a,b){
+    var x = aberto(a) - aberto(b); if(x) return -x;
+    return aberto(a) ? a.quando.localeCompare(b.quando) : String(b.atualizado_em).localeCompare(String(a.atualizado_em));
+  });
+  $("#lista-lembretes").innerHTML = lista.length ? lista.map(function(l){ return linhaLembrete(l, false); }).join("") : '<div class="vazio">Nenhum lembrete em aberto.</div>';
+}
+
+/* ---------- aba Reuniões ---------- */
+function renderReunioes(){
+  var lista = D.reunioes.slice().sort(function(a,b){ return String(b.data + b.hora).localeCompare(String(a.data + a.hora)); });
+  if(!lista.length){ $("#lista-reunioes").innerHTML = '<div class="vazio">Nenhuma reunião registrada ainda.</div>'; return; }
+  var h = "", dia = null;
+  lista.forEach(function(r){
+    if(r.data !== dia){ dia = r.data; var p = partes(r.data + "T12:00:00-03:00"); h += '<div class="dia">' + p.weekday.replace(".", "") + " " + p.day + "/" + p.month + "/" + p.year + "</div>"; }
+    h += '<div class="card" style="padding:.75rem 1rem">' + blocoReuniao(r, true) + (r.lead_id ? '<button class="btn btn--sm" data-acao="ver-lead" data-lead-id="' + r.lead_id + '">Ver lead</button>' : "") + "</div>";
+  });
+  $("#lista-reunioes").innerHTML = h;
+}
+
+/* ---------- eventos ---------- */
+function leadDoEl(el){ var c = el.closest("[data-lead]"); return c && c.getAttribute("data-lead"); }
+function lembreteDoEl(el){ var c = el.closest("[data-lembrete]"); return c && Number(c.getAttribute("data-lembrete")); }
+
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-acao]"); if(!b) return;
+  var acao = b.getAttribute("data-acao"), id = leadDoEl(b), lid = lembreteDoEl(b);
+  if(acao === "nada") return;
+  if(acao === "abrir"){ abertos[id] = !abertos[id]; renderLeads(); return; }
+  if(acao === "editar" || acao === "mensagem"){
+    var card = b.closest(".card");
+    var f = $('[data-form="' + acao + '"]', card); f.classList.toggle("hidden");
+    if(acao === "mensagem" && !f.classList.contains("hidden")){ preencherInstancias(f, id); $("textarea", f).focus(); }
+    return;
+  }
+  if(acao === "fechar-form"){ b.closest("form").classList.add("hidden"); return; }
+  if(acao === "remover"){
+    var lead = D.leads.find(function(x){ return x.id === id; });
+    if(confirm("Remover " + lead.nome + "? Apaga também as reuniões, os lembretes e os comentários dele.")) fazer("lead_remover", {id:id}, "Lead removido.");
+    return;
+  }
+  if(acao === "remover-reuniao"){
+    if(confirm("Remover esta reunião do diário?")) fazer("reuniao_remover", {chave: b.closest("[data-reuniao]").getAttribute("data-reuniao")}, "Reunião removida.");
+    return;
+  }
+  if(acao === "apagar-comentario"){ if(confirm("Apagar este comentário?")) fazer("comentario_remover", {id: Number(b.getAttribute("data-id"))}, "Comentário apagado."); return; }
+  if(acao === "novo-lembrete"){
+    mostrarAba("lembretes"); $("#nl-lead").value = id; $("#nl-texto").focus(); return;
+  }
+  if(acao === "ver-lead"){
+    var lidLead = b.getAttribute("data-lead-id"); abertos[lidLead] = true; $("#f-situacao").value = ""; $("#busca").value = "";
+    mostrarAba("leads"); renderLeads(); var el = document.querySelector('[data-lead="' + lidLead + '"]'); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); return;
+  }
+  if(acao === "feito") return fazer("lembrete_salvar", {id:lid, status:"feito"}, "Feito ✅");
+  if(acao === "reabrir") return fazer("lembrete_salvar", {id:lid, status:"pendente"}, "Lembrete reaberto.");
+  if(acao === "apagar-lembrete"){ if(confirm("Apagar este lembrete?")) fazer("lembrete_salvar", {id:lid, status:"apagado"}, "Lembrete apagado."); return; }
+  if(acao === "adiar-1h") return fazer("lembrete_salvar", {id:lid, quando:new Date(Date.now() + 36e5).toISOString()}, "Adiado 1 hora.");
+  if(acao === "adiar-amanha") return fazer("lembrete_salvar", {id:lid, quando:amanhaAs(9).toISOString()}, "Adiado para amanhã 9h.");
+  if(acao === "editar-lembrete"){ $('[data-form="editar-lembrete"]', b.closest("[data-lembrete]")).classList.toggle("hidden"); return; }
+});
+
+document.addEventListener("change", function(e){
+  var s = e.target.closest("[data-acao]"); if(!s) return;
+  var acao = s.getAttribute("data-acao"), id = leadDoEl(s);
+  if(acao === "situacao") fazer("lead_salvar", {id:id, situacao:s.value}, "Situação: " + SITUACAO[s.value]);
+  if(acao === "temperatura") fazer("lead_salvar", {id:id, temperatura:s.value || null}, "Temperatura salva.");
+  if(acao === "status-reuniao") fazer("reuniao_salvar", {chave:s.closest("[data-reuniao]").getAttribute("data-reuniao"), status:s.value}, "Status: " + STATUS[s.value]);
+});
+
+document.addEventListener("submit", function(e){
+  var f = e.target, tipo = f.getAttribute("data-form"); if(!tipo) return;
+  e.preventDefault();
+  var id = leadDoEl(f), btn = f.querySelector('[type="submit"]');
+  function trava(p){ return p.finally ? p.finally(function(){ btn.disabled = false; }) : p; }
+  btn.disabled = true;
+  if(tipo === "editar"){
+    trava(fazer("lead_salvar", {id:id, nome:f.nome.value, telefone:f.telefone.value, cidade:f.cidade.value, empresa:f.empresa.value, produto:f.produto.value || null}, "Lead salvo.")).catch(function(){});
+  } else if(tipo === "comentar"){
+    trava(fazer("comentar", {lead_id:id, texto:f.texto.value}, "Comentário salvo.")).catch(function(){});
+  } else if(tipo === "mensagem"){
+    var inst = f.instancia.value, txt = f.texto.value;
+    if(!inst){ toast("Escolha de qual WhatsApp sai a mensagem.", true); btn.disabled = false; return; }
+    trava(chamar("enviar", {lead_id:id, texto:txt, instancia:inst}).then(function(j){
+      if(j.status === "ok") toast("Mensagem enviada ✅"); else toast(j.erro || "Não saiu.", true);
+      return carregar();
+    }).catch(function(err){ toast(err.message, true); }));
+  } else if(tipo === "editar-lembrete"){
+    trava(fazer("lembrete_salvar", {id:lembreteDoEl(f), texto:f.texto.value, quando:deLocal(f.quando.value)}, "Lembrete salvo.")).catch(function(){});
+  }
+});
+
+$("#form-lembrete").addEventListener("submit", function(e){
+  e.preventDefault();
+  var b = this.querySelector('[type="submit"]'); b.disabled = true;
+  fazer("lembrete_criar", {texto:$("#nl-texto").value, quando:deLocal($("#nl-quando").value), lead_id:$("#nl-lead").value || null}, "Lembrete criado.")
+    .then(function(){ $("#nl-texto").value = ""; $("#nl-quando").value = paraLocal(amanhaAs(9)); })
+    .catch(function(){}).finally(function(){ b.disabled = false; });
+});
+
+function preencherInstancias(form, id){
+  var sel = form.instancia, lead = D.leads.find(function(x){ return x.id === id; });
+  // padrão: o número que já falou com ele; senão o do título da reunião ("- carregador", "- pessoal"); senão "pessoal"
+  var r = reunioesDe(id).find(function(x){ return /\s-\s(pessoal|carregador)\b/i.test(x.titulo || ""); });
+  var sugerida = (lead && lead.instancia) || (r && (r.titulo.match(/\s-\s(pessoal|carregador)\b/i) || [])[1].toLowerCase()) || "pessoal";
+  (instCache ? Promise.resolve(instCache) : chamar("instancias").then(function(j){ instCache = j.instancias; return instCache; }))
+    .then(function(lista){
+      sel.innerHTML = '<option value="">De qual WhatsApp?</option>' + lista.map(function(i){
+        return '<option value="' + esc(i.nome) + '"' + (i.estado !== "open" ? " disabled" : "") + (i.nome === sugerida ? " selected" : "") + ">" + esc(i.nome) + (i.numero ? " · final " + i.numero.slice(-4) : "") + (i.estado !== "open" ? " (desconectado)" : "") + "</option>";
+      }).join("");
+    }).catch(function(e){ sel.innerHTML = '<option value="">Sem lista de números</option>'; toast(e.message, true); });
+}
+
+function mostrarAba(nome){
+  document.querySelectorAll(".aba").forEach(function(a){ a.setAttribute("aria-selected", String(a.getAttribute("data-aba") === nome)); });
+  ["leads","lembretes","reunioes"].forEach(function(n){ $("#aba-" + n).classList.toggle("hidden", n !== nome); });
+}
+document.querySelectorAll(".aba").forEach(function(a){ a.addEventListener("click", function(){ mostrarAba(a.getAttribute("data-aba")); }); });
+$("#busca").addEventListener("input", renderLeads);
+$("#f-situacao").addEventListener("change", renderLeads);
+$("#f-concluidos").addEventListener("change", renderLembretes);
+$("#btn-atualizar").addEventListener("click", function(){ carregar().then(function(){ toast("Atualizado."); }); });
+$("#btn-sair").addEventListener("click", function(){ if(DEMO) return; sb.auth.signOut().then(function(){ location.reload(); }); });
+
+$("#form-login").addEventListener("submit", function(e){
+  e.preventDefault();
+  var b = $("#l-go"), erro = $("#l-erro");
+  b.disabled = true; b.textContent = "Entrando…"; erro.classList.add("hidden");
+  sb.auth.signInWithPassword({email:$("#l-email").value.trim(), password:$("#l-senha").value})
+    .then(function(r){ if(r.error) throw r.error; return carregar(); })
+    .catch(function(){ erro.textContent = "E-mail ou senha incorretos."; erro.classList.remove("hidden"); })
+    .finally(function(){ b.disabled = false; b.textContent = "Entrar"; });
+});
+
+/* ---------- demonstração (?demo) ---------- */
+function demoChamar(acao, d){
+  var agora = new Date().toISOString();
+  var L = function(id){ return D.lembretes.find(function(x){ return x.id === id; }); };
+  if(acao === "estado") return Promise.resolve(D);
+  if(acao === "lead_salvar"){ var l = D.leads.find(function(x){ return x.id === d.id; }); Object.keys(d).forEach(function(k){ if(k !== "id") l[k] = d[k]; }); }
+  if(acao === "lead_remover") D.leads = D.leads.filter(function(x){ return x.id !== d.id; });
+  if(acao === "reuniao_salvar"){ var r = D.reunioes.find(function(x){ return x.chave === d.chave; }); r.status = d.status; }
+  if(acao === "reuniao_remover") D.reunioes = D.reunioes.filter(function(x){ return x.chave !== d.chave; });
+  if(acao === "lembrete_salvar"){ var x = L(d.id); if(d.status) x.status = d.status; if(d.quando){ x.quando = d.quando; x.status = "pendente"; } if(d.texto) x.texto = d.texto; x.atualizado_em = agora; }
+  if(acao === "lembrete_criar") D.lembretes.push({id: D.lembretes.length + 1, texto:d.texto, quando:d.quando, lead_id:d.lead_id, status:"pendente", atualizado_em:agora});
+  if(acao === "comentar") D.comentarios.unshift({id: Date.now(), lead_id:d.lead_id, texto:d.texto, criado_em:agora});
+  if(acao === "comentario_remover") D.comentarios = D.comentarios.filter(function(c){ return c.id !== d.id; });
+  if(acao === "instancias") return Promise.resolve({instancias:[{nome:"pessoal",estado:"open",numero:"554891067007"},{nome:"carregador",estado:"open",numero:"554788092413"},{nome:"Debora",estado:"close",numero:"554791997299"}]});
+  if(acao === "enviar"){ D.envios.unshift({lead_id:d.lead_id, instancia:d.instancia, texto:d.texto, status:"ok", criado_em:agora}); return Promise.resolve({status:"ok"}); }
+  return Promise.resolve({ok:true});
+}
+function demoDados(){
+  var h = function(dias, hora){ var p = partes(Date.now() + dias * 864e5); return new Date(p.year + "-" + p.month + "-" + p.day + "T" + hora + ":00-03:00").toISOString(); };
+  var dia = function(dias){ return chaveDia(Date.now() + dias * 864e5); };
+  D.leads = [
+    {id:"a1", nome:"[exemplo] Carla Menezes", telefone:"5547999990001", cidade:"Itajaí/SC", produto:"mob", situacao:"aberto", temperatura:"quente", atualizado_em:h(0,"10:00")},
+    {id:"a2", nome:"[exemplo] Rogério Tavares", telefone:null, cidade:"Londrina/PR", produto:"mob", situacao:"aberto", temperatura:"morno", atualizado_em:h(-1,"10:00")},
+    {id:"a3", nome:"[exemplo] Lúcia Prado", telefone:"5511999990003", cidade:"Campinas/SP", produto:"licenca-igreen", situacao:"perdido", temperatura:"frio", atualizado_em:h(-3,"10:00")}
+  ];
+  D.reunioes = [
+    {chave:"doc:x1", lead_id:"a1", lead:{nome:"[exemplo] Carla Menezes"}, data:dia(0), hora:"10:02", titulo:"Reunião com Carla Menezes - carregador", status:"realizada", duracao_min:38, temperatura:"quente", resumo:"Tem um posto de conveniência na saída da cidade e quer o Mob Fast nas duas vagas da frente. Pediu o link do sinal.", temperatura_porque:"Pediu o link de pagamento do sinal.", objecoes:["Quer confirmar a potência do padrão"], proximos_passos:[{quem:"Jimmy", o_que:"Mandar o link do pedido do Mob Fast", quando_dito:"hoje", minuto:"00:31:10"},{quem:"Carla", o_que:"Pagar o sinal", quando_dito:"até sexta", minuto:"00:33:02"}]},
+    {chave:"doc:x2", lead_id:"a2", lead:{nome:"[exemplo] Rogério Tavares"}, data:dia(-1), hora:"16:00", titulo:"Reunião com Rogério Tavares", status:"realizada", duracao_min:25, temperatura:"morno", resumo:"Dono de lava-rápido; gostou do modelo, mas decide com o sócio.", objecoes:["Decide com o sócio"], proximos_passos:[{quem:"Rogério", o_que:"Conversar com o sócio", quando_dito:"semana que vem", minuto:"00:22:40"}]},
+    {chave:"evt:x3", lead_id:"a3", lead:{nome:"[exemplo] Lúcia Prado"}, data:dia(-3), hora:"09:00", titulo:"Apresentação Individual (Lúcia Prado)", status:"nao_compareceu"}
+  ];
+  D.lembretes = [
+    {id:1, texto:"Conferir se a Carla pagou o sinal do Mob Fast", quando:h(1,"09:00"), lead_id:"a1", status:"pendente", atualizado_em:h(0,"10:40")},
+    {id:2, texto:"Cobrar retorno do Rogério: ia falar com o sócio", quando:h(-1,"10:00"), lead_id:"a2", status:"enviado", enviado_em:h(-1,"10:00"), atualizado_em:h(-1,"10:00")},
+    {id:3, texto:"Revisar a apresentação do Mob", quando:h(0,"18:00"), lead_id:null, status:"pendente", atualizado_em:h(0,"09:00")}
+  ];
+  D.comentarios = [{id:1, lead_id:"a1", texto:"Indicação do Mario. Prefere falar à tarde.", criado_em:h(0,"10:45")}];
+  D.envios = [];
+}
+
+/* ---------- arranque ---------- */
+if(DEMO){
+  $("#demo-banner").classList.remove("hidden");
+  demoDados(); $("#app").classList.remove("hidden"); render();
+} else {
+  sb = window.supabase.createClient(CFG.url, CFG.anonKey);
+  sb.auth.getSession().then(function(r){
+    if(r.data.session) carregar(); else $("#tela-login").classList.remove("hidden");
+  });
+}
+</script>

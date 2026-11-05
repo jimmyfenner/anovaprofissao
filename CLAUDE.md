@@ -425,7 +425,10 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 20 (licenciados cadastrados pelo /admin) aplicada em 04/nov/2026 com o "sim"
+Nenhuma. 21 (diário de reuniões) aplicada em 04/nov/2026 com o "pode aplicar" do
+Jimmy, com a função `reunioes` publicada (`--no-verify-jwt`). Conferido: sem token e com a
+chave anon dá 401, com o token do Mac dá 200; ver "Diário de reuniões" no fim.
+20 (licenciados cadastrados pelo /admin) aplicada em 04/nov/2026 com o "sim"
 do Jimmy: o modo automático barrou o `db query`, então o Jimmy rodou um script com a
 migração, o upload da foto do Mario (`supabase storage cp ... ss:///licenciados/<arquivo>
 --content-type image/jpeg --experimental`) e o `update` da coluna `foto`. Junto: deploy
@@ -1272,3 +1275,31 @@ pedir ao Claude. /admin > **Licenciados** > **Novo licenciado** (ou Editar).
 - Migração `db/20-licenciados-no-admin.sql` (colunas da ficha, bucket,
   `licenciados_publicos()`, índice único do WhatsApp e a ficha do Mario).
 
+## Diário de reuniões — anovaprofissao.com.br/reunioes (nov/2026)
+
+Pedido do Jimmy em 04/11/2026: acompanhar os leads das chamadas do Meet (status das
+reuniões, temperatura, lembretes) e mexer em tudo num lugar só. Botão **Reuniões** no topo
+do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
+
+- **Quem preenche** é o assistente do Mac (`/Volumes/Sandisk/Claude/Reunioes/_ferramentas/assistente`,
+  LEIA-ME manda): a rotina horária lê as anotações do Gemini no Drive e grava reuniões e
+  lembretes; o ciclo do launchd (2 min) manda os lembretes e lê as respostas do Jimmy no
+  WhatsApp (instância 1575). O que ele muda no painel vale para o WhatsApp e vice-versa.
+- **Página** `reunioes.html` (só o corpo, `noindex`, `reunioes` nos slugs reservados aqui e
+  na função `painel`). Abas Leads, Lembretes e Reuniões: situação e temperatura do lead,
+  editar, remover, status de cada reunião, comentários, criar/adiar/apagar lembrete e
+  **Mandar mensagem** ao lead (escolhe a instância; a 1575 fica de fora, é a do assistente).
+  `?demo` mostra a tela com dados falsos, sem login.
+- **Banco** (`db/21-reunioes.sql`): `reunioes_leads`, `reunioes`, `reunioes_lembretes`,
+  `reunioes_comentarios`, `reunioes_envios` e `reunioes_config`. RLS ligada **sem policy** e
+  nada para anon/authenticated: tudo passa pela função. Os leads daqui são separados da
+  tabela `leads` do site (gente da agenda e do Turbo, não do formulário).
+- **Função `reunioes`** (`--no-verify-jwt`): o Mac entra com o cabeçalho `x-assistente-token`
+  (o banco guarda só o sha256 em `reunioes_config`; o token fica em `.token` no Mac, nunca no
+  repositório), o painel com o login. Ações do Mac: estado, gravar, lembrete_criar,
+  lembrete_patch, reuniao_patch. Do painel: estado, lead_salvar/remover, reuniao_salvar/remover,
+  lembrete_criar/salvar, comentar, comentario_remover, instancias, enviar (Evolution, com
+  registro em `reunioes_envios`). Temperatura do lead e status da reunião que o Jimmy muda à
+  mão (`temperatura_por` / `status_por = 'jimmy'`) não são sobrescritos pela próxima leitura
+  da transcrição.
+- Publicar: `supabase functions deploy reunioes --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.

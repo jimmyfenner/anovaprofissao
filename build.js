@@ -347,6 +347,17 @@ fs.writeFileSync(out('painel', 'index.html'), documento({
   desc: 'Área dos licenciados com página no A Nova Profissão.', canonical: SITE.url + '/painel', noindex: true,
 }));
 
+/* Diário de reuniões (nov/2026): anovaprofissao.com.br/reunioes. Leads das chamadas do
+   Meet, status, lembretes, comentários e mensagem ao lead, com o login do /admin e tudo
+   pela função "reunioes" (db/21-reunioes.sql). Quem preenche é o assistente do Mac. */
+const reunioes = separaCabeca(fs.readFileSync(path.join(__dirname, 'reunioes.html'), 'utf8'));
+mkdir(out('reunioes'));
+fs.writeFileSync(out('reunioes', 'index.html'), documento({
+  body: reunioes.body, links: reunioes.links,
+  title: 'Diário de reuniões | ' + SITE.nome,
+  desc: 'Diário de reuniões do Jimmy.', canonical: SITE.url + '/reunioes', noindex: true,
+}));
+
 /* Página "Transição energética". Servida em /transicao-energetica e, pelo
    rewrite por host do vercel.json, na raiz de transicaoenergetica.com.br — o
    endereço canônico, porque o nome do domínio é o ativo.
@@ -475,7 +486,7 @@ PUBLICADOR.forEach(p => {
    Se o Supabase não responder, o build para (a versão anterior fica no ar). */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
   'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao',
-  'agendar', 'agendamento', 'home-agendar', 'painel']);
+  'agendar', 'agendamento', 'home-agendar', 'painel', 'reunioes']);
 const LICS = JSON.parse(require('child_process').execFileSync(process.execPath,
   [path.join(__dirname, 'tools', 'licenciados.mjs'), out('media', 'licenciados')],
   { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], timeout: 120000 }));
