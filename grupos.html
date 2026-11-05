@@ -536,7 +536,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
     h += '<div class="gp-caixa" style="margin-bottom:14px"><div class="gp-linha" style="justify-content:space-between">' +
       '<label class="gp-linha" style="cursor:pointer"><button type="button" class="gp-chave" id="cf-avisar" role="switch" aria-checked="' + !!D.config.avisar + '"></button> Avisar no WhatsApp (pelo 1575)</label>' +
       '<label class="gp-linha">Juntar os avisos: <select id="cf-intervalo" style="background:rgba(0,0,0,.25);border:0;border-radius:8px;padding:.35em .5em;box-shadow:inset 0 0 0 1px var(--line)">' +
-      [[15, "a cada 15 min"], [30, "a cada 30 min"], [60, "a cada 1 h"], [120, "a cada 2 h"], [240, "a cada 4 h"], [0, "só no resumo do dia"]].map(function(o){
+      [[5, "a cada 5 min"], [15, "a cada 15 min"], [30, "a cada 30 min"], [60, "a cada 1 h"], [120, "a cada 2 h"], [240, "a cada 4 h"], [0, "só no resumo do dia"]].map(function(o){
         return '<option value="' + o[0] + '"' + (Number(D.config.aviso_min) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join("") + '</select></label>' +
       '<label class="gp-linha">Resumo do dia às <select id="cf-hora" style="background:rgba(0,0,0,.25);border:0;border-radius:8px;padding:.35em .5em;box-shadow:inset 0 0 0 1px var(--line)">' +
       Array.apply(null, Array(24)).map(function(_, i){ return '<option value="' + i + '"' + (i === D.config.resumo_hora ? ' selected' : '') + '>' + i + 'h</option>'; }).join("") + '</select></label>' +

@@ -1063,7 +1063,7 @@ Deno.serve(async (req) => {
       if (body.avisar !== undefined) p.avisar = body.avisar === true;
       if (body.aviso_min !== undefined) {
         const mi = Math.round(Number(body.aviso_min));
-        exige([0, 15, 30, 60, 120, 240].includes(mi), "Intervalo inválido.");
+        exige([0, 5, 15, 30, 60, 120, 240].includes(mi), "Intervalo inválido.");
         p.aviso_min = mi;
       }
       if (body.resumo_hora !== undefined) {

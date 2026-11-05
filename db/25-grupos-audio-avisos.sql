@@ -1,7 +1,7 @@
 -- =========================================================
 -- Grupos do WhatsApp (nov/2026): áudio transcrito e avisos agrupados.
 --   grupo_mensagens.audio_tentativas  quantas vezes tentou transcrever (para de tentar na 3ª)
---   grupos_config.aviso_min            minutos entre um aviso e o próximo no WhatsApp (0 = só o resumo diário)
+--   grupos_config.aviso_min            minutos entre um aviso e o próximo no WhatsApp (5, 15, 30, 60, 120, 240; 0 = só o resumo diário)
 --   grupos_config.aviso_em             quando saiu o último aviso
 --   grupos_config.modelo_audio         modelo da transcrição (OpenRouter; o Claude não ouve áudio)
 -- Pode ser executado mais de uma vez sem efeito colateral.
