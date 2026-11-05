@@ -14,6 +14,10 @@ const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
 const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+// token do iGreen Turbo (Configurações > Gerar token, workspace do Jimmy): agenda a mensagem de
+// follow-up lá, no contato do lead, e o Turbo é quem manda (rota /api/public/extension/schedule)
+const TURBO = "https://igreenturbo.com.br";
+const TURBO_TOKEN = Deno.env.get("TURBO_TOKEN") ?? "";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -101,6 +105,31 @@ const texto = (v: unknown, max: number) => {
   if (!s) return null;
   return s.slice(0, max);
 };
+// link da conversa no iGreen Turbo: só https://igreenturbo.com.br/..., sem o www
+function linkTurbo(v: unknown): string | null {
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  let u: URL;
+  try {
+    u = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`);
+  } catch {
+    throw new Recusa("Link do Turbo inválido. Cole o endereço da conversa aberta no Turbo.");
+  }
+  if (!/^(www\.)?igreenturbo\.com\.br$/i.test(u.hostname)) {
+    throw new Recusa("O link precisa ser do iGreen Turbo (igreenturbo.com.br).");
+  }
+  if (u.pathname.length < 2) throw new Recusa("Esse é o endereço do site. Abra a conversa com o lead no Turbo e copie o endereço dela.");
+  const final = `https://igreenturbo.com.br${u.pathname}${u.search}`;
+  if (final.length > 520 || /\s/.test(final)) throw new Recusa("Link do Turbo inválido.");
+  return final;
+}
+function linkTurboOuNada(v: unknown): string | null {
+  try {
+    return linkTurbo(v);
+  } catch {
+    return null;
+  }
+}
 function quandoValido(v: unknown): string {
   const d = new Date(String(v ?? ""));
   if (Number.isNaN(d.getTime())) throw new Recusa("Data e hora inválidas.");
@@ -130,7 +159,7 @@ async function estado() {
   // o assistente do Mac usa `lead` dentro da reunião (nome, telefone…)
   for (const r of reunioes) {
     const l: any = porId.get(r.lead_id);
-    r.lead = l ? { id: l.id, nome: l.nome, telefone: l.telefone, cidade: l.cidade, empresa: l.empresa, situacao: l.situacao } : null;
+    r.lead = l ? { id: l.id, nome: l.nome, telefone: l.telefone, turbo_url: l.turbo_url ?? null, cidade: l.cidade, empresa: l.empresa, situacao: l.situacao } : null;
   }
   return { leads, reunioes, lembretes, comentarios, envios };
 }
@@ -140,6 +169,7 @@ async function acharOuCriarLead(dados: any, produto: string | null): Promise<str
   const nome = texto(dados?.nome, 200);
   if (!nome) return null;
   const tel = digitos(dados?.telefone) || null;
+  const turbo = linkTurboOuNada(dados?.turbo_url);
   let lead: any = null;
   if (tel) {
     const v = variantes(tel);
@@ -148,20 +178,21 @@ async function acharOuCriarLead(dados: any, produto: string | null): Promise<str
   }
   if (!lead) {
     // pelo nome: só se o lead achado não tiver outro telefone
-    const todos = await rest("reunioes_leads?select=id,nome,telefone,cidade,empresa,produto");
+    const todos = await rest("reunioes_leads?select=id,nome,telefone,turbo_url,cidade,empresa,produto");
     lead = todos.find((l: any) => normalizar(l.nome) === normalizar(nome) && (!tel || !l.telefone || variantes(tel).includes(l.telefone))) ?? null;
   }
   if (!lead) {
     const novo = await rest("reunioes_leads", {
       method: "POST",
       body: JSON.stringify({
-        nome, telefone: tel, cidade: texto(dados?.cidade, 120), empresa: texto(dados?.empresa, 200), produto,
+        nome, telefone: tel, turbo_url: turbo, cidade: texto(dados?.cidade, 120), empresa: texto(dados?.empresa, 200), produto,
       }),
     });
     return novo[0].id;
   }
   const campos: Record<string, unknown> = {};
   if (tel && !lead.telefone) campos.telefone = tel;
+  if (turbo && !lead.turbo_url) campos.turbo_url = turbo;
   if (!lead.cidade && dados?.cidade) campos.cidade = texto(dados.cidade, 120);
   if (!lead.empresa && dados?.empresa) campos.empresa = texto(dados.empresa, 200);
   if (!lead.produto && produto) campos.produto = produto;
@@ -311,6 +342,7 @@ async function salvarLead(b: any) {
       c.telefone = t.numero;
     }
   }
+  if (b.turbo_url !== undefined) c.turbo_url = linkTurbo(b.turbo_url);
   if (b.cidade !== undefined) c.cidade = texto(b.cidade, 120);
   if (b.empresa !== undefined) c.empresa = texto(b.empresa, 200);
   if (b.produto !== undefined) c.produto = texto(b.produto, 40);
@@ -328,6 +360,76 @@ async function salvarLead(b: any) {
   const [l] = await rest(`reunioes_leads?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(c) });
   if (!l) throw new Recusa("Lead não encontrado.", 404);
   return l;
+}
+
+// ── follow-up agendado no iGreen Turbo ───────────────────────
+const ERROS_TURBO: Record<string, string> = {
+  contact_not_found: "Esse lead não está no Turbo (ou o link é de outro workspace). Confira o link da conversa.",
+  no_instance: "A conversa desse lead no Turbo está sem número de WhatsApp ligado.",
+  unauthorized: "O token do Turbo foi recusado. Gere outro em Configurações no Turbo.",
+};
+async function turbo(path: string, corpo?: unknown) {
+  if (!TURBO_TOKEN) throw new Recusa("Falta ligar o Turbo: o token ainda não foi gravado nesta função.", 503);
+  let r: Response;
+  try {
+    r = await fetch(`${TURBO}${path}`, {
+      method: corpo === undefined ? "GET" : "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${TURBO_TOKEN}` },
+      body: corpo === undefined ? undefined : JSON.stringify(corpo),
+      signal: AbortSignal.timeout(20_000),
+    });
+  } catch {
+    throw new Recusa("O Turbo não respondeu. Tente de novo em instantes.", 502);
+  }
+  const j: any = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const cod = r.status === 401 ? "unauthorized" : String(j.error ?? "");
+    throw new Recusa(ERROS_TURBO[cod] ?? j.message ?? `O Turbo recusou (${r.status}).`, r.status >= 500 ? 502 : 400);
+  }
+  return j;
+}
+const contatoDoTurbo = (url: unknown) => {
+  const m = String(url ?? "").match(/[?&]contact=([0-9a-f-]{36})\b/i);
+  return m && UUID.test(m[1]) ? m[1] : null;
+};
+
+async function agendar(b: any) {
+  const id = idLead(b.lead_id);
+  const [lead] = await rest(`reunioes_leads?id=eq.${id}&select=id,telefone,turbo_url,instancia`);
+  if (!lead) throw new Recusa("Lead não encontrado.", 404);
+  const contato = contatoDoTurbo(lead.turbo_url);
+  if (!contato && !lead.telefone) throw new Recusa("Ponha o telefone ou o link da conversa no Turbo antes de agendar.");
+  const msg = texto(b.texto, 4000);
+  if (!msg) throw new Recusa("Escreva a mensagem.");
+  const j = await turbo("/api/public/extension/schedule", {
+    action: "create",
+    ...(contato ? { contact_id: contato } : { phone: lead.telefone, instance_name: lead.instancia ?? null }),
+    message: msg,
+    scheduled_at: quandoValido(b.quando),
+    cancel_on_inbound: b.cancelar_se_responder === true,
+  });
+  // achou a conversa pelo telefone: guarda o link, para a próxima já ir direto
+  if (!contato && j.item?.contact_id) {
+    await rest(`reunioes_leads?id=eq.${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ turbo_url: `${TURBO}/app/inbox?contact=${j.item.contact_id}`, atualizado_em: new Date().toISOString() }),
+    });
+  }
+  return { item: { ...j.item, lead_id: id } };
+}
+
+// as agendadas de todos os leads com link do Turbo, numa chamada só
+async function agendados() {
+  if (!TURBO_TOKEN) return { items: [], aviso: "Turbo não ligado" };
+  const leads = await rest("reunioes_leads?select=id,turbo_url&turbo_url=not.is.null");
+  const porContato = new Map<string, string>();
+  for (const l of leads) {
+    const c = contatoDoTurbo(l.turbo_url);
+    if (c) porContato.set(c, l.id);
+  }
+  if (!porContato.size) return { items: [] };
+  const j = await turbo(`/api/public/extension/schedule?contact_ids=${[...porContato.keys()].join(",")}`);
+  return { items: (j.items ?? []).map((i: any) => ({ ...i, lead_id: porContato.get(i.contact_id) ?? null })) };
 }
 
 // só nome, estado e número — o token da instância nunca sai daqui
@@ -486,6 +588,9 @@ Deno.serve(async (req) => {
       await rest(`reunioes_comentarios?id=eq.${id}`, { method: "DELETE" });
       return json({ ok: true });
     }
+    if (acao === "agendar") return json(await agendar(b));
+    if (acao === "agendados") return json(await agendados());
+    if (acao === "agendado_cancelar") return json(await turbo("/api/public/extension/schedule", { action: "cancel", id: String(b.id ?? "") }));
     if (acao === "instancias") return json({ instancias: await instancias() });
     if (acao === "enviar") return json(await enviar(b));
     return json({ error: "Ação inválida." }, 400);

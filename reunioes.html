@@ -84,6 +84,18 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
 .card__prox{font-size:.82rem;margin-top:.3rem;color:var(--text)}
 .card__dir{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0}
 .card__corpo{border-top:1px solid var(--line-soft);padding:1rem;display:flex;flex-direction:column;gap:1.15rem}
+.contato{padding:.1rem 1rem 1rem;display:flex;flex-direction:column;gap:.6rem}
+.contato .dica{font-size:.78rem;color:var(--muted)}
+.btn--add{border-style:dashed;color:var(--muted)}
+.pill--agenda{color:#9FD3FF;border-color:rgba(107,168,216,.45)}
+.modo{display:flex;gap:.9rem;flex-wrap:wrap;align-items:center;font-size:.84rem;margin:.55rem 0 .1rem}
+.modo label{display:inline-flex;gap:.35rem;align-items:center;cursor:pointer}
+.agd{display:flex;gap:.6rem;align-items:flex-start;padding:.6rem .8rem;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;margin-bottom:.4rem;font-size:.88rem}
+.agd__q{font-family:var(--mono);font-size:.74rem;color:#9FD3FF;white-space:nowrap;min-width:6.2rem;padding-top:.1rem}
+.agd__t{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.agd__t small{display:block;color:var(--muted);font-size:.76rem;white-space:normal}
+.agd.fim{opacity:.6}
+.btn--add:hover{color:var(--text)}
 .seta{color:var(--muted-dim);font-size:.8rem;transition:transform .15s}
 .card.aberto .seta{transform:rotate(90deg)}
 
@@ -220,6 +232,9 @@ var TZ = "America/Sao_Paulo";
 var sb = null;
 var D = { leads: [], reunioes: [], lembretes: [], comentarios: [], envios: [] };
 var abertos = {};          // leads expandidos
+var AG = [];               // mensagens agendadas no Turbo (de todos os leads com link)
+var AG_AVISO = "";
+var contatoAberto = {};    // lead -> campo ("telefone" | "turbo_url") com o formulário rápido aberto
 var instCache = null;      // instâncias da Evolution (carregadas uma vez)
 
 function $(s, el){ return (el || document).querySelector(s); }
@@ -281,8 +296,12 @@ function chamar(acao, dados){
   });
 }
 function carregar(){
+  // as agendadas vêm do Turbo; se ele falhar, o resto da tela abre do mesmo jeito
+  var ag = chamar("agendados").then(function(j){ AG = j.items || []; AG_AVISO = j.aviso || ""; })
+    .catch(function(e){ AG = []; AG_AVISO = e.message; });
   return chamar("estado").then(function(j){
-    D = j; $("#tela-login").classList.add("hidden"); $("#app").classList.remove("hidden"); render();
+    D = j; $("#tela-login").classList.add("hidden"); $("#app").classList.remove("hidden");
+    return ag.then(render);
   }).catch(function(e){ toast(e.message, true); });
 }
 // executa, recarrega e avisa
@@ -295,6 +314,9 @@ function fazer(acao, dados, msg){
 function reunioesDe(id){ return D.reunioes.filter(function(r){ return r.lead_id === id; }).sort(function(a,b){ return String(b.data + b.hora).localeCompare(String(a.data + a.hora)); }); }
 function lembretesDe(id){ return D.lembretes.filter(function(l){ return l.lead_id === id && (l.status === "pendente" || l.status === "enviado"); }); }
 function aberto(l){ return l.status === "pendente" || l.status === "enviado"; }
+function agendadasDe(id){ return AG.filter(function(a){ return a.lead_id === id; }).sort(function(a,b){ return a.scheduled_at.localeCompare(b.scheduled_at); }); }
+function pendente(a){ return a.status === "pending" || a.status === "processing"; }
+var STATUS_AG = {pending:"agendada", processing:"saindo agora", sent:"enviada", cancelled:"cancelada", failed:"não saiu"};
 function nomeLead(id){ var l = D.leads.find(function(x){ return x.id === id; }); return l ? l.nome : ""; }
 function ultimaData(lead){ var r = reunioesDe(lead.id)[0]; return r ? r.data + " " + (r.hora || "") : String(lead.atualizado_em || ""); }
 
@@ -334,11 +356,30 @@ function cardLead(l){
   var h = '<article class="card' + (abertos[l.id] ? " aberto" : "") + '" data-lead="' + l.id + '">';
   h += '<div class="card__cab" data-acao="abrir"><div class="card__qm"><div class="card__nome"><span class="seta">▸</span>' + esc(l.nome);
   if(l.temperatura) h += ' <span class="pill pill--' + l.temperatura + '">' + TEMP[l.temperatura] + "</span>";
-  h += ' <span class="pill pill--' + l.situacao + '">' + SITUACAO[l.situacao] + "</span></div>";
+  h += ' <span class="pill pill--' + l.situacao + '">' + SITUACAO[l.situacao] + "</span>";
+  var ag = agendadasDe(l.id).filter(pendente)[0];
+  if(ag) h += ' <span class="pill pill--agenda" title="Mensagem agendada no Turbo">✉️ ' + quandoCurto(ag.scheduled_at) + "</span>";
+  h += "</div>";
   h += '<div class="card__meta">' + esc(meta) + "</div>" + (prox ? '<div class="card__prox">' + prox + "</div>" : "") + "</div>";
-  h += '<div class="card__dir">' + (l.telefone ? '<a class="btn btn--sm" href="https://wa.me/' + digitos(l.telefone) + '" target="_blank" rel="noopener" data-acao="nada">WhatsApp</a>' : '<span class="mudo mini">sem telefone</span>') + "</div></div>";
+  h += '<div class="card__dir">';
+  h += l.telefone ? '<a class="btn btn--sm" href="https://wa.me/' + digitos(l.telefone) + '" target="_blank" rel="noopener" data-acao="nada">WhatsApp</a>'
+    : '<button class="btn btn--sm btn--add" type="button" data-acao="contato" data-campo="telefone">+ Telefone</button>';
+  h += ehTurbo(l.turbo_url) ? '<a class="btn btn--sm" href="' + esc(l.turbo_url) + '" target="_blank" rel="noopener" data-acao="nada" title="Abrir a conversa no iGreen Turbo">Turbo ↗</a>'
+    : '<button class="btn btn--sm btn--add" type="button" data-acao="contato" data-campo="turbo_url" title="Link da conversa no iGreen Turbo">+ Turbo</button>';
+  h += "</div></div>";
+  if(contatoAberto[l.id]) h += formContato(l);
   if(abertos[l.id]) h += corpoLead(l, rs);
   return h + "</article>";
+}
+function ehTurbo(u){ return typeof u === "string" && u.indexOf("https://igreenturbo.com.br/") === 0; }
+var DICA_TURBO = "No Turbo, abra a conversa com o lead e copie o endereço do navegador (igreenturbo.com.br/app/inbox?contact=…).";
+function formContato(l){
+  var h = '<form class="contato" data-form="contato"><div class="grade">';
+  h += '<label class="campo">WhatsApp (com DDD)<input class="inp" name="telefone" value="' + esc(l.telefone || "") + '" inputmode="tel" placeholder="(47) 99999-0000" autocomplete="off"></label>';
+  h += '<label class="campo">Conversa no iGreen Turbo<input class="inp" name="turbo_url" value="' + esc(l.turbo_url || "") + '" inputmode="url" placeholder="https://igreenturbo.com.br/app/inbox?contact=…" autocomplete="off"></label></div>';
+  h += '<p class="dica">' + DICA_TURBO + "</p>";
+  h += '<div class="linha-acoes"><button class="btn btn--primary btn--sm" type="submit">Salvar</button><button class="btn btn--sm" type="button" data-acao="fechar-contato">Cancelar</button></div></form>';
+  return h;
 }
 function corpoLead(l, rs){
   var h = '<div class="card__corpo">';
@@ -351,19 +392,40 @@ function corpoLead(l, rs){
   h += '<form class="bloco hidden" data-form="editar"><h3>Editar lead</h3><div class="grade">';
   h += '<label class="campo">Nome<input class="inp" name="nome" value="' + esc(l.nome) + '" required maxlength="200"></label>';
   h += '<label class="campo">WhatsApp (com DDD)<input class="inp" name="telefone" value="' + esc(l.telefone || "") + '" inputmode="tel"></label>';
+  h += '<label class="campo">Conversa no iGreen Turbo<input class="inp" name="turbo_url" value="' + esc(l.turbo_url || "") + '" inputmode="url" placeholder="https://igreenturbo.com.br/app/inbox?contact=…" title="' + DICA_TURBO + '"></label>';
   h += '<label class="campo">Cidade<input class="inp" name="cidade" value="' + esc(l.cidade || "") + '"></label>';
   h += '<label class="campo">Empresa<input class="inp" name="empresa" value="' + esc(l.empresa || "") + '"></label>';
   h += '<label class="campo">Produto<select class="sel" name="produto">' + opcoes(PRODUTO, l.produto, "—") + "</select></label></div>";
   h += '<div class="linha-acoes" style="margin-top:.7rem"><button class="btn btn--primary btn--sm" type="submit">Salvar</button><button class="btn btn--sm" type="button" data-acao="fechar-form">Cancelar</button></div></form>';
   // mensagem
   var envios = D.envios.filter(function(e){ return e.lead_id === l.id; }).slice(0, 3);
+  var podeAgendar = l.telefone || ehTurbo(l.turbo_url);
   h += '<form class="bloco hidden" data-form="mensagem"><h3>Mandar mensagem no WhatsApp</h3>';
-  h += l.telefone ? "" : '<p class="erro" style="margin-bottom:.5rem">Este lead não tem telefone: use Editar antes.</p>';
-  h += '<textarea class="inp" name="texto" maxlength="4096" placeholder="Oi, ' + esc(l.nome.split(" ")[0]) + '! …" required></textarea>';
-  h += '<div class="linha-acoes" style="margin-top:.6rem"><select class="sel" name="instancia" aria-label="De qual WhatsApp"><option value="">Carregando números…</option></select>';
-  h += '<button class="btn btn--primary btn--sm" type="submit"' + (l.telefone ? "" : " disabled") + '>Enviar</button><button class="btn btn--sm" type="button" data-acao="fechar-form">Cancelar</button></div>';
+  h += podeAgendar ? "" : '<p class="erro" style="margin-bottom:.5rem">Este lead não tem telefone nem link do Turbo: use + Telefone antes.</p>';
+  h += '<textarea class="inp" name="texto" maxlength="4000" placeholder="Oi, ' + esc(l.nome.split(" ")[0]) + '! …" required></textarea>';
+  h += '<div class="modo"><label><input type="radio" name="modo" value="agora" checked data-acao="modo"> Enviar agora</label>';
+  h += '<label><input type="radio" name="modo" value="agendar" data-acao="modo"> Agendar follow-up</label></div>';
+  h += '<div class="linha-acoes so-agora" style="margin-top:.5rem"><select class="sel" name="instancia" aria-label="De qual WhatsApp"><option value="">Carregando números…</option></select></div>';
+  h += '<div class="so-agendar hidden" style="margin-top:.5rem"><div class="linha-acoes"><input class="inp" type="datetime-local" name="quando" value="' + paraLocal(amanhaAs(9)) + '" aria-label="Quando">';
+  h += '<label class="mini mudo" style="display:inline-flex;gap:.35rem;align-items:center"><input type="checkbox" name="cancelar" checked> não mandar se o lead responder antes</label></div>';
+  h += '<p class="dica mini mudo" style="margin-top:.4rem">Fica agendada no iGreen Turbo, na conversa com o lead, e sai pelo número dessa conversa. Dá para ver e cancelar aqui ou lá.</p></div>';
+  h += '<div class="linha-acoes" style="margin-top:.6rem"><button class="btn btn--primary btn--sm" type="submit"' + (l.telefone ? "" : " disabled") + ' data-rotulo-agora="Enviar" data-rotulo-agendar="Agendar">Enviar</button><button class="btn btn--sm" type="button" data-acao="fechar-form">Cancelar</button></div>';
   envios.forEach(function(e){ h += '<div class="envio">' + (e.status === "ok" ? "✅" : e.status === "incerto" ? "⚠️" : "❌") + " " + quandoCurto(e.criado_em) + " pelo " + esc(e.instancia) + ": <b>" + esc(e.texto.slice(0, 120)) + "</b>" + (e.erro ? " · " + esc(e.erro) : "") + "</div>"; });
   h += "</form>";
+  // mensagens agendadas no Turbo
+  var ags = agendadasDe(l.id);
+  if(ags.length || ehTurbo(l.turbo_url)){
+    h += '<div class="bloco"><h3>Mensagens agendadas' + (ehTurbo(l.turbo_url) ? ' · <a href="' + esc(l.turbo_url) + '" target="_blank" rel="noopener">ver no Turbo</a>' : "") + "</h3>";
+    if(AG_AVISO && AG_AVISO !== "Turbo não ligado") h += '<p class="erro mini" style="margin-bottom:.4rem">Não deu para ler o Turbo: ' + esc(AG_AVISO) + "</p>";
+    if(!ags.length) h += '<p class="mudo mini">Nenhuma. Use Mandar mensagem › Agendar follow-up.</p>';
+    ags.forEach(function(a){
+      h += '<div class="agd' + (pendente(a) ? "" : " fim") + '" data-agendada="' + esc(a.id) + '"><div class="agd__q">' + quandoCurto(a.scheduled_at) + "</div>";
+      h += '<div class="agd__t">' + esc(a.message || "") + "<small>" + (STATUS_AG[a.status] || a.status) + (a.cancel_on_inbound && pendente(a) ? " · não sai se o lead responder antes" : "") + (a.error ? " · " + esc(a.error) : "") + "</small></div>";
+      if(a.status === "pending") h += '<button class="btn btn--sm btn--perigo" data-acao="cancelar-agendada">Cancelar</button>';
+      h += "</div>";
+    });
+    h += "</div>";
+  }
   // reuniões
   h += '<div class="bloco"><h3>Reuniões</h3>';
   if(!rs.length) h += '<p class="mudo mini">Nenhuma reunião registrada.</p>';
@@ -413,6 +475,7 @@ function linhaLembrete(l, dentroDoLead){
   if(aberto(l)){
     h += '<button class="btn btn--sm" data-acao="feito">Feito</button>';
     h += '<button class="btn btn--sm" data-acao="adiar-1h">+1 h</button><button class="btn btn--sm" data-acao="adiar-amanha">Amanhã 9h</button>';
+    if(l.lead_id) h += '<button class="btn btn--sm" data-acao="agendar-do-lembrete" data-lead-id="' + esc(l.lead_id) + '" title="Agendar a mensagem para o lead no Turbo">✉️ Agendar msg</button>';
     h += '<button class="btn btn--sm" data-acao="editar-lembrete">Editar</button><button class="btn btn--sm btn--perigo" data-acao="apagar-lembrete">Apagar</button>';
   } else {
     h += '<button class="btn btn--sm" data-acao="reabrir">Reabrir</button>';
@@ -456,6 +519,29 @@ document.addEventListener("click", function(e){
     return;
   }
   if(acao === "fechar-form"){ b.closest("form").classList.add("hidden"); return; }
+  if(acao === "contato"){
+    var campo = b.getAttribute("data-campo");
+    if(contatoAberto[id] === campo) delete contatoAberto[id]; else contatoAberto[id] = campo;
+    renderLeads();
+    var inp = document.querySelector('[data-lead="' + id + '"] [data-form="contato"] [name="' + campo + '"]');
+    if(inp) inp.focus();
+    return;
+  }
+  if(acao === "fechar-contato"){ delete contatoAberto[id]; renderLeads(); return; }
+  if(acao === "cancelar-agendada"){
+    if(confirm("Cancelar esta mensagem agendada? Ela some do Turbo também.")) fazer("agendado_cancelar", {id: b.closest("[data-agendada]").getAttribute("data-agendada")}, "Mensagem cancelada.").catch(function(){});
+    return;
+  }
+  if(acao === "agendar-do-lembrete"){
+    var alvo = b.getAttribute("data-lead-id"), lemb = D.lembretes.find(function(x){ return x.id === lid; });
+    abertos[alvo] = true; $("#f-situacao").value = ""; $("#busca").value = ""; mostrarAba("leads"); renderLeads();
+    var card = document.querySelector('[data-lead="' + alvo + '"]'); if(!card) return;
+    var f = $('[data-form="mensagem"]', card); f.classList.remove("hidden"); preencherInstancias(f, alvo);
+    f.querySelector('[value="agendar"]').checked = true; mudarModo(f);
+    if(lemb && new Date(lemb.quando) > new Date()) f.quando.value = paraLocal(lemb.quando);
+    card.scrollIntoView({behavior:"smooth", block:"start"}); f.texto.focus();
+    return;
+  }
   if(acao === "remover"){
     var lead = D.leads.find(function(x){ return x.id === id; });
     if(confirm("Remover " + lead.nome + "? Apaga também as reuniões, os lembretes e os comentários dele.")) fazer("lead_remover", {id:id}, "Lead removido.");
@@ -484,6 +570,7 @@ document.addEventListener("click", function(e){
 document.addEventListener("change", function(e){
   var s = e.target.closest("[data-acao]"); if(!s) return;
   var acao = s.getAttribute("data-acao"), id = leadDoEl(s);
+  if(acao === "modo"){ mudarModo(s.closest("form")); return; }
   if(acao === "situacao") fazer("lead_salvar", {id:id, situacao:s.value}, "Situação: " + SITUACAO[s.value]);
   if(acao === "temperatura") fazer("lead_salvar", {id:id, temperatura:s.value || null}, "Temperatura salva.");
   if(acao === "status-reuniao") fazer("reuniao_salvar", {chave:s.closest("[data-reuniao]").getAttribute("data-reuniao"), status:s.value}, "Status: " + STATUS[s.value]);
@@ -496,9 +583,19 @@ document.addEventListener("submit", function(e){
   function trava(p){ return p.finally ? p.finally(function(){ btn.disabled = false; }) : p; }
   btn.disabled = true;
   if(tipo === "editar"){
-    trava(fazer("lead_salvar", {id:id, nome:f.nome.value, telefone:f.telefone.value, cidade:f.cidade.value, empresa:f.empresa.value, produto:f.produto.value || null}, "Lead salvo.")).catch(function(){});
+    trava(fazer("lead_salvar", {id:id, nome:f.nome.value, telefone:f.telefone.value, turbo_url:f.turbo_url.value, cidade:f.cidade.value, empresa:f.empresa.value, produto:f.produto.value || null}, "Lead salvo.")).catch(function(){});
+  } else if(tipo === "contato"){
+    trava(chamar("lead_salvar", {id:id, telefone:f.telefone.value, turbo_url:f.turbo_url.value}).then(function(){
+      delete contatoAberto[id]; toast("Contato salvo."); return carregar();
+    }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "comentar"){
     trava(fazer("comentar", {lead_id:id, texto:f.texto.value}, "Comentário salvo.")).catch(function(){});
+  } else if(tipo === "mensagem" && f.querySelector('[name="modo"]:checked').value === "agendar"){
+    var q = deLocal(f.quando.value);
+    if(!q || new Date(q) < new Date(Date.now() - 6e4)){ toast("Escolha um horário que ainda não passou.", true); btn.disabled = false; return; }
+    trava(chamar("agendar", {lead_id:id, texto:f.texto.value, quando:q, cancelar_se_responder:f.cancelar.checked}).then(function(){
+      toast("Agendada no Turbo para " + quandoCurto(q) + " ✅"); return carregar();
+    }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "mensagem"){
     var inst = f.instancia.value, txt = f.texto.value;
     if(!inst){ toast("Escolha de qual WhatsApp sai a mensagem.", true); btn.disabled = false; return; }
@@ -519,6 +616,15 @@ $("#form-lembrete").addEventListener("submit", function(e){
     .catch(function(){}).finally(function(){ b.disabled = false; });
 });
 
+function mudarModo(f){
+  var agendar = f.querySelector('[name="modo"]:checked').value === "agendar";
+  $(".so-agora", f).classList.toggle("hidden", agendar);
+  $(".so-agendar", f).classList.toggle("hidden", !agendar);
+  var lead = D.leads.find(function(x){ return x.id === leadDoEl(f); }) || {};
+  var btn = f.querySelector('[type="submit"]');
+  btn.textContent = btn.getAttribute(agendar ? "data-rotulo-agendar" : "data-rotulo-agora");
+  btn.disabled = agendar ? !(lead.telefone || ehTurbo(lead.turbo_url)) : !lead.telefone;
+}
 function preencherInstancias(form, id){
   var sel = form.instancia, lead = D.leads.find(function(x){ return x.id === id; });
   // padrão: o número que já falou com ele; senão o do título da reunião ("- carregador", "- pessoal"); senão "pessoal"
@@ -558,7 +664,16 @@ function demoChamar(acao, d){
   var agora = new Date().toISOString();
   var L = function(id){ return D.lembretes.find(function(x){ return x.id === id; }); };
   if(acao === "estado") return Promise.resolve(D);
-  if(acao === "lead_salvar"){ var l = D.leads.find(function(x){ return x.id === d.id; }); Object.keys(d).forEach(function(k){ if(k !== "id") l[k] = d[k]; }); }
+  if(acao === "lead_salvar"){
+    if(d.turbo_url){
+      var tu = String(d.turbo_url).trim().replace(/^(https?:\/\/)?(www\.)?/i, "https://");
+      if(!/^https:\/\/igreenturbo\.com\.br\/\S+$/.test(tu)) return Promise.reject(new Error("O link precisa ser do iGreen Turbo (igreenturbo.com.br)."));
+      d.turbo_url = tu;
+    }
+    if(d.telefone !== undefined) d.telefone = digitos(d.telefone) ? (digitos(d.telefone).length <= 11 ? "55" : "") + digitos(d.telefone) : null;
+    if(d.turbo_url === "") d.turbo_url = null;
+    var l = D.leads.find(function(x){ return x.id === d.id; }); Object.keys(d).forEach(function(k){ if(k !== "id") l[k] = d[k]; });
+  }
   if(acao === "lead_remover") D.leads = D.leads.filter(function(x){ return x.id !== d.id; });
   if(acao === "reuniao_salvar"){ var r = D.reunioes.find(function(x){ return x.chave === d.chave; }); r.status = d.status; }
   if(acao === "reuniao_remover") D.reunioes = D.reunioes.filter(function(x){ return x.chave !== d.chave; });
@@ -566,6 +681,15 @@ function demoChamar(acao, d){
   if(acao === "lembrete_criar") D.lembretes.push({id: D.lembretes.length + 1, texto:d.texto, quando:d.quando, lead_id:d.lead_id, status:"pendente", atualizado_em:agora});
   if(acao === "comentar") D.comentarios.unshift({id: Date.now(), lead_id:d.lead_id, texto:d.texto, criado_em:agora});
   if(acao === "comentario_remover") D.comentarios = D.comentarios.filter(function(c){ return c.id !== d.id; });
+  if(acao === "agendados") return Promise.resolve({items: AG});
+  if(acao === "agendar"){
+    var ld = D.leads.find(function(x){ return x.id === d.lead_id; });
+    if(!ld.telefone && !ehTurbo(ld.turbo_url)) return Promise.reject(new Error("Ponha o telefone ou o link da conversa no Turbo antes de agendar."));
+    if(!ehTurbo(ld.turbo_url)) ld.turbo_url = "https://igreenturbo.com.br/app/inbox?contact=00000000-0000-0000-0000-00000000000" + String(D.leads.indexOf(ld) + 1);
+    var item = {id:"ag" + Date.now(), lead_id:d.lead_id, message:d.texto, scheduled_at:d.quando, status:"pending", cancel_on_inbound:d.cancelar_se_responder};
+    return Promise.resolve({item:item}).then(function(r){ AG.push(item); return r; });
+  }
+  if(acao === "agendado_cancelar"){ AG.forEach(function(a){ if(a.id === d.id) a.status = "cancelled"; }); return Promise.resolve({ok:true}); }
   if(acao === "instancias") return Promise.resolve({instancias:[{nome:"pessoal",estado:"open",numero:"554891067007"},{nome:"carregador",estado:"open",numero:"554788092413"},{nome:"Debora",estado:"close",numero:"554791997299"}]});
   if(acao === "enviar"){ D.envios.unshift({lead_id:d.lead_id, instancia:d.instancia, texto:d.texto, status:"ok", criado_em:agora}); return Promise.resolve({status:"ok"}); }
   return Promise.resolve({ok:true});
@@ -574,7 +698,7 @@ function demoDados(){
   var h = function(dias, hora){ var p = partes(Date.now() + dias * 864e5); return new Date(p.year + "-" + p.month + "-" + p.day + "T" + hora + ":00-03:00").toISOString(); };
   var dia = function(dias){ return chaveDia(Date.now() + dias * 864e5); };
   D.leads = [
-    {id:"a1", nome:"[exemplo] Carla Menezes", telefone:"5547999990001", cidade:"Itajaí/SC", produto:"mob", situacao:"aberto", temperatura:"quente", atualizado_em:h(0,"10:00")},
+    {id:"a1", nome:"[exemplo] Carla Menezes", telefone:"5547999990001", turbo_url:"https://igreenturbo.com.br/app/inbox?contact=00000000-0000-0000-0000-000000000001", cidade:"Itajaí/SC", produto:"mob", situacao:"aberto", temperatura:"quente", atualizado_em:h(0,"10:00")},
     {id:"a2", nome:"[exemplo] Rogério Tavares", telefone:null, cidade:"Londrina/PR", produto:"mob", situacao:"aberto", temperatura:"morno", atualizado_em:h(-1,"10:00")},
     {id:"a3", nome:"[exemplo] Lúcia Prado", telefone:"5511999990003", cidade:"Campinas/SP", produto:"licenca-igreen", situacao:"perdido", temperatura:"frio", atualizado_em:h(-3,"10:00")}
   ];
@@ -590,6 +714,7 @@ function demoDados(){
   ];
   D.comentarios = [{id:1, lead_id:"a1", texto:"Indicação do Mario. Prefere falar à tarde.", criado_em:h(0,"10:45")}];
   D.envios = [];
+  AG = [{id:"ag1", lead_id:"a1", message:"Oi, Carla! Conseguiu ver a simulação do Mob Fast? Se quiser, te ligo amanhã para fechar os detalhes.", scheduled_at:h(2,"09:30"), status:"pending", cancel_on_inbound:true}];
 }
 
 /* ---------- arranque ---------- */
