@@ -627,7 +627,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
       var jid = b.dataset.ligar, novo = b.getAttribute("aria-checked") !== "true";
       b.setAttribute("aria-checked", novo);
       D.grupos.forEach(function(g){ if(g.jid === jid) g.ativo = novo; });
-      var tipo = ($('[data-tipo="' + jid + '"]', el) || {}).value;
+      var sel = $('[data-tipo="' + jid + '"]', el), tipo = sel ? sel.value : undefined;
       chamar("grupo_salvar", { jid: jid, ativo: novo, tipo: tipo }).then(function(j){
         toast(j.error || (novo ? "Ligado. As mensagens dos últimos 3 dias chegam em instantes." : "Desligado.")); }); }); });
     $$("[data-tipo]", el).forEach(function(s){ s.addEventListener("change", function(){

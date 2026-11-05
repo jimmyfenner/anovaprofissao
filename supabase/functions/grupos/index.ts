@@ -1,3 +1,5 @@
+import Anthropic from "npm:@anthropic-ai/sdk";
+
 // A NOVA PROFISSÃO — função "grupos" (nov/2026)
 // Painel grupos.anovaprofissao.com.br: os grupos de WhatsApp do Jimmy pela instância
 // `pessoal` da Evolution (a do iGreen Turbo; só lemos o que a Evolution já guarda, sem
@@ -13,6 +15,9 @@
 // Painel (token da sessão do /painel, só o número do Jimmy): estado, grupo_salvar,
 //   grupos_sugeridos, sincronizar, mensagens, item, resumir, perguntar, envio_salvar,
 //   envio_remover, envio_teste, config_salvar.
+// IA: por configuração (grupos_config.modelo_triagem / modelo_resumo). "claude-*" vai direto à API da
+// Anthropic (ANTHROPIC_API_KEY, SDK oficial, JSON validado por schema na triagem); qualquer outro nome
+// vai à OpenRouter (OPENROUTER_API_KEY). Toda chamada fica em ai_usage com tokens e custo.
 // Publicar: supabase functions deploy grupos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt
 
 const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
@@ -20,6 +25,7 @@ const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const OR_KEY = Deno.env.get("OPENROUTER_API_KEY") ?? "";
+const ANT_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 
 const JIMMY = "5548991067007";
 const PAINEL = "https://grupos.anovaprofissao.com.br";
@@ -225,38 +231,95 @@ function paraLinha(r: any, meus: Set<string>) {
 
 /* ---------------- IA (OpenRouter, com registro em ai_usage) ---------------- */
 
-async function ia(feature: string, modelo: string, mensagens: unknown[], opts: { json?: boolean; max?: number } = {}) {
-  if (!OR_KEY) throw new Recusa("A IA ainda não está ligada: falta a chave da OpenRouter (OPENROUTER_API_KEY).", 409);
-  let ok = false, erro: string | null = null, uso: any = null, conteudo = "";
+// Preço por milhão de tokens (entrada, saída) da API da Anthropic, para o custo em ai_usage.
+const PRECOS: Record<string, [number, number]> = {
+  "claude-haiku-5-5": [0.10, 0.50], "claude-sonnet-5-5": [2, 10], "claude-opus-5-5": [4, 20],
+};
+const ehClaude = (modelo: string) => modelo.startsWith("claude-");
+const iaDisponivel = (modelo: string) => ehClaude(modelo) ? !!ANT_KEY : !!OR_KEY;
+let anthropic: Anthropic | null = null;
+
+type OpcoesIa = { schema?: Record<string, unknown>; max?: number; esforco?: "low" | "medium" | "high" };
+
+async function ia(feature: string, modelo: string, sistema: string, usuario: string, opts: OpcoesIa = {}) {
+  if (!iaDisponivel(modelo)) {
+    throw new Recusa(`A IA ainda não está ligada: falta a chave ${ehClaude(modelo) ? "ANTHROPIC_API_KEY" : "OPENROUTER_API_KEY"}.`, 409);
+  }
+  let ok = false, erro: string | null = null, conteudo = "";
+  let tin: number | null = null, tout: number | null = null, custo: number | null = null;
   try {
-    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${OR_KEY}`, "Content-Type": "application/json", "HTTP-Referer": PAINEL, "X-Title": "Grupos do Jimmy" },
-      body: JSON.stringify({
-        model: modelo, messages: mensagens, temperature: 0.2, max_tokens: opts.max ?? 1800,
-        ...(opts.json ? { response_format: { type: "json_object" } } : {}),
-        usage: { include: true },
-      }),
-      signal: AbortSignal.timeout(100_000),
-    });
-    const j = await r.json().catch(() => null);
-    uso = j?.usage ?? null;
-    conteudo = String(j?.choices?.[0]?.message?.content ?? "");
-    ok = r.ok && !!conteudo;
-    if (!ok) erro = `HTTP ${r.status}: ${JSON.stringify(j?.error ?? j).slice(0, 300)}`;
+    if (ehClaude(modelo)) {
+      anthropic ??= new Anthropic({ apiKey: ANT_KEY, timeout: 100_000, maxRetries: 2 });
+      const params: any = {
+        model: modelo, max_tokens: opts.max ?? 8000, system: sistema,
+        messages: [{ role: "user", content: usuario }],
+        output_config: { effort: opts.esforco ?? "medium", ...(opts.schema ? { format: { type: "json_schema", schema: opts.schema } } : {}) },
+      };
+      // Sonnet/Opus: se um filtro de segurança recusar, a própria API tenta outro modelo
+      const r: any = modelo.startsWith("claude-haiku")
+        ? await anthropic.messages.create(params)
+        : await anthropic.beta.messages.create({ ...params, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
+      tin = r.usage?.input_tokens ?? null;
+      tout = r.usage?.output_tokens ?? null;
+      const p = PRECOS[modelo];
+      if (p && tin != null && tout != null) custo = (tin * p[0] + tout * p[1]) / 1e6;
+      conteudo = (r.content ?? []).filter((b: any) => b.type === "text").map((b: any) => b.text).join("");
+      if (r.stop_reason === "refusal") erro = `recusado (${r.stop_details?.category ?? "sem categoria"})`;
+      else if (r.stop_reason === "max_tokens") erro = "resposta cortada (max_tokens)";
+      else ok = !!conteudo;
+      if (!ok && !erro) erro = `sem texto (stop_reason ${r.stop_reason})`;
+    } else {
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${OR_KEY}`, "Content-Type": "application/json", "HTTP-Referer": PAINEL, "X-Title": "Grupos do Jimmy" },
+        body: JSON.stringify({
+          model: modelo.replace(/^openrouter:/, ""), temperature: 0.2, max_tokens: opts.max ?? 1800,
+          messages: [{ role: "system", content: sistema }, { role: "user", content: usuario }],
+          ...(opts.schema ? { response_format: { type: "json_object" } } : {}),
+          usage: { include: true },
+        }),
+        signal: AbortSignal.timeout(100_000),
+      });
+      const j = await r.json().catch(() => null);
+      tin = j?.usage?.prompt_tokens ?? null;
+      tout = j?.usage?.completion_tokens ?? null;
+      custo = j?.usage?.cost ?? null;
+      conteudo = String(j?.choices?.[0]?.message?.content ?? "");
+      ok = r.ok && !!conteudo;
+      if (!ok) erro = `HTTP ${r.status}: ${JSON.stringify(j?.error ?? j).slice(0, 300)}`;
+    }
   } catch (e) {
     erro = e instanceof Error ? e.message.slice(0, 300) : "falha";
   }
-  rest("ai_usage", {
+  await rest("ai_usage", {
     method: "POST", headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({
-      feature, modelo, ok, erro,
-      tokens_in: uso?.prompt_tokens ?? null, tokens_out: uso?.completion_tokens ?? null, custo_usd: uso?.cost ?? null,
-    }),
+    body: JSON.stringify({ feature, modelo, ok, erro, tokens_in: tin, tokens_out: tout, custo_usd: custo }),
   }).catch(() => {});
   if (!ok) throw new Error(`IA (${feature}): ${erro}`);
   return conteudo;
 }
+
+const SCHEMA_TRIAGEM = {
+  type: "object",
+  properties: {
+    itens: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          tipo: { type: "string", enum: ["instrucao", "atencao"] },
+          titulo: { type: "string" },
+          detalhe: { type: "string" },
+          ids: { type: "array", items: { type: "string" } },
+        },
+        required: ["tipo", "titulo", "detalhe", "ids"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["itens"],
+  additionalProperties: false,
+};
 function jsonDe(t: string): any {
   const s = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
   try { return JSON.parse(s); } catch { /* tenta o maior objeto */ }
@@ -309,9 +372,7 @@ async function triarGrupo(cfg: any, g: any, novas: any[]) {
     `"detalhe":"o que é preciso saber ou fazer, com números e regras exatamente como escritos e quem afirmou, até 600 caracteres",` +
     `"ids":["ids das mensagens de origem"]}]}. ` +
     `Junte num item só as mensagens do mesmo assunto. Se nada importa, {"itens":[]}.`;
-  const resp = jsonDe(await ia("grupos_triagem", cfg.modelo, [
-    { role: "system", content: QUEM }, { role: "user", content: prompt },
-  ], { json: true }));
+  const resp = jsonDe(await ia("grupos_triagem", cfg.modelo_triagem, QUEM, prompt, { schema: SCHEMA_TRIAGEM, max: 6000 }));
   const validos = new Set(novas.map((m) => m.id));
   const porId = new Map(novas.map((m) => [m.id, m]));
   const itens = (Array.isArray(resp?.itens) ? resp.itens : [])
@@ -335,7 +396,8 @@ async function triarGrupo(cfg: any, g: any, novas: any[]) {
 
 /* ---------------- leitura ---------------- */
 
-async function lerMensagens(cfg: any, desde: Date, jidUnico?: string) {
+// historico = true: mensagens antigas trazidas ao ligar um grupo. Entram já lidas, sem aviso nem triagem.
+async function lerMensagens(cfg: any, desde: Date, jidUnico?: string, historico = false) {
   const ativos = jidUnico
     ? await linhas(`grupos?jid=eq.${q(jidUnico)}&select=jid,nome,tipo`)
     : await linhas("grupos?ativo=eq.true&tipo=neq.envios&select=jid,nome,tipo");
@@ -377,8 +439,9 @@ async function lerMensagens(cfg: any, desde: Date, jidUnico?: string) {
 
   await inserir("grupo_mensagens", novas.map(({ _alt, ...l }) => ({
     ...l,
-    triada: l.de_mim || (porJid.get(l.jid)?.tipo === "envios"),
+    triada: historico || l.de_mim || (porJid.get(l.jid)?.tipo === "envios"),
   })));
+  if (historico) return { lidas: recs.length, novas: novas.length };
 
   // menção ou resposta ao Jimmy: aviso na hora, sem IA
   const diretos = novas.filter((l) => l.menciona_jimmy || l.responde_jimmy).map((l) => ({
@@ -503,23 +566,18 @@ async function resumirGrupo(cfg: any, g: any, dia: string) {
   const foco = g.tipo === "instrucoes"
     ? "Destaque instruções, mudanças, prazos e materiais novos."
     : "Destaque dúvidas que se repetem, quem precisa de ajuda, o que ficou sem resposta e quem se destacou.";
-  const texto = (await ia("grupos_resumo", cfg.modelo, [
-    { role: "system", content: QUEM },
-    {
-      role: "user",
-      content: `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos curtos ` +
+  const texto = (await ia("grupos_resumo", cfg.modelo_resumo, QUEM,
+    `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos curtos ` +
         `(comece cada um com "• "), do mais importante para o menos. ${foco} Só se houver uma ação concreta e ainda ` +
         `pendente para o Jimmy (responder alguém, repassar uma regra, resolver um problema), termine com uma linha ` +
         `"Para você: ..."; nunca sugira ir a evento que já passou. Sem introdução, sem markdown além dos tópicos.\n\n` +
-        msgs.map(linhaMsg).join("\n"),
-    },
-  ], { max: 900 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim().slice(0, 2500);
+        msgs.map(linhaMsg).join("\n"), { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim().slice(0, 2500);
   await inserir("grupo_resumos", [{ jid: g.jid, dia, texto, msgs: msgs.length, criado_em: new Date().toISOString() }], "juntar", "jid,dia");
   return texto;
 }
 
 async function resumoDoDia(cfg: any, prazo: number) {
-  if (!OR_KEY) return 0;
+  if (!iaDisponivel(cfg.modelo_resumo)) return 0;
   const hoje = diaBrt();
   if (brt().getUTCHours() < cfg.resumo_hora || (cfg.resumo_dia && cfg.resumo_dia >= hoje)) return 0;
   const ini = inicioDia(hoje).toISOString();
@@ -539,7 +597,12 @@ async function resumoDoDia(cfg: any, prazo: number) {
     return `*${nomes.get(r.jid)}* (${r.msgs} msgs)\n${topicos}`;
   });
   if (partes.length && cfg.avisar) {
-    const texto = `📋 *Resumo dos grupos* · ${hoje.split("-").reverse().join("/")}\n\n${partes.slice(0, 10).join("\n\n")}` +
+    const doDia = await linhas(`grupo_itens?ts=gte.${q(ini)}&status=in.(novo,visto)&select=tipo`);
+    const ni = doDia.filter((i) => i.tipo === "instrucao").length, nv = doDia.length - ni;
+    const topo = ni || nv
+      ? `${ni ? `📌 ${ni} ${ni === 1 ? "instrução nova" : "instruções novas"}` : ""}${ni && nv ? " · " : ""}${nv ? `🙋 ${nv} ${nv === 1 ? "pendência" : "pendências"} com você` : ""}\n\n`
+      : "";
+    const texto = `📋 *Resumo dos grupos* · ${hoje.split("-").reverse().join("/")}\n\n${topo}${partes.slice(0, 10).join("\n\n")}` +
       `${partes.length > 10 ? `\n\n…e mais ${partes.length - 10} grupos.` : ""}\n\nCompleto: ${PAINEL}`;
     await enviarTexto(cfg.instancia_avisos, cfg.numero_avisos, texto);
   }
@@ -578,7 +641,9 @@ async function processar() {
       return r;
     });
     await passo("envios", () => mandarEnvios(cfg, prazo - 25_000));
-    if (OR_KEY) {
+    // triagem a cada 10 min (menção e resposta ao Jimmy já avisam na hora, sem IA)
+    const triarAgora = !cfg.triagem_em || Date.now() - Date.parse(cfg.triagem_em) >= 9.5 * 60_000;
+    if (iaDisponivel(cfg.modelo_triagem) && triarAgora) {
       await passo("triagem", async () => {
         const pendentes = await linhas("grupo_mensagens?triada=eq.false&select=id,jid,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts&limit=600");
         const grupos = new Map((await linhas("grupos?ativo=eq.true&select=jid,nome,tipo")).map((g) => [g.jid, g]));
@@ -596,6 +661,7 @@ async function processar() {
           if (Date.now() > prazo - 20_000) break;
           itens += await triarGrupo(cfg, grupos.get(jid), msgs.slice(0, 120));
         }
+        await patch("grupos_config?id=eq.1", { triagem_em: new Date().toISOString() });
         return itens;
       });
     }
@@ -632,7 +698,8 @@ async function estado() {
     hoje,
     config: {
       instancia: cfg.instancia, instancia_avisos: cfg.instancia_avisos, numero_avisos: cfg.numero_avisos,
-      avisar: cfg.avisar, resumo_hora: cfg.resumo_hora, modelo: cfg.modelo, ia: !!OR_KEY,
+      avisar: cfg.avisar, resumo_hora: cfg.resumo_hora, modelo_triagem: cfg.modelo_triagem, modelo_resumo: cfg.modelo_resumo,
+      ia: iaDisponivel(cfg.modelo_triagem) && iaDisponivel(cfg.modelo_resumo),
       cursor_em: cfg.cursor_em, lista_em: cfg.lista_em, ultimo_erro: cfg.ultimo_erro,
     },
     custo: { hoje: custo(Date.parse(iniHoje)), mes: custo(Date.now() - 30 * 86_400_000) },
@@ -708,10 +775,9 @@ async function perguntar(cfg: any, b: any) {
     (itens.length ? itens.map((i) => `- [${nomes.get(i.jid) ?? "grupo"}] ${fmt(i.ts)} ${i.tipo}: ${i.titulo}${i.detalhe ? " — " + String(i.detalhe).slice(0, 300) : ""}`).join("\n") : "(nenhuma)") +
     `\n\nRESUMOS DOS DIAS:\n` +
     (resumos.length ? resumos.map((r) => `- [${nomes.get(r.jid) ?? "grupo"}] ${r.dia.split("-").reverse().join("/")}:\n${r.texto}`).join("\n") : "(nenhum)");
-  const resposta = (await ia("grupos_pergunta", cfg.modelo, [
-    { role: "system", content: QUEM + " Responda só com base nas fontes abaixo. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar." },
-    { role: "user", content: `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}` },
-  ], { max: 1200 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
+  const resposta = (await ia("grupos_pergunta", cfg.modelo_resumo,
+    QUEM + " Responda só com base nas fontes abaixo. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar.",
+    `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}`, { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
   return { resposta, fontes: { mensagens: achadas.length, itens: itens.length, resumos: resumos.length } };
 }
 
@@ -735,15 +801,18 @@ Deno.serve(async (req) => {
       const p: Record<string, unknown> = { atualizado_em: new Date().toISOString() };
       if (body.tipo !== undefined) { exige(TIPOS_GRUPO.includes(body.tipo), "Tipo inválido."); p.tipo = body.tipo; }
       if (body.ativo !== undefined) { p.ativo = body.ativo === true; if (body.ativo === true) p.ligado_em = new Date().toISOString(); }
+      // a mensagem nova mais antiga que pode virar aviso é a de depois de ligar
+      if (body.ativo === true) {
+        const [g] = await linhas(`grupos?jid=eq.${q(jid)}&select=tipo,sugestao,ativo`);
+        if (g?.ativo) delete p.ligado_em;
+      }
       await patch(`grupos?jid=eq.${q(jid)}`, p);
       // ligou agora: traz os últimos 3 dias para o grupo não começar vazio (já triados, sem aviso)
       if (body.ativo === true && (body.tipo ?? "") !== "envios") {
         const traz = (async () => {
           const antes = new Set((await linhas(`grupo_mensagens?jid=eq.${q(jid)}&select=id&limit=1`)).map((x) => x.id));
           if (antes.size) return;
-          const r = await lerMensagens(cfg, new Date(Date.now() - 3 * 86_400_000), jid);
-          if (r.novas) await patch(`grupo_mensagens?jid=eq.${q(jid)}&triada=eq.false`, { triada: true });
-          await patch(`grupo_itens?jid=eq.${q(jid)}&avisado_em=is.null`, { avisado_em: new Date().toISOString(), status: "visto" });
+          await lerMensagens(cfg, new Date(Date.now() - 3 * 86_400_000), jid, true);
         })().catch((e) => console.error("histórico", jid, e));
         // @ts-ignore EdgeRuntime existe no Supabase
         if (typeof EdgeRuntime !== "undefined") EdgeRuntime.waitUntil(traz); else await traz;
