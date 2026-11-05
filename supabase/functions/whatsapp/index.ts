@@ -50,6 +50,13 @@ async function db(path: string, init: RequestInit = {}) {
   return r.ok ? await r.json().catch(() => null) : null;
 }
 
+// Desde 04/11/2026 os avisos saem pela instância `pessoal`, a mesma do iGreen
+// Turbo (duas sessões do mesmo número no mesmo servidor travavam o recebimento
+// das duas). Este site só pode desconectar ou apagar instância que ele mesmo
+// criou (anovaprofissao-*); as outras ele apenas deixa de usar.
+const criadaPeloSite = (nome: string | null | undefined) =>
+  typeof nome === "string" && nome.startsWith("anovaprofissao-");
+
 function novoNome() {
   const d = new Date(), p = (n: number) => String(n).padStart(2, "0");
   return `anovaprofissao-${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}` +
@@ -130,7 +137,7 @@ Deno.serve(async (req) => {
     if (acao === "connect") {
       const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
       const antiga = cfg?.[0]?.instancia;
-      if (antiga) {
+      if (criadaPeloSite(antiga)) {
         await evo(`/instance/logout/${encodeURIComponent(antiga)}`, { method: "DELETE" });
         await evo(`/instance/delete/${encodeURIComponent(antiga)}`, { method: "DELETE" });
       }
@@ -165,7 +172,7 @@ Deno.serve(async (req) => {
     if (acao === "disconnect") {
       const cfg = await db("whatsapp_config?id=eq.1&select=instancia");
       const inst = cfg?.[0]?.instancia;
-      if (inst) {
+      if (criadaPeloSite(inst)) {
         await evo(`/instance/logout/${encodeURIComponent(inst)}`, { method: "DELETE" });
         await evo(`/instance/delete/${encodeURIComponent(inst)}`, { method: "DELETE" });
       }
