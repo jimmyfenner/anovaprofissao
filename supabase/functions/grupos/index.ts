@@ -1,7 +1,7 @@
 // A NOVA PROFISSÃO — função "grupos" (nov/2026)
 // Painel grupos.anovaprofissao.com.br: os grupos de WhatsApp do Jimmy pela instância
 // `pessoal` da Evolution (a do iGreen Turbo; só lemos o que a Evolution já guarda, sem
-// mexer no webhook dele). Ver db/22-grupos.sql e o CLAUDE.md ("Grupos do WhatsApp").
+// mexer no webhook dele). Ver db/23-grupos.sql e o CLAUDE.md ("Grupos do WhatsApp").
 //
 // processar (pública, chamada pelo pg_cron a cada 2 min; só anda o que já está na fila):
 //   1. lê as mensagens novas dos grupos ligados (findMessages por messageTimestamp)
@@ -89,7 +89,7 @@ async function sessao(token: unknown) {
 
 async function config() {
   const [c] = await linhas("grupos_config?id=eq.1&select=*");
-  if (!c) throw new Error("grupos_config vazia: aplicar db/22-grupos.sql");
+  if (!c) throw new Error("grupos_config vazia: aplicar db/23-grupos.sql");
   return c;
 }
 

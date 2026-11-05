@@ -1373,7 +1373,7 @@ neste banco por decisão dele ("pra não termos que criar novos bancos de dados"
 - **IA**: OpenRouter (`OPENROUTER_API_KEY` nos secrets do Supabase, modelo em
   `grupos_config.modelo`), toda chamada em `ai_usage` (+ `ai_usage_daily`). Sem a chave,
   triagem, resumos e perguntas ficam desligados e o painel avisa.
-- **Banco**: `db/22-grupos.sql` (grupos, grupo_mensagens, grupo_itens, grupo_resumos,
+- **Banco**: `db/23-grupos.sql` (grupos, grupo_mensagens, grupo_itens, grupo_resumos,
   grupo_envios, grupo_envios_log, grupos_config, ai_usage, função `grupos_buscar`, job).
   RLS sem policy; tudo pela função. A lista inicial dos 284 grupos (com papel, movimento e
   a sugestão de tipo) foi carregada à parte, fora do repositório; "Atualizar lista" no
