@@ -9,13 +9,11 @@
 
 alter table public.reunioes_leads add column if not exists turbo_url text;
 
-do $$
-begin
-  if not exists (select 1 from pg_constraint where conname = 'reunioes_leads_turbo_url_check') then
-    alter table public.reunioes_leads add constraint reunioes_leads_turbo_url_check
-      check (turbo_url is null or turbo_url ~ '^https://igreenturbo\.com\.br/[^[:space:]]{1,500}$');
-  end if;
-end $$;
+-- {1,500} não serve: o Postgres só aceita repetição até 255, e o erro só aparece ao gravar.
+-- Por isso o tamanho vai à parte. Idempotente: troca a checagem antiga, se existir.
+alter table public.reunioes_leads drop constraint if exists reunioes_leads_turbo_url_check;
+alter table public.reunioes_leads add constraint reunioes_leads_turbo_url_check
+  check (turbo_url is null or (turbo_url ~ '^https://igreenturbo\.com\.br/[^[:space:]]+$' and char_length(turbo_url) <= 520));
 
 comment on column public.reunioes_leads.turbo_url is
   'Link da conversa com o lead no iGreen Turbo (https://igreenturbo.com.br/app/inbox?contact=<id>).';

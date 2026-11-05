@@ -425,7 +425,10 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 21 (diário de reuniões) aplicada em 04/nov/2026 com o "pode aplicar" do
+Nenhuma. 22 (link do Turbo no lead do diário) aplicada em 04/nov/2026 com o "Sim, publicar"
+do Jimmy; a primeira versão da checagem usava `{1,500}` e o Postgres só aceita repetição até
+255 (o erro só aparece ao gravar, não ao criar a checagem), corrigida na mesma noite.
+21 (diário de reuniões) aplicada em 04/nov/2026 com o "pode aplicar" do
 Jimmy, com a função `reunioes` publicada (`--no-verify-jwt`). Conferido: sem token e com a
 chave anon dá 401, com o token do Mac dá 200; ver "Diário de reuniões" no fim.
 20 (licenciados cadastrados pelo /admin) aplicada em 04/nov/2026 com o "sim"
@@ -1305,6 +1308,23 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
 - Publicar: `supabase functions deploy reunioes --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.
   A função `painel` foi republicada no mesmo dia (versão 4, `verify_jwt` ligado) só para
   reservar o endereço `reunioes`; conferido: sem chave 401, chave anon 403.
+- **Telefone e Turbo no lead** (migração 22, coluna `turbo_url`): no lugar do "sem telefone", os
+  botões **+ Telefone** e **+ Turbo** abrem um formulário no próprio cartão; com link, aparece
+  **Turbo ↗**. A função só aceita `https://igreenturbo.com.br/...` (tira o www, recusa a raiz).
+  O assistente do Mac preenche sozinho pelo evento da agenda: o Turbo põe o link da conversa
+  (`/app/inbox?contact=<id>`) e o telefone na descrição dos eventos que cria
+  (`node assistente.mjs completar` refaz para os leads que já estão no banco).
+- **Follow-up agendado no iGreen Turbo** (nov/2026): Mandar mensagem › **Agendar follow-up** cria
+  a mensagem em `scheduled_messages` do Turbo, no contato do lead, pela rota
+  `igreenturbo.com.br/api/public/extension/schedule` (Turbo versão `c13c6c77`, commit `d4033658`).
+  Ela aparece no contato lá e sai pelo envio de agendadas do próprio Turbo, do número daquela
+  conversa; "não mandar se o lead responder antes" é o `cancel_on_inbound` de lá. Sem link do
+  Turbo, a função acha a conversa pelo telefone (a mais recente, ou a da instância do lead) e
+  guarda o link. O painel lista as agendadas de todos os leads com link numa chamada
+  (`agendados`) e cancela (`agendado_cancelar`); lembrete com lead tem o atalho "✉️ Agendar msg".
+  Segredo `TURBO_TOKEN` (token gerado pelo Jimmy no Turbo, Configurações › Extensão do navegador;
+  no Turbo fica só o hash em `extension_api_tokens`). Sem ele, o resto do painel funciona e o
+  agendar responde "Falta ligar o Turbo". Gravou o segredo: publicar a função de novo.
 
 ## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
 
