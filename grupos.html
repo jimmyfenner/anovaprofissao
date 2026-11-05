@@ -1,0 +1,680 @@
+<title>Grupos do WhatsApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@600..800&family=Outfit:wght@300..700&display=swap">
+
+<!-- Grupos do WhatsApp do Jimmy (nov/2026): grupos.anovaprofissao.com.br. Login por código
+     no WhatsApp (o mesmo do /painel, só o número dele). Quem decide tudo é a função "grupos"
+     do Supabase (db/22-grupos.sql); ver o CLAUDE.md. ?demo mostra a tela com dados falsos. -->
+
+<style>
+:root{
+  --ink:#09110E;--text:#F1F4F1;--muted:#9CABA2;--muted-dim:#6F8077;
+  --line:rgba(255,255,255,.1);--line-soft:rgba(255,255,255,.065);
+  --credit:#21CA70;--credit-hi:#3FE08A;--warn:#FBBF24;--err:#F08A6C;--blue:#6BA8D8;
+  --display:"Raleway","Helvetica Neue",Arial,sans-serif;
+  --body:"Outfit","Helvetica Neue",Arial,sans-serif;
+  --vidro:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:clip;font-variant-numeric:lining-nums}
+a{color:var(--credit-hi)}
+:focus-visible{outline:2px solid var(--credit);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em;line-height:1.15;text-wrap:balance}
+p{margin:0}
+[hidden]{display:none !important}
+button,input,select,textarea{font:inherit;color:inherit}
+
+.gp-aurora{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(120% 70% at 50% -10%,#10241A,transparent 65%),var(--ink)}
+
+.gp-nav{position:sticky;top:0;z-index:60;padding:10px 12px 0}
+.gp-nav__in{display:flex;align-items:center;gap:.75rem;max-width:1180px;margin:0 auto;padding:.45rem .5rem .45rem .7rem;border-radius:999px;background:linear-gradient(180deg,rgba(18,30,24,.86),rgba(12,20,16,.86));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px var(--line),0 12px 40px -16px rgba(0,0,0,.7)}
+.gp-marca{display:flex;align-items:center;gap:.55rem;font-family:var(--display);font-weight:800;white-space:nowrap}
+.gp-marca i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;color:#04140B;background:linear-gradient(135deg,#3FE08A,#17A85E)}
+.gp-abas{display:flex;gap:.2rem;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.gp-abas::-webkit-scrollbar{display:none}
+.gp-aba{background:none;border:0;border-radius:999px;padding:.5em .9em;cursor:pointer;color:var(--muted);font-weight:500;white-space:nowrap;font-size:.92rem}
+.gp-aba:hover{color:var(--text)}
+.gp-aba[aria-selected="true"]{background:rgba(33,202,112,.14);color:var(--credit-hi);box-shadow:inset 0 0 0 1px rgba(33,202,112,.35)}
+.gp-aba b{display:inline-block;min-width:1.35em;padding:0 .35em;margin-left:.35em;border-radius:999px;background:var(--credit);color:#04140B;font-size:.72rem;line-height:1.35em;text-align:center}
+.gp-sair{background:none;border:0;color:var(--muted-dim);cursor:pointer;font-size:.85rem;padding:.4em .7em;white-space:nowrap}
+@media(max-width:720px){.gp-marca span{display:none}}
+
+main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
+
+.gp-btn{display:inline-flex;align-items:center;justify-content:center;gap:.45em;padding:.62em 1.1em;border-radius:999px;border:0;cursor:pointer;font-weight:600;font-size:.9rem;text-decoration:none;color:var(--text);background:var(--vidro);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .2s,transform .2s}
+.gp-btn:hover{box-shadow:inset 0 0 0 1px rgba(33,202,112,.45)}
+.gp-btn--pri{background:linear-gradient(135deg,#2AD47A,#1DB86B);color:#04140B;box-shadow:0 8px 26px -10px rgba(33,202,112,.6)}
+.gp-btn--pri:hover{transform:translateY(-1px)}
+.gp-btn--sm{padding:.42em .85em;font-size:.82rem}
+.gp-btn--perigo{color:var(--err)}
+.gp-btn[disabled]{opacity:.45;cursor:not-allowed}
+
+.gp-caixa{background:var(--vidro);border-radius:18px;box-shadow:inset 0 0 0 1px var(--line);padding:1rem 1.1rem}
+.gp-titulo{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin:6px 0 16px}
+.gp-titulo h1{font-size:clamp(1.35rem,3vw,1.75rem)}
+.gp-titulo p{color:var(--muted);font-size:.92rem;margin-top:.25rem}
+.gp-acoes{display:flex;gap:.5rem;flex-wrap:wrap}
+.gp-aviso{border-radius:14px;padding:.75rem 1rem;margin-bottom:14px;font-size:.92rem;background:rgba(251,191,36,.08);box-shadow:inset 0 0 0 1px rgba(251,191,36,.3);color:#F6DFA0}
+.gp-aviso--erro{background:rgba(240,138,108,.08);box-shadow:inset 0 0 0 1px rgba(240,138,108,.35);color:#F6C2B2}
+.gp-vazio{color:var(--muted);text-align:center;padding:2.2rem 1rem}
+
+.gp-numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.gp-num{padding:.8rem 1rem;border-radius:16px;background:var(--vidro);box-shadow:inset 0 0 0 1px var(--line)}
+.gp-num strong{display:block;font-family:var(--display);font-size:1.6rem}
+.gp-num span{color:var(--muted);font-size:.82rem}
+.gp-num--acao{cursor:pointer}
+.gp-num--acao:hover{box-shadow:inset 0 0 0 1px rgba(33,202,112,.45)}
+
+.gp-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.gp-card{display:flex;flex-direction:column;gap:.55rem}
+.gp-card__topo{display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start}
+.gp-card h3{font-size:1.02rem}
+.gp-meta{color:var(--muted);font-size:.8rem}
+.gp-resumo{white-space:pre-wrap;font-size:.9rem;color:#D9E2DC;line-height:1.5}
+.gp-resumo--vazio{color:var(--muted-dim);font-style:italic}
+.gp-selo{display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.04em;padding:.18em .6em;border-radius:999px;white-space:nowrap;background:rgba(255,255,255,.06);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line-soft)}
+.gp-selo--instrucoes{background:rgba(107,168,216,.13);color:#A9CDEB}
+.gp-selo--licenciados{background:rgba(33,202,112,.12);color:var(--credit-hi)}
+.gp-selo--envios{background:rgba(251,191,36,.1);color:#F3D27A}
+.gp-selo--sug{background:rgba(63,224,138,.08);color:#9FE8BE}
+.gp-selo--novo{background:var(--credit);color:#04140B}
+
+.gp-item{display:grid;gap:.4rem;padding:.9rem 1rem;border-radius:16px;background:var(--vidro);box-shadow:inset 0 0 0 1px var(--line);margin-bottom:10px}
+.gp-item--novo{box-shadow:inset 0 0 0 1px rgba(33,202,112,.45)}
+.gp-item h3{font-size:1rem}
+.gp-item__det{white-space:pre-wrap;color:#D9E2DC;font-size:.9rem}
+.gp-filtros{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:12px}
+.gp-chip{border:0;cursor:pointer;border-radius:999px;padding:.4em .85em;font-size:.84rem;background:rgba(255,255,255,.05);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line-soft)}
+.gp-chip[aria-pressed="true"]{background:rgba(33,202,112,.14);color:var(--credit-hi);box-shadow:inset 0 0 0 1px rgba(33,202,112,.35)}
+
+.gp-busca{width:100%;padding:.7em 1em;border-radius:12px;border:0;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 1px var(--line);outline:none}
+.gp-busca:focus{box-shadow:inset 0 0 0 1px rgba(33,202,112,.55)}
+.gp-tab{width:100%;border-collapse:collapse;font-size:.9rem}
+.gp-tab th{text-align:left;font-weight:500;color:var(--muted);font-size:.78rem;padding:.5rem .6rem;border-bottom:1px solid var(--line)}
+.gp-tab td{padding:.55rem .6rem;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+.gp-tab tr:hover td{background:rgba(255,255,255,.02)}
+.gp-tab .gp-nome{font-weight:600}
+.gp-tab select{background:rgba(0,0,0,.25);border:0;border-radius:8px;padding:.35em .5em;box-shadow:inset 0 0 0 1px var(--line);max-width:150px}
+@media(max-width:760px){.gp-tab .gp-col-opc{display:none}}
+
+.gp-chave{position:relative;width:42px;height:24px;flex:none;border:0;border-radius:999px;cursor:pointer;background:rgba(255,255,255,.12);transition:background .2s}
+.gp-chave::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#C9D3CD;transition:transform .2s}
+.gp-chave[aria-checked="true"]{background:var(--credit)}
+.gp-chave[aria-checked="true"]::after{transform:translateX(18px);background:#fff}
+
+.gp-campo{display:grid;gap:.35rem;margin-bottom:.9rem}
+.gp-campo>span{font-size:.82rem;color:var(--muted)}
+.gp-campo textarea,.gp-campo input:not([type=checkbox]),.gp-campo select{width:100%;padding:.65em .8em;border-radius:12px;border:0;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 1px var(--line);outline:none}
+.gp-campo textarea{min-height:130px;resize:vertical;line-height:1.45}
+.gp-campo textarea:focus,.gp-campo input:not([type=checkbox]):focus,.gp-campo select:focus{box-shadow:inset 0 0 0 1px rgba(33,202,112,.55)}
+.gp-linha{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.gp-dias{display:flex;gap:.3rem;flex-wrap:wrap}
+.gp-dias label{display:inline-flex;align-items:center;gap:.3em;padding:.35em .7em;border-radius:999px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line-soft);cursor:pointer;font-size:.85rem}
+.gp-escolha{max-height:260px;overflow:auto;border-radius:12px;box-shadow:inset 0 0 0 1px var(--line);padding:.3rem}
+.gp-escolha label{display:flex;gap:.55rem;align-items:center;padding:.4rem .5rem;border-radius:8px;cursor:pointer;font-size:.9rem}
+.gp-escolha label:hover{background:rgba(255,255,255,.04)}
+.gp-escolha input,.gp-dias input{width:auto;margin:0;accent-color:var(--credit)}
+.gp-escolha small{color:var(--muted-dim);margin-left:auto;white-space:nowrap}
+.gp-dois{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.gp-dois{grid-template-columns:1fr}}
+
+.gp-resposta{white-space:pre-wrap;line-height:1.6;font-size:.95rem}
+
+.gp-msg{font-size:.88rem;line-height:1.45;padding:.5rem .65rem;border-radius:12px;margin:.25rem 0;background:rgba(255,255,255,.035);max-width:92%}
+.gp-msg--mim{margin-left:auto;background:rgba(33,202,112,.1)}
+.gp-msg--marca{box-shadow:inset 0 0 0 1px rgba(251,191,36,.6)}
+.gp-msg b{display:block;font-size:.76rem;color:var(--credit-hi);font-weight:600}
+.gp-msg i{display:block;font-style:normal;font-size:.78rem;color:var(--muted);border-left:2px solid var(--line);padding-left:.5rem;margin:.2rem 0}
+.gp-msg time{display:block;text-align:right;font-size:.68rem;color:var(--muted-dim)}
+
+.gp-folha{position:fixed;inset:0;z-index:80;display:flex;justify-content:flex-end;background:rgba(0,0,0,.5)}
+.gp-folha__in{width:min(560px,100%);height:100%;background:#0D1712;box-shadow:-20px 0 60px -20px rgba(0,0,0,.8);display:flex;flex-direction:column}
+.gp-folha__topo{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.9rem 1rem;border-bottom:1px solid var(--line)}
+.gp-folha__corpo{overflow:auto;padding:.8rem 1rem 2rem;flex:1}
+
+.gp-entrar{max-width:420px;margin:8vh auto 0;text-align:center;display:grid;gap:1rem}
+.gp-entrar input{text-align:center;font-size:1.1rem;padding:.8em;border-radius:14px;border:0;background:rgba(0,0,0,.25);box-shadow:inset 0 0 0 1px var(--line);outline:none}
+.gp-msgerro{color:var(--err);font-size:.9rem}
+.gp-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;padding:.7em 1.2em;border-radius:999px;background:#13241B;box-shadow:inset 0 0 0 1px rgba(33,202,112,.4),0 10px 30px rgba(0,0,0,.5);font-size:.9rem}
+</style>
+
+<div class="gp-aurora" aria-hidden="true"></div>
+
+<header class="gp-nav">
+  <div class="gp-nav__in">
+    <div class="gp-marca"><i>✦</i><span>Grupos</span></div>
+    <nav class="gp-abas" id="abas" role="tablist" hidden>
+      <button class="gp-aba" role="tab" data-aba="hoje">Hoje</button>
+      <button class="gp-aba" role="tab" data-aba="instrucoes">Instruções<b id="n-instrucoes" hidden></b></button>
+      <button class="gp-aba" role="tab" data-aba="voce">Para você<b id="n-voce" hidden></b></button>
+      <button class="gp-aba" role="tab" data-aba="perguntar">Perguntar</button>
+      <button class="gp-aba" role="tab" data-aba="envios">Envios</button>
+      <button class="gp-aba" role="tab" data-aba="grupos">Grupos</button>
+    </nav>
+    <button class="gp-sair" id="sair" hidden>Sair</button>
+  </div>
+</header>
+
+<main>
+  <section id="tela-entrar" class="gp-entrar" hidden>
+    <h1>Grupos do WhatsApp</h1>
+    <p style="color:var(--muted)">Entre com o seu WhatsApp. O código chega pelo número final 1575.</p>
+    <div id="passo-numero" style="display:grid;gap:.8rem">
+      <input id="zap" inputmode="tel" autocomplete="tel" placeholder="(48) 99106-7007">
+      <button class="gp-btn gp-btn--pri" id="pedir">Receber código</button>
+      <p class="gp-msgerro" id="msg-numero" hidden></p>
+    </div>
+    <div id="passo-codigo" style="display:grid;gap:.8rem" hidden>
+      <input id="codigo" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6">
+      <button class="gp-btn gp-btn--pri" id="entrar">Entrar</button>
+      <button class="gp-sair" id="outro">Usar outro número</button>
+      <p class="gp-msgerro" id="msg-codigo" hidden></p>
+    </div>
+  </section>
+
+  <p id="carregando" class="gp-vazio">Carregando…</p>
+
+  <section id="tela" hidden>
+    <div id="avisos-topo"></div>
+    <div id="aba-hoje" data-painel="hoje"></div>
+    <div id="aba-instrucoes" data-painel="instrucoes" hidden></div>
+    <div id="aba-voce" data-painel="voce" hidden></div>
+    <div id="aba-perguntar" data-painel="perguntar" hidden></div>
+    <div id="aba-envios" data-painel="envios" hidden></div>
+    <div id="aba-grupos" data-painel="grupos" hidden></div>
+  </section>
+</main>
+
+<div class="gp-folha" id="folha" hidden>
+  <div class="gp-folha__in" role="dialog" aria-modal="true" aria-labelledby="folha-titulo">
+    <div class="gp-folha__topo"><h2 id="folha-titulo" style="font-size:1.05rem"></h2><button class="gp-btn gp-btn--sm" id="folha-fechar">Fechar</button></div>
+    <div class="gp-folha__corpo" id="folha-corpo"></div>
+  </div>
+</div>
+<div class="gp-toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  "use strict";
+  var SUPABASE_URL = "https://buapklmgdjcoyzrmhhcd.supabase.co";
+  var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1YXBrbG1nZGpjb3l6cm1oaGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTkyNzMsImV4cCI6MjEwNDc5NTI3M30.niDSHwVkcu9GsqgBv-q4BWBclN41lCI3VarB4cix00Y";
+  var FN_LOGIN = SUPABASE_URL + "/functions/v1/painel";
+  var FN = SUPABASE_URL + "/functions/v1/grupos";
+  var CHAVE = "anp_grupos";
+  var DEMO = /[?&]demo\b/.test(location.search);
+  var TIPOS = { instrucoes: "Instruções", licenciados: "Licenciados", envios: "Só envios" };
+  var DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+
+  var $ = function(s, el){ return (el || document).querySelector(s); };
+  var $$ = function(s, el){ return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
+  function esc(v){ return String(v == null ? "" : v).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function token(){ try{ return localStorage.getItem(CHAVE); }catch(e){ return null; } }
+  function guardar(t){ try{ t ? localStorage.setItem(CHAVE, t) : localStorage.removeItem(CHAVE); }catch(e){} }
+  try{ localStorage.setItem("anp_admin", "1"); }catch(e){}
+
+  var fmtHora = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
+  var fmtDia = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" });
+  var fmtDiaSemana = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", day: "2-digit", month: "2-digit" });
+  function quando(iso){
+    if(!iso) return "";
+    var d = new Date(iso), hoje = fmtDia.format(new Date()), ontem = fmtDia.format(new Date(Date.now() - 864e5));
+    var dia = fmtDia.format(d);
+    return (dia === hoje ? "hoje" : dia === ontem ? "ontem" : dia) + " " + fmtHora.format(d);
+  }
+  function diaLegivel(dia){ var p = String(dia).split("-"); return p[2] + "/" + p[1]; }
+  function porDia(n){ return n >= 14 ? "~" + Math.round(n / 14) + "/dia" : n ? n + " em 14 dias" : "parado"; }
+
+  function toast(t){ var el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(function(){ el.hidden = true; }, 3200); }
+
+  function chamarLogin(acao, dados){
+    return fetch(FN_LOGIN, { method: "POST",
+      headers: {"Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY},
+      body: JSON.stringify(Object.assign({ action: acao }, dados || {})) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ j._status = r.status; return j; }); })
+      .catch(function(){ return { _status: 0, error: "Sem conexão agora." }; });
+  }
+  function chamar(acao, dados){
+    if(DEMO) return Promise.resolve(demo(acao, dados || {}));
+    return fetch(FN, { method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(Object.assign({ action: acao, token: token() }, dados || {})) })
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ j._status = r.status; return j; }); })
+      .catch(function(){ return { _status: 0, error: "Sem conexão agora. Confira a internet e tente de novo." }; });
+  }
+
+  /* ---------- login ---------- */
+  var desafio = null;
+  function erroEm(id, t){ var el = $(id); el.hidden = !t; el.textContent = t || ""; }
+  $("#zap").addEventListener("keydown", function(e){ if(e.key === "Enter") $("#pedir").click(); });
+  $("#codigo").addEventListener("input", function(){ this.value = this.value.replace(/\D/g, "").slice(0, 6); if(this.value.length === 6) $("#entrar").click(); });
+  $("#pedir").addEventListener("click", function(){
+    var b = this, d = $("#zap").value.replace(/\D/g, "");
+    if(d.length < 10){ erroEm("#msg-numero", "Informe o WhatsApp com DDD."); return; }
+    b.disabled = true; b.textContent = "Enviando…"; erroEm("#msg-numero", "");
+    chamarLogin("codigo", { whatsapp: d }).then(function(j){
+      b.disabled = false; b.textContent = "Receber código";
+      if(!j.ok){ erroEm("#msg-numero", j.error || "Não deu certo agora."); return; }
+      desafio = j.desafio; $("#passo-numero").hidden = true; $("#passo-codigo").hidden = false; $("#codigo").focus();
+    });
+  });
+  $("#entrar").addEventListener("click", function(){
+    var b = this, c = $("#codigo").value.replace(/\D/g, "");
+    if(c.length !== 6 || b.disabled) return;
+    b.disabled = true; erroEm("#msg-codigo", "");
+    chamarLogin("entrar", { desafio: desafio, codigo: c }).then(function(j){
+      b.disabled = false;
+      if(!j.ok || !j.token){ erroEm("#msg-codigo", j.error || "Não deu certo agora."); return; }
+      guardar(j.token); carregar();
+    });
+  });
+  $("#outro").addEventListener("click", function(){ $("#passo-codigo").hidden = true; $("#passo-numero").hidden = false; });
+  $("#sair").addEventListener("click", function(){ var t = token(); guardar(null); chamarLogin("sair", { token: t }).then(function(){ location.reload(); }); });
+  function telaEntrar(msg){
+    $("#carregando").hidden = true; $("#tela").hidden = true; $("#abas").hidden = true; $("#sair").hidden = true;
+    $("#tela-entrar").hidden = false; erroEm("#msg-numero", msg || "");
+  }
+
+  /* ---------- estado ---------- */
+  var D = null, aba = (location.hash || "#hoje").slice(1);
+  var nomeDe = {};
+  function carregar(silencioso){
+    if(!DEMO && !token()){ telaEntrar(); return Promise.resolve(); }
+    return chamar("estado").then(function(j){
+      if(j._status === 401 || j._status === 403){ guardar(null); telaEntrar(j._status === 403 ? j.error : ""); return; }
+      if(j.error){ if(!silencioso){ $("#carregando").hidden = false; $("#carregando").textContent = j.error; } return; }
+      D = j; nomeDe = {};
+      D.grupos.forEach(function(g){ nomeDe[g.jid] = g.nome || "(sem nome)"; });
+      $("#carregando").hidden = true; $("#tela-entrar").hidden = true; $("#tela").hidden = false; $("#abas").hidden = false; $("#sair").hidden = DEMO;
+      desenhar();
+    });
+  }
+  function irPara(nova){
+    if(!document.querySelector('[data-painel="' + nova + '"]')) nova = "hoje";
+    aba = nova; if(location.hash !== "#" + nova) history.replaceState(null, "", "#" + nova);
+    $$(".gp-aba").forEach(function(b){ b.setAttribute("aria-selected", b.dataset.aba === aba ? "true" : "false"); });
+    $$("[data-painel]").forEach(function(p){ p.hidden = p.dataset.painel !== aba; });
+    desenhar();
+  }
+  $$(".gp-aba").forEach(function(b){ b.addEventListener("click", function(){ irPara(b.dataset.aba); }); });
+  window.addEventListener("hashchange", function(){ irPara((location.hash || "#hoje").slice(1)); });
+
+  function contagens(){
+    var ni = 0, nv = 0;
+    D.itens.forEach(function(i){ if(i.status === "novo"){ if(i.tipo === "instrucao") ni++; else nv++; } });
+    var bi = $("#n-instrucoes"), bv = $("#n-voce");
+    bi.hidden = !ni; bi.textContent = ni; bv.hidden = !nv; bv.textContent = nv;
+    return { instrucoes: ni, voce: nv };
+  }
+  function avisosTopo(){
+    var h = "";
+    if(!D.config.ia) h += '<div class="gp-aviso"><b>A IA ainda não está ligada.</b> Resumos, instruções novas e perguntas começam quando a chave da OpenRouter entrar no projeto. Menções a você, leitura dos grupos e envios programados já funcionam.</div>';
+    if(D.config.ultimo_erro) h += '<div class="gp-aviso gp-aviso--erro">Última leitura com problema: ' + esc(D.config.ultimo_erro) + '</div>';
+    $("#avisos-topo").innerHTML = h;
+  }
+  function desenhar(){
+    if(!D) return;
+    contagens(); avisosTopo();
+    ({ hoje: hoje, instrucoes: function(){ itens("instrucao"); }, voce: function(){ itens("atencao"); },
+       perguntar: perguntar, envios: envios, grupos: grupos })[aba]();
+  }
+
+  /* ---------- Hoje ---------- */
+  function ultimoResumo(jid){
+    for(var i = 0; i < D.resumos.length; i++) if(D.resumos[i].jid === jid) return D.resumos[i];
+    return null;
+  }
+  function hoje(){
+    var el = $("#aba-hoje"), c = contagens();
+    var ligados = D.grupos.filter(function(g){ return g.ativo && g.tipo !== "envios"; });
+    var totalHoje = 0; Object.keys(D.msgs_hoje).forEach(function(k){ totalHoje += D.msgs_hoje[k]; });
+    var h = '<div class="gp-titulo"><div><h1>Hoje nos grupos</h1><p>' + ligados.length + ' grupos acompanhados · resumo do dia às ' + D.config.resumo_hora + 'h</p></div></div>';
+    h += '<div class="gp-numeros">' +
+      '<div class="gp-num gp-num--acao" data-ir="instrucoes"><strong>' + c.instrucoes + '</strong><span>instruções novas</span></div>' +
+      '<div class="gp-num gp-num--acao" data-ir="voce"><strong>' + c.voce + '</strong><span>precisam de você</span></div>' +
+      '<div class="gp-num"><strong>' + totalHoje + '</strong><span>mensagens hoje</span></div>' +
+      '<div class="gp-num gp-num--acao" data-ir="envios"><strong>' + D.envios.filter(function(e){ return e.ativo; }).length + '</strong><span>envios programados</span></div>' +
+      '<div class="gp-num"><strong>US$ ' + Number(D.custo.mes || 0).toFixed(2) + '</strong><span>IA em 30 dias</span></div></div>';
+    if(!ligados.length){
+      var sug = D.grupos.filter(function(g){ return g.sugestao && g.sugestao !== "envios"; }).length;
+      h += '<div class="gp-caixa gp-vazio"><p style="margin-bottom:1rem">Nenhum grupo ligado ainda.</p><div class="gp-acoes" style="justify-content:center">' +
+        (sug ? '<button class="gp-btn gp-btn--pri" data-sugeridos>Ligar os ' + sug + ' sugeridos</button>' : '') +
+        '<button class="gp-btn" data-ir="grupos">Escolher na aba Grupos</button></div></div>';
+      el.innerHTML = h; ligar(el); return;
+    }
+    ligados.sort(function(a, b){ return (D.msgs_hoje[b.jid] || 0) - (D.msgs_hoje[a.jid] || 0) || String(b.ultima_msg_em || "").localeCompare(String(a.ultima_msg_em || "")); });
+    h += '<div class="gp-grade">';
+    ligados.forEach(function(g){
+      var r = ultimoResumo(g.jid), n = D.msgs_hoje[g.jid] || 0;
+      h += '<article class="gp-caixa gp-card"><div class="gp-card__topo"><div><h3>' + esc(g.nome) + '</h3>' +
+        '<div class="gp-meta">' + n + ' hoje' + (g.ultima_msg_em ? ' · última ' + quando(g.ultima_msg_em) : '') + '</div></div>' +
+        '<span class="gp-selo gp-selo--' + g.tipo + '">' + TIPOS[g.tipo] + '</span></div>' +
+        (r ? '<div class="gp-meta">Resumo de ' + (r.dia === D.hoje ? 'hoje' : diaLegivel(r.dia)) + ' · ' + r.msgs + ' msgs</div><div class="gp-resumo">' + esc(r.texto) + '</div>'
+           : '<div class="gp-resumo gp-resumo--vazio">' + (D.config.ia ? 'O resumo do dia sai às ' + D.config.resumo_hora + 'h.' : 'Resumos começam quando a IA for ligada.') + '</div>') +
+        '<div class="gp-acoes"><button class="gp-btn gp-btn--sm" data-conversa="' + esc(g.jid) + '">Ver conversa</button>' +
+        (D.config.ia && n ? '<button class="gp-btn gp-btn--sm" data-resumir="' + esc(g.jid) + '">Resumir agora</button>' : '') + '</div></article>';
+    });
+    el.innerHTML = h + '</div>'; ligar(el);
+  }
+
+  /* ---------- Instruções / Para você ---------- */
+  var filtroItens = { instrucao: "novo", atencao: "novo" };
+  function itens(tipo){
+    var el = $(tipo === "instrucao" ? "#aba-instrucoes" : "#aba-voce");
+    var f = filtroItens[tipo];
+    var todos = D.itens.filter(function(i){ return i.tipo === tipo; });
+    var lista = todos.filter(function(i){ return f === "todos" ? true : f === "novo" ? (i.status === "novo" || i.status === "visto") : i.status === f; });
+    var titulo = tipo === "instrucao"
+      ? '<h1>Instruções novas</h1><p>Orientações da empresa e da liderança. Marque quando já entraram no material de apoio.</p>'
+      : '<h1>Precisa de você</h1><p>Menções, respostas a você, perguntas sem resposta e licenciado precisando de ajuda.</p>';
+    var feitoTxt = tipo === "instrucao" ? "Incorporadas" : "Resolvidas";
+    var h = '<div class="gp-titulo"><div>' + titulo + '</div></div><div class="gp-filtros">' +
+      [["novo", "Abertas"], ["feito", feitoTxt], ["ignorado", "Ignoradas"], ["todos", "Todas"]].map(function(p){
+        return '<button class="gp-chip" aria-pressed="' + (f === p[0]) + '" data-filtro="' + tipo + ':' + p[0] + '">' + p[1] + '</button>';
+      }).join("") + '</div>';
+    if(!lista.length) h += '<div class="gp-caixa gp-vazio">' + (f === "novo" ? (tipo === "instrucao" ? (D.config.ia ? "Nenhuma instrução nova." : "As instruções começam quando a IA for ligada.") : "Nada esperando por você.") : "Nada aqui.") + '</div>';
+    lista.forEach(function(i){
+      h += '<article class="gp-item' + (i.status === "novo" ? ' gp-item--novo' : '') + '">' +
+        '<div class="gp-meta">' + (i.status === "novo" ? '<span class="gp-selo gp-selo--novo">novo</span> ' : '') + esc(nomeDe[i.jid] || "grupo") + ' · ' + esc(i.autor_nome || "alguém") + ' · ' + quando(i.ts) + '</div>' +
+        '<h3>' + esc(i.titulo) + '</h3>' + (i.detalhe ? '<div class="gp-item__det">' + esc(i.detalhe) + '</div>' : '') +
+        '<div class="gp-acoes">' +
+          (i.status !== "feito" ? '<button class="gp-btn gp-btn--sm gp-btn--pri" data-item="' + i.id + ':feito">' + (tipo === "instrucao" ? "Incorporei ao material" : "Resolvido") + '</button>' : '<button class="gp-btn gp-btn--sm" data-item="' + i.id + ':visto">Reabrir</button>') +
+          (i.status !== "ignorado" ? '<button class="gp-btn gp-btn--sm" data-item="' + i.id + ':ignorado">Ignorar</button>' : '') +
+          '<button class="gp-btn gp-btn--sm" data-conversa="' + esc(i.jid) + '" data-marcar="' + esc((i.msg_ids || []).join(",")) + '">Ver na conversa</button>' +
+        '</div></article>';
+    });
+    el.innerHTML = h; ligar(el);
+  }
+
+  /* ---------- Perguntar ---------- */
+  var ultimaResposta = null;
+  function perguntar(){
+    var el = $("#aba-perguntar");
+    if(el.dataset.feito){ return; }
+    el.dataset.feito = "1";
+    var ops = D.grupos.filter(function(g){ return g.ativo && g.tipo !== "envios"; }).map(function(g){ return '<option value="' + esc(g.jid) + '">' + esc(g.nome) + '</option>'; }).join("");
+    el.innerHTML = '<div class="gp-titulo"><div><h1>Perguntar</h1><p>Pergunte sobre o que foi falado nos grupos acompanhados. A resposta diz quem falou e quando.</p></div></div>' +
+      '<div class="gp-caixa"><label class="gp-campo"><span>Pergunta</span><textarea id="pq" placeholder="Ex.: o que a diretoria falou sobre a campanha de novembro?" style="min-height:90px"></textarea></label>' +
+      '<div class="gp-linha"><label class="gp-campo" style="flex:1;min-width:160px"><span>Período</span><select id="pq-dias"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select></label>' +
+      '<label class="gp-campo" style="flex:2;min-width:200px"><span>Onde</span><select id="pq-grupo"><option value="">Todos os grupos acompanhados</option>' + ops + '</select></label></div>' +
+      '<button class="gp-btn gp-btn--pri" id="pq-ir">Perguntar</button></div><div id="pq-resp" style="margin-top:14px"></div>';
+    $("#pq-ir").addEventListener("click", function(){
+      var b = this, p = $("#pq").value.trim();
+      if(p.length < 4){ toast("Escreva a pergunta."); return; }
+      if(!D.config.ia){ toast("A IA ainda não está ligada."); return; }
+      b.disabled = true; b.textContent = "Procurando…";
+      $("#pq-resp").innerHTML = '<div class="gp-caixa gp-vazio">Lendo as mensagens…</div>';
+      var g = $("#pq-grupo").value;
+      chamar("perguntar", { pergunta: p, dias: Number($("#pq-dias").value), jids: g ? [g] : null }).then(function(j){
+        b.disabled = false; b.textContent = "Perguntar";
+        if(j.error){ $("#pq-resp").innerHTML = '<div class="gp-aviso gp-aviso--erro">' + esc(j.error) + '</div>'; return; }
+        ultimaResposta = j;
+        $("#pq-resp").innerHTML = '<div class="gp-caixa"><div class="gp-resposta">' + esc(j.resposta) + '</div><p class="gp-meta" style="margin-top:.8rem">Base: ' +
+          j.fontes.mensagens + ' mensagens, ' + j.fontes.itens + ' instruções/pendências e ' + j.fontes.resumos + ' resumos.</p></div>';
+      });
+    });
+  }
+
+  /* ---------- Envios ---------- */
+  var editando = null;
+  function descreverQuando(e){
+    if(e.repetir === "nao") return e.proximo_em ? "Uma vez · " + fmtDiaSemana.format(new Date(e.proximo_em)) + " " + fmtHora.format(new Date(e.proximo_em)) : "Uma vez";
+    var base = e.repetir === "diario" ? "Todo dia" : e.repetir === "semanal" ? "Toda " + (e.dias_semana || []).map(function(d){ return DIAS[d]; }).join(", ") : "Todo dia " + e.dia_mes;
+    return base + " às " + e.hora + (e.ate ? " até " + diaLegivel(e.ate) : "");
+  }
+  function envios(){
+    var el = $("#aba-envios");
+    var h = '<div class="gp-titulo"><div><h1>Envios programados</h1><p>Mensagens únicas ou repetidas para os grupos, pela sua conexão pessoal.</p></div>' +
+      '<div class="gp-acoes"><button class="gp-btn gp-btn--pri" data-novo-envio>Novo envio</button></div></div>';
+    h += '<div class="gp-dois"><div>';
+    if(!D.envios.length) h += '<div class="gp-caixa gp-vazio">Nenhum envio ainda.</div>';
+    D.envios.forEach(function(e){
+      var status = e.ativo ? (e.proximo_em ? "Próximo: " + quando(e.proximo_em) : "Ativo") : (e.repetir === "nao" && e.ultimo_em ? "Enviado " + quando(e.ultimo_em) : "Pausado");
+      h += '<article class="gp-item' + (e.ativo ? '' : '" style="opacity:.75') + '">' +
+        '<div class="gp-meta">' + esc(descreverQuando(e)) + ' · ' + esc(status) + (e.mencionar ? ' · <span class="gp-selo">menciona todos</span>' : '') + '</div>' +
+        '<div class="gp-item__det">' + esc(e.texto.length > 280 ? e.texto.slice(0, 280) + "…" : e.texto) + '</div>' +
+        '<div class="gp-meta">' + e.jids.map(function(j){ return esc(nomeDe[j] || j); }).join(" · ") + '</div>' +
+        (e.ultimo_erro ? '<div class="gp-aviso gp-aviso--erro" style="margin:0">Último envio com erro: ' + esc(e.ultimo_erro) + '</div>' : '') +
+        '<div class="gp-acoes"><button class="gp-btn gp-btn--sm" data-editar="' + e.id + '">Editar</button>' +
+        '<button class="gp-btn gp-btn--sm" data-pausar="' + e.id + ':' + (!e.ativo) + '">' + (e.ativo ? "Pausar" : "Retomar") + '</button>' +
+        '<button class="gp-btn gp-btn--sm gp-btn--perigo" data-remover="' + e.id + '">Remover</button></div></article>';
+    });
+    h += '</div><div class="gp-caixa"><h3 style="font-size:1rem;margin-bottom:.6rem">Últimos envios</h3>';
+    if(!D.log.length) h += '<p class="gp-meta">Nada enviado ainda.</p>';
+    D.log.slice(0, 25).forEach(function(l){
+      h += '<div class="gp-meta" style="padding:.3rem 0;border-bottom:1px solid var(--line-soft)">' + (l.ok ? "✓" : "✗") + ' ' + quando(l.enviado_em) + ' · ' + esc(nomeDe[l.jid] || l.jid) + (l.erro ? ' — ' + esc(l.erro) : '') + '</div>';
+    });
+    el.innerHTML = h + '</div></div>'; ligar(el);
+  }
+
+  function abrirEnvio(e){
+    editando = e || null;
+    var sel = {}; (e ? e.jids : []).forEach(function(j){ sel[j] = true; });
+    var podem = D.grupos.slice().sort(function(a, b){ return (sel[b.jid] ? 1 : 0) - (sel[a.jid] ? 1 : 0) || (b.ativo ? 1 : 0) - (a.ativo ? 1 : 0) || (b.tamanho || 0) - (a.tamanho || 0); });
+    var rep = e ? e.repetir : "nao";
+    var h = '<label class="gp-campo"><span>Mensagem · use {saudacao} para "Bom dia/Boa tarde/Boa noite"</span><textarea id="ev-texto">' + esc(e ? e.texto : "") + '</textarea></label>' +
+      '<label class="gp-linha" style="margin-bottom:.9rem;cursor:pointer"><button type="button" class="gp-chave" id="ev-mencionar" role="switch" aria-checked="' + (e ? !!e.mencionar : true) + '"></button> Mencionar todos (todo mundo recebe notificação, sem a lista de nomes aparecer)</label>' +
+      '<div class="gp-campo"><span>Grupos <b id="ev-n"></b></span><input class="gp-busca" id="ev-busca" placeholder="Procurar grupo…"><div class="gp-escolha" id="ev-grupos">' +
+      podem.map(function(g){
+        var bloqueado = g.so_admins && g.papel !== "admin" && g.papel !== "criador";
+        return '<label' + (bloqueado ? ' style="opacity:.45" title="Só admins falam neste grupo"' : '') + '><input type="checkbox" value="' + esc(g.jid) + '"' + (sel[g.jid] ? ' checked' : '') + (bloqueado ? ' disabled' : '') + '> ' +
+          esc(g.nome || "(sem nome)") + '<small>' + (g.tamanho || "?") + ' pessoas' + (bloqueado ? ' · só admins' : '') + '</small></label>';
+      }).join("") + '</div></div>' +
+      '<div class="gp-campo"><span>Quando</span><select id="ev-rep">' +
+        [["agora", "Agora"], ["nao", "Uma vez, em dia e hora"], ["diario", "Todo dia"], ["semanal", "Toda semana"], ["mensal", "Todo mês"]].map(function(o){
+          return '<option value="' + o[0] + '"' + (rep === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join("") + '</select></div>' +
+      '<div class="gp-campo" id="ev-em-c"><span>Dia e hora (Brasília)</span><input type="datetime-local" id="ev-em" value="' + (e && e.repetir === "nao" && e.proximo_em ? localInput(e.proximo_em) : "") + '"></div>' +
+      '<div class="gp-campo" id="ev-dias-c"><span>Dias da semana</span><div class="gp-dias">' + DIAS.map(function(d, i){
+        return '<label><input type="checkbox" value="' + i + '"' + (e && (e.dias_semana || []).indexOf(i) >= 0 ? ' checked' : '') + '> ' + d + '</label>'; }).join("") + '</div></div>' +
+      '<div class="gp-campo" id="ev-mes-c"><span>Dia do mês</span><input type="number" min="1" max="31" id="ev-mes" value="' + (e && e.dia_mes ? e.dia_mes : 1) + '"></div>' +
+      '<div class="gp-linha" id="ev-hora-c"><label class="gp-campo" style="flex:1"><span>Hora (Brasília)</span><input type="time" id="ev-hora" value="' + (e && e.hora ? e.hora : "08:00") + '"></label>' +
+      '<label class="gp-campo" style="flex:1"><span>Até (opcional)</span><input type="date" id="ev-ate" value="' + (e && e.ate ? e.ate : "") + '"></label></div>' +
+      '<p class="gp-msgerro" id="ev-erro" hidden></p>' +
+      '<div class="gp-acoes"><button class="gp-btn gp-btn--pri" id="ev-salvar">' + (e ? "Salvar" : "Programar") + '</button><button class="gp-btn" id="ev-teste">Mandar teste para mim</button></div>';
+    folha(e ? "Editar envio" : "Novo envio", h);
+    var corpo = $("#folha-corpo");
+    function mostrar(){
+      var r = $("#ev-rep").value;
+      $("#ev-em-c").hidden = r !== "nao"; $("#ev-dias-c").hidden = r !== "semanal"; $("#ev-mes-c").hidden = r !== "mensal";
+      $("#ev-hora-c").hidden = r === "nao" || r === "agora";
+      var n = $$("#ev-grupos input:checked").length; $("#ev-n").textContent = n ? "· " + n + " escolhido" + (n > 1 ? "s" : "") : "";
+    }
+    $("#ev-rep").addEventListener("change", mostrar);
+    $("#ev-grupos").addEventListener("change", mostrar);
+    $("#ev-mencionar").addEventListener("click", function(){ this.setAttribute("aria-checked", this.getAttribute("aria-checked") === "true" ? "false" : "true"); });
+    $("#ev-busca").addEventListener("input", function(){
+      var t = this.value.toLowerCase();
+      $$("#ev-grupos label").forEach(function(l){ l.hidden = t && l.textContent.toLowerCase().indexOf(t) < 0; });
+    });
+    mostrar();
+    $("#ev-teste").addEventListener("click", function(){
+      var t = $("#ev-texto").value.trim(); if(!t){ toast("Escreva a mensagem."); return; }
+      var b = this; b.disabled = true;
+      chamar("envio_teste", { texto: t, mencionar: $("#ev-mencionar").getAttribute("aria-checked") === "true" }).then(function(j){
+        b.disabled = false; toast(j.error || "Teste enviado para o seu WhatsApp.");
+      });
+    });
+    $("#ev-salvar").addEventListener("click", function(){
+      var r = $("#ev-rep").value, b = this;
+      var dados = {
+        id: editando ? editando.id : null, texto: $("#ev-texto").value,
+        jids: $$("#ev-grupos input:checked").map(function(i){ return i.value; }),
+        mencionar: $("#ev-mencionar").getAttribute("aria-checked") === "true",
+        repetir: r === "agora" ? "nao" : r, agora: r === "agora",
+        em: r === "nao" && $("#ev-em").value ? new Date($("#ev-em").value + ":00-03:00").toISOString() : null,
+        hora: $("#ev-hora").value, ate: $("#ev-ate").value || null, dia_mes: Number($("#ev-mes").value),
+        dias_semana: $$("#ev-dias-c input:checked").map(function(i){ return Number(i.value); })
+      };
+      if(!dados.jids.length){ erroEm("#ev-erro", "Escolha pelo menos um grupo."); return; }
+      if(r === "agora" && !confirm("Enviar agora para " + dados.jids.length + " grupo(s)?")) return;
+      b.disabled = true; erroEm("#ev-erro", "");
+      chamar("envio_salvar", dados).then(function(j){
+        b.disabled = false;
+        if(j.error){ erroEm("#ev-erro", j.error); return; }
+        fecharFolha(); toast(r === "agora" ? "Na fila: sai em até 2 minutos." : "Envio programado."); carregar(true);
+      });
+    });
+  }
+  function localInput(iso){
+    var d = new Date(new Date(iso).getTime() - 3 * 36e5);
+    return d.toISOString().slice(0, 16);
+  }
+
+  /* ---------- Grupos ---------- */
+  var filtroGrupos = "ligados", buscaGrupos = "";
+  function grupos(){
+    var el = $("#aba-grupos");
+    var lista = D.grupos.filter(function(g){
+      if(buscaGrupos && (g.nome || "").toLowerCase().indexOf(buscaGrupos) < 0) return false;
+      return filtroGrupos === "todos" ? true : filtroGrupos === "ligados" ? g.ativo : filtroGrupos === "sugeridos" ? !!g.sugestao && g.sugestao !== "envios" : filtroGrupos === "meus" ? (g.papel === "admin" || g.papel === "criador") : true;
+    });
+    var nLig = D.grupos.filter(function(g){ return g.ativo; }).length;
+    var nSug = D.grupos.filter(function(g){ return g.sugestao && g.sugestao !== "envios" && !g.ativo; }).length;
+    var h = '<div class="gp-titulo"><div><h1>Grupos</h1><p>' + D.grupos.length + ' grupos da sua conexão pessoal · ' + nLig + ' ligados. Só os ligados são lidos e resumidos.</p></div>' +
+      '<div class="gp-acoes">' + (nSug ? '<button class="gp-btn gp-btn--pri" data-sugeridos>Ligar os ' + nSug + ' sugeridos</button>' : '') +
+      '<button class="gp-btn" id="gr-sinc">Atualizar lista</button></div></div>';
+    h += '<div class="gp-caixa" style="margin-bottom:14px"><div class="gp-linha" style="justify-content:space-between">' +
+      '<label class="gp-linha" style="cursor:pointer"><button type="button" class="gp-chave" id="cf-avisar" role="switch" aria-checked="' + !!D.config.avisar + '"></button> Avisar no WhatsApp (pelo 1575)</label>' +
+      '<label class="gp-linha">Resumo do dia às <select id="cf-hora" style="background:rgba(0,0,0,.25);border:0;border-radius:8px;padding:.35em .5em;box-shadow:inset 0 0 0 1px var(--line)">' +
+      Array.apply(null, Array(24)).map(function(_, i){ return '<option value="' + i + '"' + (i === D.config.resumo_hora ? ' selected' : '') + '>' + i + 'h</option>'; }).join("") + '</select></label>' +
+      '<span class="gp-meta">Última leitura: ' + (D.config.cursor_em ? quando(D.config.cursor_em) : "ainda não") + '</span></div></div>';
+    h += '<div class="gp-linha" style="margin-bottom:10px"><input class="gp-busca" id="gr-busca" placeholder="Procurar grupo…" value="' + esc(buscaGrupos) + '" style="flex:1;min-width:200px"></div>';
+    h += '<div class="gp-filtros">' + [["ligados", "Ligados"], ["sugeridos", "Sugeridos"], ["meus", "Onde sou admin"], ["todos", "Todos"]].map(function(p){
+      return '<button class="gp-chip" aria-pressed="' + (filtroGrupos === p[0]) + '" data-fgrupos="' + p[0] + '">' + p[1] + '</button>'; }).join("") + '</div>';
+    if(!lista.length) h += '<div class="gp-caixa gp-vazio">' + (filtroGrupos === "ligados" ? 'Nenhum grupo ligado. Veja os "Sugeridos" ou "Todos".' : "Nenhum grupo aqui.") + '</div>';
+    else {
+      h += '<div class="gp-caixa" style="padding:.4rem .6rem;overflow-x:auto"><table class="gp-tab"><thead><tr><th style="width:56px">Ligado</th><th>Grupo</th><th class="gp-col-opc">Pessoas</th><th class="gp-col-opc">Movimento</th><th>Tipo</th><th></th></tr></thead><tbody>';
+      lista.slice(0, 400).forEach(function(g){
+        h += '<tr><td><button class="gp-chave" role="switch" aria-checked="' + !!g.ativo + '" data-ligar="' + esc(g.jid) + '" aria-label="Ligar ' + esc(g.nome) + '"></button></td>' +
+          '<td><div class="gp-nome">' + esc(g.nome || "(sem nome)") + '</div><div class="gp-meta">' +
+          (g.papel === "criador" ? "criador" : g.papel === "admin" ? "admin" : "membro") + (g.so_admins ? " · só admins falam" : "") +
+          (g.sugestao && !g.ativo ? ' · <span class="gp-selo gp-selo--sug">sugerido: ' + TIPOS[g.sugestao] + '</span>' : '') + '</div></td>' +
+          '<td class="gp-col-opc">' + (g.tamanho || "–") + '</td><td class="gp-col-opc">' + porDia(g.msgs_14d) + '</td>' +
+          '<td><select data-tipo="' + esc(g.jid) + '">' + Object.keys(TIPOS).map(function(t){ return '<option value="' + t + '"' + (g.tipo === t ? ' selected' : '') + '>' + TIPOS[t] + '</option>'; }).join("") + '</select></td>' +
+          '<td><button class="gp-btn gp-btn--sm" data-conversa="' + esc(g.jid) + '">Ver</button></td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+    el.innerHTML = h; ligar(el);
+    var busca = $("#gr-busca");
+    busca.addEventListener("input", function(){ buscaGrupos = this.value.toLowerCase(); var pos = this.selectionStart; grupos(); var b2 = $("#gr-busca"); b2.focus(); b2.setSelectionRange(pos, pos); });
+    $("#gr-sinc").addEventListener("click", function(){
+      var b = this; b.disabled = true; b.textContent = "Atualizando… (até 1 min)";
+      chamar("sincronizar").then(function(j){ b.disabled = false; b.textContent = "Atualizar lista"; toast(j.error || (j.grupos + " grupos lidos do WhatsApp.")); carregar(true); });
+    });
+    $("#cf-avisar").addEventListener("click", function(){
+      var novo = this.getAttribute("aria-checked") !== "true"; this.setAttribute("aria-checked", novo);
+      chamar("config_salvar", { avisar: novo }).then(function(j){ toast(j.error || (novo ? "Avisos ligados." : "Avisos desligados.")); D.config.avisar = novo; });
+    });
+    $("#cf-hora").addEventListener("change", function(){
+      var h2 = Number(this.value);
+      chamar("config_salvar", { resumo_hora: h2 }).then(function(j){ toast(j.error || ("Resumo do dia às " + h2 + "h.")); D.config.resumo_hora = h2; });
+    });
+  }
+
+  /* ---------- conversa ---------- */
+  function folha(titulo, html){ $("#folha-titulo").textContent = titulo; $("#folha-corpo").innerHTML = html; $("#folha").hidden = false; document.body.style.overflow = "hidden"; }
+  function fecharFolha(){ $("#folha").hidden = true; document.body.style.overflow = ""; }
+  $("#folha-fechar").addEventListener("click", fecharFolha);
+  $("#folha").addEventListener("click", function(e){ if(e.target === this) fecharFolha(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && !$("#folha").hidden) fecharFolha(); });
+  function conversa(jid, marcar){
+    folha(nomeDe[jid] || "Conversa", '<p class="gp-vazio">Carregando…</p>');
+    chamar("mensagens", { jid: jid }).then(function(j){
+      if(j.error){ $("#folha-corpo").innerHTML = '<div class="gp-aviso gp-aviso--erro">' + esc(j.error) + '</div>'; return; }
+      var m = {}; (marcar || []).forEach(function(id){ m[id] = 1; });
+      var h = j.ao_vivo ? '<div class="gp-aviso">Grupo desligado: mostrando os últimos 3 dias direto do WhatsApp, sem guardar.</div>' : '';
+      if(!j.mensagens.length) h += '<p class="gp-vazio">Sem mensagens guardadas ainda.</p>';
+      j.mensagens.forEach(function(x){
+        h += '<div class="gp-msg' + (x.de_mim ? ' gp-msg--mim' : '') + (m[x.id] ? ' gp-msg--marca' : '') + '" id="m-' + esc(x.id) + '">' +
+          '<b>' + esc(x.de_mim ? "Você" : (x.autor_nome || fone(x.autor) || "alguém")) + '</b>' +
+          (x.cita_texto ? '<i>' + esc(String(x.cita_texto).slice(0, 160)) + '</i>' : '') + esc(x.texto) + '<time>' + quando(x.ts) + '</time></div>';
+      });
+      var c = $("#folha-corpo"); c.innerHTML = h;
+      var alvo = marcar && marcar.length ? document.getElementById("m-" + marcar[0]) : null;
+      if(alvo) alvo.scrollIntoView({ block: "center" }); else c.scrollTop = c.scrollHeight;
+    });
+  }
+  function fone(j){ var d = j && /@s\.whatsapp\.net$/.test(j) ? j.split("@")[0] : ""; return d.length >= 12 ? "(" + d.slice(2, 4) + ") " + d.slice(4, -4) + "-" + d.slice(-4) : ""; }
+
+  /* ---------- botões ---------- */
+  function ligar(el){
+    $$("[data-ir]", el).forEach(function(b){ b.addEventListener("click", function(){ irPara(b.dataset.ir); }); });
+    $$("[data-sugeridos]", el).forEach(function(b){ b.addEventListener("click", function(){
+      b.disabled = true; chamar("grupos_sugeridos").then(function(j){ toast(j.error || (j.ligados + " grupos ligados. As mensagens dos últimos 3 dias chegam em instantes.")); carregar(true); }); }); });
+    $$("[data-conversa]", el).forEach(function(b){ b.addEventListener("click", function(){
+      conversa(b.dataset.conversa, b.dataset.marcar ? b.dataset.marcar.split(",").filter(Boolean) : []); }); });
+    $$("[data-resumir]", el).forEach(function(b){ b.addEventListener("click", function(){
+      b.disabled = true; b.textContent = "Resumindo…";
+      chamar("resumir", { jid: b.dataset.resumir }).then(function(j){ toast(j.error || "Resumo atualizado."); carregar(true); }); }); });
+    $$("[data-filtro]", el).forEach(function(b){ b.addEventListener("click", function(){
+      var p = b.dataset.filtro.split(":"); filtroItens[p[0]] = p[1]; desenhar(); }); });
+    $$("[data-item]", el).forEach(function(b){ b.addEventListener("click", function(){
+      var p = b.dataset.item.split(":");
+      D.itens.forEach(function(i){ if(i.id === p[0]) i.status = p[1]; }); desenhar();
+      chamar("item", { id: p[0], status: p[1] }).then(function(j){ if(j.error) toast(j.error); }); }); });
+    $$("[data-novo-envio]", el).forEach(function(b){ b.addEventListener("click", function(){ abrirEnvio(null); }); });
+    $$("[data-editar]", el).forEach(function(b){ b.addEventListener("click", function(){
+      abrirEnvio(D.envios.filter(function(e){ return e.id === b.dataset.editar; })[0]); }); });
+    $$("[data-pausar]", el).forEach(function(b){ b.addEventListener("click", function(){
+      var p = b.dataset.pausar.split(":"); b.disabled = true;
+      chamar("envio_pausar", { id: p[0], ativo: p[1] === "true" }).then(function(j){ toast(j.error || (p[1] === "true" ? "Retomado." : "Pausado.")); carregar(true); }); }); });
+    $$("[data-remover]", el).forEach(function(b){ b.addEventListener("click", function(){
+      if(!confirm("Remover este envio?")) return;
+      chamar("envio_remover", { id: b.dataset.remover }).then(function(j){ toast(j.error || "Removido."); carregar(true); }); }); });
+    $$("[data-fgrupos]", el).forEach(function(b){ b.addEventListener("click", function(){ filtroGrupos = b.dataset.fgrupos; grupos(); }); });
+    $$("[data-ligar]", el).forEach(function(b){ b.addEventListener("click", function(){
+      var jid = b.dataset.ligar, novo = b.getAttribute("aria-checked") !== "true";
+      b.setAttribute("aria-checked", novo);
+      D.grupos.forEach(function(g){ if(g.jid === jid) g.ativo = novo; });
+      var tipo = ($('[data-tipo="' + jid + '"]', el) || {}).value;
+      chamar("grupo_salvar", { jid: jid, ativo: novo, tipo: tipo }).then(function(j){
+        toast(j.error || (novo ? "Ligado. As mensagens dos últimos 3 dias chegam em instantes." : "Desligado.")); }); }); });
+    $$("[data-tipo]", el).forEach(function(s){ s.addEventListener("change", function(){
+      var jid = s.dataset.tipo, t = s.value;
+      D.grupos.forEach(function(g){ if(g.jid === jid) g.tipo = t; });
+      chamar("grupo_salvar", { jid: jid, tipo: t }).then(function(j){ toast(j.error || ("Agora: " + TIPOS[t] + ".")); }); }); });
+  }
+
+  /* ---------- demonstração (?demo) ---------- */
+  function demo(acao, dados){
+    var agora = Date.now(), iso = function(min){ return new Date(agora - min * 6e4).toISOString(); };
+    if(!demo.D){
+      var gs = [["1@g.us","Diretoria iGreen",261,"membro",false,true,"instrucoes",2380],["2@g.us","Acionistas iGreen",130,"membro",false,true,"instrucoes",1341],
+        ["3@g.us","Gestores iGreen",269,"membro",true,false,"instrucoes",142],["4@g.us","iGreen - Imparáveis 2026",183,"criador",false,true,"licenciados",1132],
+        ["5@g.us","LeadHub Imparáveis",37,"admin",true,false,"licenciados",129],["6@g.us","iGreen Energy - Time Jimmy",347,"criador",true,false,"envios",0],
+        ["7@g.us","Padelistas BC e Região",661,"membro",false,false,null,283]];
+      demo.D = { hoje: new Date().toISOString().slice(0, 10),
+        config: { instancia: "pessoal", instancia_avisos: "1575", numero_avisos: "5548991067007", avisar: true, resumo_hora: 20, modelo: "google/gemini-2.5-flash", ia: true, cursor_em: iso(1), lista_em: iso(300), ultimo_erro: null },
+        custo: { hoje: 0.04, mes: 0.61 },
+        grupos: gs.map(function(g){ return { jid: g[0], nome: g[1], tamanho: g[2], papel: g[3], so_admins: g[4], ativo: g[5], tipo: g[6] || "licenciados", sugestao: g[6], msgs_14d: g[7], ultima_msg_em: g[5] ? iso(7) : null }; }),
+        itens: [
+          { id: "a1", jid: "1@g.us", tipo: "instrucao", origem: "ia", titulo: "Nova regra de troca de titularidade na Celesc a partir de 10/11", detalhe: "Cadastros com troca de titularidade passam a exigir a conta mais recente e o RG do novo titular. Repassar para a equipe antes do dia 10.", autor_nome: "Diretoria iGreen", ts: iso(42), msg_ids: [], status: "novo" },
+          { id: "a2", jid: "2@g.us", tipo: "instrucao", origem: "ia", titulo: "Campanha Bônus Extra Green prorrogada até 30/11", detalhe: "Mesmas distribuidoras do regulamento de novembro.", autor_nome: "Rennan Corrêa", ts: iso(180), msg_ids: [], status: "novo" },
+          { id: "b1", jid: "4@g.us", tipo: "atencao", origem: "mencao", titulo: "Calebe Durante te mencionou", detalhe: "@Jimmy o cliente aprovou a proposta mas o cadastro travou na etapa da conta, o que eu faço?", autor_nome: "Calebe Durante", ts: iso(15), msg_ids: [], status: "novo" },
+          { id: "b2", jid: "4@g.us", tipo: "atencao", origem: "ia", titulo: "Pergunta sem resposta sobre comissão de telecom", detalhe: "Sildomar perguntou às 14h quando cai a comissão dos chips e ninguém respondeu.", autor_nome: "Sildomar Abtibol", ts: iso(240), msg_ids: [], status: "novo" }],
+        resumos: [{ jid: "1@g.us", dia: new Date().toISOString().slice(0, 10), msgs: 184, texto: "• Nova regra de titularidade na Celesc a partir de 10/11\n• Discussão sobre atraso de comissões de outubro: diretoria diz que sai até sexta\n• Live de quinta confirmada às 20h\nPara você: repassar a regra da Celesc para a equipe" },
+                  { jid: "4@g.us", dia: new Date().toISOString().slice(0, 10), msgs: 92, texto: "• 3 cadastros novos comemorados (Ana, Paulo, Márcio)\n• Dúvidas repetidas sobre o envio da conta pelo app\n• Calebe com cadastro travado\nPara você: responder o Calebe e o Sildomar" }],
+        envios: [{ id: "e1", texto: "{saudacao}, time! 🔥 Hoje tem treinamento às 20h no link fixo. Bora?", jids: ["4@g.us", "6@g.us"], mencionar: true, repetir: "semanal", dias_semana: [2, 4], hora: "17:00", proximo_em: iso(-600), ativo: true, ultimo_em: iso(2800) }],
+        log: [{ envio_id: "e1", jid: "4@g.us", enviado_em: iso(2800), ok: true }, { envio_id: "e1", jid: "6@g.us", enviado_em: iso(2799), ok: true }],
+        msgs_hoje: { "1@g.us": 184, "2@g.us": 61, "4@g.us": 92 } };
+    }
+    var d = demo.D;
+    if(acao === "estado") return JSON.parse(JSON.stringify(d));
+    if(acao === "mensagens") return { mensagens: [
+      { id: "x1", ts: iso(30), autor_nome: "Calebe Durante", texto: "Pessoal, alguém já pegou erro no envio da conta?" },
+      { id: "x2", ts: iso(20), autor_nome: "Ana", texto: "Comigo foi tirar a foto de novo", cita_texto: "Pessoal, alguém já pegou erro no envio da conta?" },
+      { id: "x3", ts: iso(15), autor_nome: "Calebe Durante", texto: "@Jimmy o cliente aprovou a proposta mas o cadastro travou, o que eu faço?" },
+      { id: "x4", ts: iso(5), de_mim: true, texto: "Calebe, me chama no privado que eu vejo agora." }], ao_vivo: false };
+    if(acao === "perguntar") return { resposta: "No grupo Diretoria iGreen, hoje às 14:05, a diretoria informou que a campanha Bônus Extra Green foi prorrogada até 30/11, com as mesmas distribuidoras do regulamento de novembro (Rennan Corrêa).", fontes: { mensagens: 12, itens: 2, resumos: 3 } };
+    if(acao === "grupos_sugeridos"){ d.grupos.forEach(function(g){ if(g.sugestao && g.sugestao !== "envios"){ g.ativo = true; g.tipo = g.sugestao; } }); return { ok: true, ligados: 2 }; }
+    if(acao === "sincronizar") return { ok: true, grupos: d.grupos.length };
+    return { ok: true };
+  }
+
+  $$(".gp-aba").forEach(function(b){ b.setAttribute("aria-selected", b.dataset.aba === aba ? "true" : "false"); });
+  $$("[data-painel]").forEach(function(p){ p.hidden = p.dataset.painel !== aba; });
+  carregar();
+  setInterval(function(){ if(document.visibilityState === "visible" && D && $("#folha").hidden) carregar(true); }, 60000);
+})();
+</script>

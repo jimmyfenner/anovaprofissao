@@ -170,7 +170,7 @@ async function usuarioAdmin(req: Request): Promise<boolean> {
 // manter igual ao RESERVADOS do build.js (endereços que já são páginas do site)
 const RESERVADOS = new Set(["admin", "home", "integradores", "transicao-energetica", "transicaoenergetica",
   "privacidade", "termos", "aviso-legal", "media", "fonts", "seo", "dados", "og", "api", "blog", "publicador",
-  "apresentacao", "agendar", "agendamento", "home-agendar", "painel", "reunioes", "tools", "legal", "licenciados", "supabase"]);
+  "apresentacao", "agendar", "agendamento", "home-agendar", "painel", "reunioes", "tools", "legal", "licenciados", "supabase", "grupos"]);
 const UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE",
   "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 // a mesma trava do build (conferirEspelho): nada do Jimmy pode ir para a página de outro

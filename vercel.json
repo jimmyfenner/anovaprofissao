@@ -126,6 +126,16 @@
       "has": [
         {
           "type": "host",
+          "value": "grupos.anovaprofissao.com.br"
+        }
+      ],
+      "destination": "/grupos"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
           "value": "querovendercarregador.com.br"
         }
       ],

@@ -358,6 +358,17 @@ fs.writeFileSync(out('reunioes', 'index.html'), documento({
   desc: 'Diário de reuniões do Jimmy.', canonical: SITE.url + '/reunioes', noindex: true,
 }));
 
+/* Grupos do WhatsApp do Jimmy (nov/2026): grupos.anovaprofissao.com.br (rewrite por host
+   no vercel.json) e anovaprofissao.com.br/grupos. Login por código no WhatsApp (função
+   "painel", só o número dele) e tudo pela função "grupos" (db/22-grupos.sql). */
+const gruposPg = separaCabeca(fs.readFileSync(path.join(__dirname, 'grupos.html'), 'utf8'));
+mkdir(out('grupos'));
+fs.writeFileSync(out('grupos', 'index.html'), documento({
+  body: gruposPg.body, links: gruposPg.links,
+  title: 'Grupos do WhatsApp | ' + SITE.nome,
+  desc: 'Painel dos grupos de WhatsApp do Jimmy.', canonical: 'https://grupos.anovaprofissao.com.br', noindex: true,
+}));
+
 /* Página "Transição energética". Servida em /transicao-energetica e, pelo
    rewrite por host do vercel.json, na raiz de transicaoenergetica.com.br — o
    endereço canônico, porque o nome do domínio é o ativo.
@@ -486,7 +497,7 @@ PUBLICADOR.forEach(p => {
    Se o Supabase não responder, o build para (a versão anterior fica no ar). */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
   'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao',
-  'agendar', 'agendamento', 'home-agendar', 'painel', 'reunioes']);
+  'agendar', 'agendamento', 'home-agendar', 'painel', 'reunioes', 'grupos']);
 const LICS = JSON.parse(require('child_process').execFileSync(process.execPath,
   [path.join(__dirname, 'tools', 'licenciados.mjs'), out('media', 'licenciados')],
   { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], timeout: 120000 }));

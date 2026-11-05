@@ -1343,3 +1343,39 @@ ficou "open", enviando, mas sem receber nada, duas vezes no mesmo dia).
 - O código de acesso do /painel dos licenciados segue pela `1575` (outro número).
 - O querocarregador fez o mesmo: envia pela `carregador` e o `evolution-manager`
   recusa desconectar `pessoal` e `carregador`.
+
+## Grupos do WhatsApp — grupos.anovaprofissao.com.br (nov/2026)
+
+Pedido do Jimmy em 04/11/2026: ler os grupos de WhatsApp dele (só a instância `pessoal`),
+resumir o dia, avisar quando aparece instrução nova da empresa (ele alimenta o material de
+apoio) ou quando alguém fala com ele, responder perguntas sobre o que foi dito e mandar
+mensagens programadas (únicas ou repetidas) com "mencionar todos". Mora neste projeto e
+neste banco por decisão dele ("pra não termos que criar novos bancos de dados").
+
+- **Página** `grupos.html` → `dist/grupos/`; o `vercel.json` faz a raiz de
+  `grupos.anovaprofissao.com.br` abrir `/grupos` (e `anovaprofissao.com.br/grupos` também
+  funciona). `noindex`; `grupos` está nos slugs reservados aqui e na função `painel`.
+  Abas: Hoje, Instruções, Para você, Perguntar, Envios, Grupos. `?demo` mostra tudo com
+  dados falsos, sem login. Classes com prefixo `gp-` (a extensão do Chrome dele quebra
+  nomes genéricos como `.modal`).
+- **Login**: o mesmo código no WhatsApp do /painel (função `painel`, ações codigo/entrar,
+  código pela 1575); a página guarda o token em `anp_grupos` e a função `grupos` só aceita
+  sessão do 5548991067007.
+- **Função `grupos`** (`--no-verify-jwt`): `processar` é pública e só anda o que já está na
+  fila; o job `grupos-processar` chama a cada 2 min. Lê as mensagens dos grupos ligados com
+  `findMessages` por `messageTimestamp` em ISO (com número a busca volta vazia), relê as
+  últimas 26 h uma vez por hora (pega o que a Evolution recebeu atrasado), não mexe no
+  webhook da `pessoal` (é do iGreen Turbo). Menção ou resposta ao Jimmy (pelo telefone e
+  pelo LID dele em `grupos_config.meus_jids`) vira "Precisa de você" sem IA. Envios
+  programados saem pela `pessoal` com `mentionsEveryOne`, de 4 a 9 s entre grupos; teste
+  vai para o WhatsApp dele pela 1575. Ao ligar um grupo, traz os últimos 3 dias já
+  marcados como lidos (sem aviso).
+- **IA**: OpenRouter (`OPENROUTER_API_KEY` nos secrets do Supabase, modelo em
+  `grupos_config.modelo`), toda chamada em `ai_usage` (+ `ai_usage_daily`). Sem a chave,
+  triagem, resumos e perguntas ficam desligados e o painel avisa.
+- **Banco**: `db/22-grupos.sql` (grupos, grupo_mensagens, grupo_itens, grupo_resumos,
+  grupo_envios, grupo_envios_log, grupos_config, ai_usage, função `grupos_buscar`, job).
+  RLS sem policy; tudo pela função. A lista inicial dos 284 grupos (com papel, movimento e
+  a sugestão de tipo) foi carregada à parte, fora do repositório; "Atualizar lista" no
+  painel relê nomes e tamanhos da Evolution (`fetchAllGroups`, ~50 s).
+- Publicar: `supabase functions deploy grupos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.
