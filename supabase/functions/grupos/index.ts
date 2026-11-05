@@ -275,15 +275,21 @@ const linhaMsg = (m: any) =>
 const QUEM = "Você ajuda Jimmy Fenner, líder de licenciados da iGreen Energy (energia por assinatura, " +
   "telecom, seguros e eletropostos Mob, num modelo de licenciamento com equipes). Ele participa de muitos " +
   "grupos de WhatsApp e não consegue ler tudo. Escreva em português do Brasil, direto, sem inventar nada: " +
-  "datas, valores e nomes exatamente como aparecem nas mensagens.";
+  "datas, valores e nomes exatamente como aparecem nas mensagens. Separe sempre o que foi AFIRMADO (e por quem) " +
+  "do que foi só perguntado ou suposto (\"acho que\", \"será que\", \"?\"): dúvida nunca vira fato. Se as " +
+  "respostas divergem, diga que divergem e não escolha um lado. Não diga \"confirmado\" sem confirmação explícita.";
 
 const CRITERIO: Record<string, string> = {
   instrucoes:
-    "Este grupo é da empresa ou da liderança. Marque como \"instrucao\" toda orientação NOVA que licenciados ou " +
+    "Este grupo é da empresa ou da liderança. Marque como \"instrucao\" só orientação NOVA AFIRMADA como comunicado " +
+    "ou resposta segura de quem fala pela empresa ou pela liderança, que licenciados ou " +
     "líderes precisam seguir ou repassar: regra, procedimento, prazo, campanha, condição comercial, material " +
     "novo, mudança em sistema, cadastro, produto ou distribuidora, comunicado oficial. NÃO é instrução: parabéns, " +
-    "saudação, comemoração de venda, piada, dúvida de colega, conversa paralela, nem repetição de algo que já " +
-    "está no contexto. Se alguém pede algo diretamente ao Jimmy, use \"atencao\".",
+    "saudação, comemoração de venda, piada, dúvida de colega, conversa paralela, convite ou divulgação de live, " +
+    "evento, treinamento ou link de transmissão (a não ser que traga regra nova), pergunta de colega com resposta " +
+    "incerta ou divergente, nem repetição de algo que já " +
+    "está no contexto. Use \"atencao\" só quando a mensagem pede algo ao Jimmy pelo nome ou responde a uma " +
+    "mensagem dele; pedido de ajuda para outra pessoa não é com ele.",
   licenciados:
     "Este é um grupo de licenciados que o Jimmy lidera e treina. Marque como \"atencao\" o que precisa dele: " +
     "pergunta feita a ele ou ao líder, dúvida que ficou sem resposta no grupo, pedido de ajuda, licenciado " +
@@ -300,7 +306,8 @@ async function triarGrupo(cfg: any, g: any, novas: any[]) {
     (ctx.length ? `CONTEXTO (já lido antes, não marque):\n${ctx.reverse().map(linhaMsg).join("\n")}\n\n` : "") +
     `MENSAGENS NOVAS:\n${novas.map(linhaMsg).join("\n")}\n\n` +
     `Responda só JSON: {"itens":[{"tipo":"instrucao" ou "atencao","titulo":"até 120 caracteres, específico",` +
-    `"detalhe":"o que é preciso saber ou fazer, até 600 caracteres","ids":["ids das mensagens de origem"]}]}. ` +
+    `"detalhe":"o que é preciso saber ou fazer, com números e regras exatamente como escritos e quem afirmou, até 600 caracteres",` +
+    `"ids":["ids das mensagens de origem"]}]}. ` +
     `Junte num item só as mensagens do mesmo assunto. Se nada importa, {"itens":[]}.`;
   const resp = jsonDe(await ia("grupos_triagem", cfg.modelo, [
     { role: "system", content: QUEM }, { role: "user", content: prompt },
@@ -501,11 +508,12 @@ async function resumirGrupo(cfg: any, g: any, dia: string) {
     {
       role: "user",
       content: `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos curtos ` +
-        `(comece cada um com "• "), do mais importante para o menos. ${foco} Se houver algo para o Jimmy fazer, ` +
-        `termine com uma linha "Para você: ...". Sem introdução, sem markdown além dos tópicos.\n\n` +
+        `(comece cada um com "• "), do mais importante para o menos. ${foco} Só se houver uma ação concreta e ainda ` +
+        `pendente para o Jimmy (responder alguém, repassar uma regra, resolver um problema), termine com uma linha ` +
+        `"Para você: ..."; nunca sugira ir a evento que já passou. Sem introdução, sem markdown além dos tópicos.\n\n` +
         msgs.map(linhaMsg).join("\n"),
     },
-  ], { max: 900 })).trim().slice(0, 2500);
+  ], { max: 900 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim().slice(0, 2500);
   await inserir("grupo_resumos", [{ jid: g.jid, dia, texto, msgs: msgs.length, criado_em: new Date().toISOString() }], "juntar", "jid,dia");
   return texto;
 }
@@ -703,7 +711,7 @@ async function perguntar(cfg: any, b: any) {
   const resposta = (await ia("grupos_pergunta", cfg.modelo, [
     { role: "system", content: QUEM + " Responda só com base nas fontes abaixo. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar." },
     { role: "user", content: `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}` },
-  ], { max: 1200 })).trim();
+  ], { max: 1200 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
   return { resposta, fontes: { mensagens: achadas.length, itens: itens.length, resumos: resumos.length } };
 }
 
