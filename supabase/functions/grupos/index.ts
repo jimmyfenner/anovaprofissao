@@ -360,7 +360,8 @@ const CRITERIO: Record<string, string> = {
     "comissão. Não marque o que outra pessoa já respondeu bem, nem conversa social.",
 };
 
-async function triarGrupo(cfg: any, g: any, novas: any[]) {
+type Teste = { modelo?: string; seco?: boolean };
+async function triarGrupo(cfg: any, g: any, novas: any[], t: Teste = {}) {
   const ctx = await linhas(
     `grupo_mensagens?jid=eq.${q(g.jid)}&triada=eq.true&ts=lt.${q(novas[0].ts)}&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts.desc&limit=15`,
   );
@@ -372,7 +373,7 @@ async function triarGrupo(cfg: any, g: any, novas: any[]) {
     `"detalhe":"o que é preciso saber ou fazer, com números e regras exatamente como escritos e quem afirmou, até 600 caracteres",` +
     `"ids":["ids das mensagens de origem"]}]}. ` +
     `Junte num item só as mensagens do mesmo assunto. Se nada importa, {"itens":[]}.`;
-  const resp = jsonDe(await ia("grupos_triagem", cfg.modelo_triagem, QUEM, prompt, { schema: SCHEMA_TRIAGEM, max: 6000 }));
+  const resp = jsonDe(await ia(t.seco ? "grupos_teste_triagem" : "grupos_triagem", t.modelo ?? cfg.modelo_triagem, QUEM, prompt, { schema: SCHEMA_TRIAGEM, max: 6000 }));
   const validos = new Set(novas.map((m) => m.id));
   const porId = new Map(novas.map((m) => [m.id, m]));
   const itens = (Array.isArray(resp?.itens) ? resp.itens : [])
@@ -389,6 +390,7 @@ async function triarGrupo(cfg: any, g: any, novas: any[]) {
         ts: primeira.ts, msg_ids: ids,
       };
     });
+  if (t.seco) return itens;
   if (itens.length) await inserir("grupo_itens", itens);
   await patch(`grupo_mensagens?id=in.${lista(novas.map((m) => m.id))}`, { triada: true });
   return itens.length;
@@ -557,7 +559,7 @@ async function avisar(cfg: any) {
   return itens.length;
 }
 
-async function resumirGrupo(cfg: any, g: any, dia: string) {
+async function resumirGrupo(cfg: any, g: any, dia: string, t: Teste = {}) {
   const ini = inicioDia(dia), fim = new Date(ini.getTime() + 86_400_000);
   const msgs = await linhas(
     `grupo_mensagens?jid=eq.${q(g.jid)}&ts=gte.${q(ini.toISOString())}&ts=lt.${q(fim.toISOString())}&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts&limit=900`,
@@ -566,12 +568,13 @@ async function resumirGrupo(cfg: any, g: any, dia: string) {
   const foco = g.tipo === "instrucoes"
     ? "Destaque instruções, mudanças, prazos e materiais novos."
     : "Destaque dúvidas que se repetem, quem precisa de ajuda, o que ficou sem resposta e quem se destacou.";
-  const texto = (await ia("grupos_resumo", cfg.modelo_resumo, QUEM,
+  const texto = (await ia(t.seco ? "grupos_teste_resumo" : "grupos_resumo", t.modelo ?? cfg.modelo_resumo, QUEM,
     `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos curtos ` +
         `(comece cada um com "• "), do mais importante para o menos. ${foco} Só se houver uma ação concreta e ainda ` +
         `pendente para o Jimmy (responder alguém, repassar uma regra, resolver um problema), termine com uma linha ` +
         `"Para você: ..."; nunca sugira ir a evento que já passou. Sem introdução, sem markdown além dos tópicos.\n\n` +
         msgs.map(linhaMsg).join("\n"), { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim().slice(0, 2500);
+  if (t.seco) return texto;
   await inserir("grupo_resumos", [{ jid: g.jid, dia, texto, msgs: msgs.length, criado_em: new Date().toISOString() }], "juntar", "jid,dia");
   return texto;
 }
@@ -789,6 +792,33 @@ Deno.serve(async (req) => {
 
   try {
     if (acao === "processar") return json(await processar());
+
+    // Teste de qualidade entre modelos, sem gravar item nem resumo (só ai_usage). Chave de uso único:
+    // o hash fica em grupos_config.teste_hash e é apagado depois do teste.
+    if (acao === "comparar") {
+      const cfg = await config();
+      if (!cfg.teste_hash || await sha256(String(body.chave ?? "")) !== cfg.teste_hash) throw new Recusa("Sem permissão.", 403);
+      const [g] = await linhas(`grupos?jid=eq.${q(String(body.jid ?? ""))}&select=jid,nome,tipo`);
+      exige(g, "Grupo inválido.");
+      const grupo = { ...g, tipo: TIPOS_GRUPO.includes(body.tipo) ? body.tipo : g.tipo };
+      const dia = /^\d{4}-\d{2}-\d{2}$/.test(String(body.dia ?? "")) ? String(body.dia) : diaBrt();
+      const ini = inicioDia(dia), fim = new Date(ini.getTime() + 86_400_000);
+      const msgs = await linhas(
+        `grupo_mensagens?jid=eq.${q(g.jid)}&ts=gte.${q(ini.toISOString())}&ts=lt.${q(fim.toISOString())}&de_mim=eq.false&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts&limit=150`,
+      );
+      exige(msgs.length, "Sem mensagens nesse dia.");
+      const resultados = [];
+      for (const m of (Array.isArray(body.modelos) ? body.modelos : []).slice(0, 3)) {
+        const r: Record<string, unknown> = { triagem_modelo: m.triagem, resumo_modelo: m.resumo };
+        let t0 = Date.now();
+        try { r.itens = await triarGrupo(cfg, grupo, msgs, { modelo: String(m.triagem), seco: true }); } catch (e) { r.erro_triagem = String(e); }
+        r.ms_triagem = Date.now() - t0; t0 = Date.now();
+        try { r.resumo = await resumirGrupo(cfg, grupo, dia, { modelo: String(m.resumo), seco: true }); } catch (e) { r.erro_resumo = String(e); }
+        r.ms_resumo = Date.now() - t0;
+        resultados.push(r);
+      }
+      return json({ grupo: g.nome, tipo: grupo.tipo, dia, mensagens: msgs.length, resultados });
+    }
 
     await sessao(body.token);
     const cfg = await config();
