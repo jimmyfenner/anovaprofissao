@@ -236,6 +236,8 @@ function paraLinha(r: any, meus: Set<string>) {
 const PRECOS: Record<string, [number, number]> = {
   "claude-haiku-5-5": [0.10, 0.50], "claude-sonnet-5-5": [2, 10], "claude-opus-5-5": [4, 20],
 };
+// "claude-haiku-5-5@high": o sufixo escolhe o esforço de raciocínio (low, medium, high); sem sufixo, medium.
+const semEsforco = (modelo: string) => modelo.split("@")[0];
 const ehClaude = (modelo: string) => modelo.startsWith("claude-");
 const iaDisponivel = (modelo: string) => ehClaude(modelo) ? !!ANT_KEY : !!OR_KEY;
 let anthropic: Anthropic | null = null;
@@ -251,18 +253,20 @@ async function ia(feature: string, modelo: string, sistema: string, usuario: str
   try {
     if (ehClaude(modelo)) {
       anthropic ??= new Anthropic({ apiKey: ANT_KEY, timeout: 100_000, maxRetries: 2 });
+      const [base, sufixo] = modelo.split("@");
+      const esforco = ["low", "medium", "high"].includes(sufixo) ? sufixo : (opts.esforco ?? "medium");
       const params: any = {
-        model: modelo, max_tokens: opts.max ?? 8000, system: sistema,
+        model: base, max_tokens: opts.max ?? 16000, system: sistema,
         messages: [{ role: "user", content: usuario }],
-        output_config: { effort: opts.esforco ?? "medium", ...(opts.schema ? { format: { type: "json_schema", schema: opts.schema } } : {}) },
+        output_config: { effort: esforco, ...(opts.schema ? { format: { type: "json_schema", schema: opts.schema } } : {}) },
       };
       // Sonnet/Opus: se um filtro de segurança recusar, a própria API tenta outro modelo
-      const r: any = modelo.startsWith("claude-haiku")
+      const r: any = base.startsWith("claude-haiku")
         ? await anthropic.messages.create(params)
         : await anthropic.beta.messages.create({ ...params, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" });
       tin = r.usage?.input_tokens ?? null;
       tout = r.usage?.output_tokens ?? null;
-      const p = PRECOS[modelo];
+      const p = PRECOS[semEsforco(modelo)];
       if (p && tin != null && tout != null) custo = (tin * p[0] + tout * p[1]) / 1e6;
       conteudo = (r.content ?? []).filter((b: any) => b.type === "text").map((b: any) => b.text).join("");
       if (r.stop_reason === "refusal") erro = `recusado (${r.stop_details?.category ?? "sem categoria"})`;
@@ -337,16 +341,25 @@ const quem = (m: any) => m.de_mim ? "Jimmy" : (m.autor_nome || fone(m.autor) || 
 let meusIds = new Set<string>();
 const comJimmy = (t: string) => String(t).replace(/@(\d{8,})/g, (x, d) =>
   meusIds.has(`${d}@lid`) || meusIds.has(`${d}@s.whatsapp.net`) ? "@Jimmy" : x);
-const linhaMsg = (m: any) =>
-  `[${m.id}] ${horaBrt(new Date(m.ts))} ${quem(m)}: ` +
-  (m.cita_texto ? `(respondendo "${comJimmy(String(m.cita_texto).slice(0, 120))}") ` : "") + comJimmy(String(m.texto).slice(0, 1500));
+// Quem escreveu cada mensagem (pelo id), para a citação dizer de quem é o texto citado: sem isso a IA
+// atribuía o relato citado a quem só respondeu (ex.: elogiar o fechamento de outro virava "fechou").
+let autoresPorId = new Map<string, string>();
+const lembrarAutores = (msgs: any[]) => { autoresPorId = new Map(msgs.map((m) => [m.id, quem(m)])); };
+const linhaMsg = (m: any) => {
+  const citado = m.cita_id ? autoresPorId.get(m.cita_id) ?? (m.cita_autor && meusIds.has(m.cita_autor) ? "Jimmy" : null) : null;
+  return `[${m.id}] ${horaBrt(new Date(m.ts))} ${quem(m)}: ` +
+    (m.cita_texto ? `(em resposta à mensagem de ${citado ?? "outra pessoa"}, que dizia: "${comJimmy(String(m.cita_texto).slice(0, 160))}") ` : "") +
+    comJimmy(String(m.texto).slice(0, 1500));
+};
 
 const QUEM = "Você ajuda Jimmy Fenner, líder de licenciados da iGreen Energy (energia por assinatura, " +
   "telecom, seguros e eletropostos Mob, num modelo de licenciamento com equipes). Ele participa de muitos " +
   "grupos de WhatsApp e não consegue ler tudo. Escreva em português do Brasil, direto, sem inventar nada: " +
   "datas, valores e nomes exatamente como aparecem nas mensagens. Separe sempre o que foi AFIRMADO (e por quem) " +
   "do que foi só perguntado ou suposto (\"acho que\", \"será que\", \"?\"): dúvida nunca vira fato. Se as " +
-  "respostas divergem, diga que divergem e não escolha um lado. Não diga \"confirmado\" sem confirmação explícita.";
+  "respostas divergem, diga que divergem e não escolha um lado. Não diga \"confirmado\" sem confirmação explícita. " +
+  "Menção ao Jimmy aparece como \"@Jimmy\"; \"@\" seguido de número é sempre outra pessoa, nunca o Jimmy. " +
+  "Texto citado numa resposta é de quem escreveu a mensagem citada, não de quem respondeu.";
 
 const CRITERIO: Record<string, string> = {
   instrucoes:
@@ -370,8 +383,9 @@ const CRITERIO: Record<string, string> = {
 type Teste = { modelo?: string; seco?: boolean };
 async function triarGrupo(cfg: any, g: any, novas: any[], t: Teste = {}) {
   const ctx = await linhas(
-    `grupo_mensagens?jid=eq.${q(g.jid)}&triada=eq.true&ts=lt.${q(novas[0].ts)}&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts.desc&limit=15`,
+    `grupo_mensagens?jid=eq.${q(g.jid)}&triada=eq.true&ts=lt.${q(novas[0].ts)}&select=id,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto&order=ts.desc&limit=15`,
   );
+  lembrarAutores([...ctx, ...novas]);
   const prompt =
     `${CRITERIO[g.tipo] ?? CRITERIO.licenciados}\n\nGrupo: ${g.nome}\n\n` +
     (ctx.length ? `CONTEXTO (já lido antes, não marque):\n${ctx.reverse().map(linhaMsg).join("\n")}\n\n` : "") +
@@ -569,9 +583,10 @@ async function avisar(cfg: any) {
 async function resumirGrupo(cfg: any, g: any, dia: string, t: Teste = {}) {
   const ini = inicioDia(dia), fim = new Date(ini.getTime() + 86_400_000);
   const msgs = await linhas(
-    `grupo_mensagens?jid=eq.${q(g.jid)}&ts=gte.${q(ini.toISOString())}&ts=lt.${q(fim.toISOString())}&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts&limit=900`,
+    `grupo_mensagens?jid=eq.${q(g.jid)}&ts=gte.${q(ini.toISOString())}&ts=lt.${q(fim.toISOString())}&select=id,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto&order=ts&limit=900`,
   );
   if (!msgs.length) return null;
+  lembrarAutores(msgs);
   const foco = g.tipo === "instrucoes"
     ? "Destaque instruções, mudanças, prazos e materiais novos."
     : "Destaque dúvidas que se repetem, quem precisa de ajuda, o que ficou sem resposta e quem se destacou.";
@@ -579,8 +594,11 @@ async function resumirGrupo(cfg: any, g: any, dia: string, t: Teste = {}) {
     `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos, cada um com no máximo 2 frases curtas ` +
         `(comece cada um com "• "), do mais importante para o menos. ${foco} Só se houver uma ação concreta e ainda ` +
         `pendente para o Jimmy (responder alguém, repassar uma regra, resolver um problema), termine com uma linha ` +
-        `"Para você: ..."; nunca sugira ir a evento que já passou. Sem introdução, sem markdown além dos tópicos.\n\n` +
-        msgs.map(linhaMsg).join("\n"), { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 4000);
+        `"Para você: ..."; nunca sugira ir a evento que já passou. Sem introdução, sem markdown além dos tópicos. ` +
+        `Escreva só o resumo: nada de comentário sobre a conversa, o grupo, a data ou o que você conseguiu confirmar. ` +
+        `Cite pessoas pelo nome; sem nome, diga "um participante" (nunca escreva números de telefone nem "@número"). ` +
+        `Antes de atribuir um fato a alguém, confira se foi essa pessoa que disse (elogiar o resultado de outro não é ter o resultado).\n\n` +
+        msgs.map(linhaMsg).join("\n"), { max: 24000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 4000);
   if (t.seco) return texto;
   await inserir("grupo_resumos", [{ jid: g.jid, dia, texto, msgs: msgs.length, criado_em: new Date().toISOString() }], "juntar", "jid,dia");
   return texto;
@@ -656,7 +674,7 @@ async function processar() {
     const triarAgora = !cfg.triagem_em || Date.now() - Date.parse(cfg.triagem_em) >= 9.5 * 60_000;
     if (iaDisponivel(cfg.modelo_triagem) && triarAgora) {
       await passo("triagem", async () => {
-        const pendentes = await linhas("grupo_mensagens?triada=eq.false&select=id,jid,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts&limit=600");
+        const pendentes = await linhas("grupo_mensagens?triada=eq.false&select=id,jid,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto&order=ts&limit=600");
         const grupos = new Map((await linhas("grupos?ativo=eq.true&select=jid,nome,tipo")).map((g) => [g.jid, g]));
         const porJid = new Map<string, any[]>();
         for (const m of pendentes) {
@@ -788,7 +806,7 @@ async function perguntar(cfg: any, b: any) {
     (resumos.length ? resumos.map((r) => `- [${nomes.get(r.jid) ?? "grupo"}] ${r.dia.split("-").reverse().join("/")}:\n${r.texto}`).join("\n") : "(nenhum)");
   const resposta = (await ia("grupos_pergunta", cfg.modelo_resumo,
     QUEM + " Responda só com base nas fontes abaixo. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar.",
-    `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}`, { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
+    `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}`, { max: 16000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
   return { resposta, fontes: { mensagens: achadas.length, itens: itens.length, resumos: resumos.length } };
 }
 
@@ -812,7 +830,7 @@ Deno.serve(async (req) => {
       const dia = /^\d{4}-\d{2}-\d{2}$/.test(String(body.dia ?? "")) ? String(body.dia) : diaBrt();
       const ini = inicioDia(dia), fim = new Date(ini.getTime() + 86_400_000);
       const msgs = await linhas(
-        `grupo_mensagens?jid=eq.${q(g.jid)}&ts=gte.${q(ini.toISOString())}&ts=lt.${q(fim.toISOString())}&de_mim=eq.false&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts&limit=150`,
+        `grupo_mensagens?jid=eq.${q(g.jid)}&ts=gte.${q(ini.toISOString())}&ts=lt.${q(fim.toISOString())}&de_mim=eq.false&select=id,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto&order=ts&limit=150`,
       );
       exige(msgs.length, "Sem mensagens nesse dia.");
       const resultados = [];
@@ -871,7 +889,7 @@ Deno.serve(async (req) => {
     if (acao === "mensagens") {
       const jid = String(body.jid ?? "");
       exige(JID_GRUPO.test(jid), "Grupo inválido.");
-      let msgs = await linhas(`grupo_mensagens?jid=eq.${q(jid)}&select=id,ts,autor,autor_nome,de_mim,texto,cita_texto&order=ts.desc&limit=150`);
+      let msgs = await linhas(`grupo_mensagens?jid=eq.${q(jid)}&select=id,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto&order=ts.desc&limit=150`);
       let ao_vivo = false;
       if (!msgs.length) {
         // grupo desligado: mostra direto da Evolution, sem gravar
