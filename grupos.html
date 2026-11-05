@@ -122,6 +122,17 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
 
 .gp-resposta{white-space:pre-wrap;line-height:1.6;font-size:.95rem}
 
+.gp-midia{display:grid;gap:.55rem;padding:.7rem;border-radius:14px;box-shadow:inset 0 0 0 1px var(--line);background:rgba(0,0,0,.18)}
+.gp-midia img,.gp-midia video{display:block;max-width:100%;max-height:240px;border-radius:10px;background:#000;margin:0 auto}
+.gp-midia__info{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.84rem;color:var(--muted)}
+.gp-midia__info b{color:var(--text);font-weight:500;overflow-wrap:anywhere}
+.gp-midia__add{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.gp-barra{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.gp-barra i{display:block;height:100%;width:0;background:var(--credit);transition:width .2s}
+.gp-mini{display:flex;gap:.7rem;align-items:center}
+.gp-mini img,.gp-mini video{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none;background:#000}
+.gp-mini span{font-size:.8rem;color:var(--muted)}
+
 .gp-msg{font-size:.88rem;line-height:1.45;padding:.5rem .65rem;border-radius:12px;margin:.25rem 0;background:rgba(255,255,255,.035);max-width:92%}
 .gp-msg--mim{margin-left:auto;background:rgba(33,202,112,.1)}
 .gp-msg--marca{box-shadow:inset 0 0 0 1px rgba(251,191,36,.6)}
@@ -432,7 +443,8 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
       var status = e.ativo ? (e.proximo_em ? "Próximo: " + quando(e.proximo_em) : "Ativo") : (e.repetir === "nao" && e.ultimo_em ? "Enviado " + quando(e.ultimo_em) : "Pausado");
       h += '<article class="gp-item' + (e.ativo ? '' : '" style="opacity:.75') + '">' +
         '<div class="gp-meta">' + esc(descreverQuando(e)) + ' · ' + esc(status) + (e.mencionar ? ' · <span class="gp-selo">menciona todos</span>' : '') + '</div>' +
-        '<div class="gp-item__det">' + esc(e.texto.length > 280 ? e.texto.slice(0, 280) + "…" : e.texto) + '</div>' +
+        (e.midia_path ? miniatura(e) : '') +
+        (e.texto ? '<div class="gp-item__det">' + esc(e.texto.length > 280 ? e.texto.slice(0, 280) + "…" : e.texto) + '</div>' : '') +
         '<div class="gp-meta">' + e.jids.map(function(j){ return esc(nomeDe[j] || j); }).join(" · ") + '</div>' +
         (e.ultimo_erro ? '<div class="gp-aviso gp-aviso--erro" style="margin:0">Último envio com erro: ' + esc(e.ultimo_erro) + '</div>' : '') +
         '<div class="gp-acoes"><button class="gp-btn gp-btn--sm" data-editar="' + e.id + '">Editar</button>' +
@@ -447,12 +459,41 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
     el.innerHTML = h + '</div></div>'; ligar(el);
   }
 
+  var MIDIA_MAX = { imagem: 10 * 1024 * 1024, video: 50 * 1024 * 1024 };
+  function publica(path){ return SUPABASE_URL + "/storage/v1/object/public/grupos-midia/" + path; }
+  function tamanho(b){ return b >= 1048576 ? (b / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(b / 1024)) + " KB"; }
+  function miniatura(e){
+    var url = publica(e.midia_path), video = e.midia_tipo === "video";
+    return '<div class="gp-mini">' + (video ? '<video src="' + url + '#t=0.5" preload="metadata" muted playsinline></video>' : '<img src="' + url + '" alt="" loading="lazy">') +
+      '<span>' + (video ? "🎬 Vídeo" : "🖼️ Imagem") + (e.midia_bytes ? " · " + tamanho(e.midia_bytes) : "") + (e.texto ? " · com legenda" : " · sem legenda") + '</span></div>';
+  }
+  // Toda imagem passa pelo canvas: vira JPEG, fica de pé (a orientação da foto do celular é
+  // aplicada aqui; a Evolution tira essa informação) e no máximo 2560 px no lado maior.
+  function paraJpeg(f){
+    return new Promise(function(ok, falha){
+      var url = URL.createObjectURL(f), img = new Image();
+      img.onload = function(){
+        var k = Math.min(1, 2560 / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        var x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(function(b){ b ? ok(b) : falha(); }, "image/jpeg", 0.9);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); falha(); };
+      img.src = url;
+    });
+  }
+
   function abrirEnvio(e){
     editando = e || null;
+    var midia = e && e.midia_path ? { path: e.midia_path, tipo: e.midia_tipo, nome: e.midia_nome, bytes: e.midia_bytes, url: publica(e.midia_path) } : null;
+    var subindo = null;
     var sel = {}; (e ? e.jids : []).forEach(function(j){ sel[j] = true; });
     var podem = D.grupos.slice().sort(function(a, b){ return (sel[b.jid] ? 1 : 0) - (sel[a.jid] ? 1 : 0) || (b.ativo ? 1 : 0) - (a.ativo ? 1 : 0) || (b.tamanho || 0) - (a.tamanho || 0); });
     var rep = e ? e.repetir : "nao";
     var h = '<label class="gp-campo"><span>Mensagem · use {saudacao} para "Bom dia/Boa tarde/Boa noite"</span><textarea id="ev-texto">' + esc(e ? e.texto : "") + '</textarea></label>' +
+      '<div class="gp-campo"><span>Imagem ou vídeo (opcional) · com arquivo, a mensagem vai como legenda</span><div class="gp-midia" id="ev-midia"></div>' +
+      '<input type="file" id="ev-arquivo" accept="image/*,video/mp4" hidden></div>' +
       '<label class="gp-linha" style="margin-bottom:.9rem;cursor:pointer"><button type="button" class="gp-chave" id="ev-mencionar" role="switch" aria-checked="' + (e ? !!e.mencionar : true) + '"></button> Mencionar todos (todo mundo recebe notificação, sem a lista de nomes aparecer)</label>' +
       '<div class="gp-campo"><span>Grupos <b id="ev-n"></b></span><input class="gp-busca" id="ev-busca" placeholder="Procurar grupo…"><div class="gp-escolha" id="ev-grupos">' +
       podem.map(function(g){
@@ -473,6 +514,66 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
       '<div class="gp-acoes"><button class="gp-btn gp-btn--pri" id="ev-salvar">' + (e ? "Salvar" : "Programar") + '</button><button class="gp-btn" id="ev-teste">Mandar teste para mim</button></div>';
     folha(e ? "Editar envio" : "Novo envio", h);
     var corpo = $("#folha-corpo");
+    function desenharMidia(){
+      var el = $("#ev-midia"); if(!el) return;
+      if(subindo){
+        el.innerHTML = '<div class="gp-midia__info">Subindo <b>' + esc(subindo.nome) + '</b> · ' + tamanho(subindo.bytes) + ' · <span id="ev-pct">' + subindo.pct + '%</span></div>' +
+          '<div class="gp-barra"><i id="ev-barra" style="width:' + subindo.pct + '%"></i></div>';
+      } else if(midia){
+        el.innerHTML = (midia.tipo === "video" ? '<video src="' + esc(midia.url) + '" controls preload="metadata" playsinline></video>' : '<img src="' + esc(midia.url) + '" alt="">') +
+          '<div class="gp-midia__info">' + (midia.tipo === "video" ? "🎬" : "🖼️") + ' <b>' + esc(midia.nome || (midia.tipo === "video" ? "Vídeo" : "Imagem")) + '</b>' +
+          (midia.bytes ? ' · ' + tamanho(midia.bytes) : '') + '<span style="flex:1"></span>' +
+          '<button type="button" class="gp-btn gp-btn--sm" id="ev-trocar">Trocar</button><button type="button" class="gp-btn gp-btn--sm gp-btn--perigo" id="ev-tirar">Tirar</button></div>';
+        $("#ev-trocar").addEventListener("click", function(){ $("#ev-arquivo").click(); });
+        $("#ev-tirar").addEventListener("click", function(){ midia = null; desenharMidia(); });
+      } else {
+        el.innerHTML = '<div class="gp-midia__add"><button type="button" class="gp-btn gp-btn--sm" id="ev-escolher">＋ Imagem ou vídeo</button>' +
+          '<span class="gp-meta">Foto (JPG, PNG, HEIC) até 10 MB ou vídeo MP4 até 50 MB</span></div>';
+        $("#ev-escolher").addEventListener("click", function(){ $("#ev-arquivo").click(); });
+      }
+    }
+    function subir(blob, tipo, nome, urlLocal){
+      subindo = { nome: nome, bytes: blob.size, pct: 0 }; desenharMidia(); erroEm("#ev-erro", "");
+      function falhou(msg){ subindo = null; desenharMidia(); erroEm("#ev-erro", msg); }
+      if(DEMO){ setTimeout(function(){ subindo = null; midia = { path: "envios/00000000-0000-0000-0000-000000000000." + (tipo === "video" ? "mp4" : "jpg"), tipo: tipo, nome: nome, bytes: blob.size, url: urlLocal }; desenharMidia(); }, 600); return; }
+      chamar("midia_link", { tipo: tipo, bytes: blob.size }).then(function(j){
+        if(j.error || !j.upload){ falhou(j.error || "Não consegui preparar o envio do arquivo."); return; }
+        var x = new XMLHttpRequest();
+        x.open("PUT", j.upload);
+        x.setRequestHeader("Content-Type", tipo === "video" ? "video/mp4" : "image/jpeg");
+        x.setRequestHeader("apikey", SUPABASE_KEY);
+        x.setRequestHeader("Authorization", "Bearer " + SUPABASE_KEY);
+        x.setRequestHeader("x-upsert", "false");
+        x.setRequestHeader("cache-control", "max-age=3600");
+        x.upload.onprogress = function(ev){
+          if(!ev.lengthComputable || !subindo) return;
+          subindo.pct = Math.min(99, Math.round(ev.loaded / ev.total * 100));
+          var b = $("#ev-barra"), t = $("#ev-pct"); if(b) b.style.width = subindo.pct + "%"; if(t) t.textContent = subindo.pct + "%";
+        };
+        x.onload = function(){
+          if(x.status < 200 || x.status >= 300){ falhou("O arquivo não subiu (" + x.status + "). Tente de novo."); return; }
+          subindo = null; midia = { path: j.path, tipo: tipo, nome: nome, bytes: blob.size, url: urlLocal }; desenharMidia();
+        };
+        x.onerror = function(){ falhou("A conexão caiu no meio do envio do arquivo. Tente de novo."); };
+        x.send(blob);
+      });
+    }
+    $("#ev-arquivo").addEventListener("change", function(){
+      var f = this.files && this.files[0]; this.value = ""; if(!f) return;
+      var video = /^video\//.test(f.type) || /\.(mp4|m4v|mov)$/i.test(f.name);
+      if(video){
+        if(!(f.type === "video/mp4" || /\.mp4$/i.test(f.name))){ erroEm("#ev-erro", "Esse vídeo não está em MP4 (" + (f.name.split(".").pop() || "?").toUpperCase() + "). Por aqui o WhatsApp só recebe MP4: exporte em MP4 e escolha de novo."); return; }
+        if(f.size > MIDIA_MAX.video){ erroEm("#ev-erro", "O vídeo tem " + tamanho(f.size) + ". O limite é 50 MB."); return; }
+        subir(f, "video", f.name, URL.createObjectURL(f));
+        return;
+      }
+      erroEm("#ev-erro", "");
+      paraJpeg(f).then(function(b){
+        if(b.size > MIDIA_MAX.imagem){ erroEm("#ev-erro", "A imagem ficou com " + tamanho(b.size) + ". O limite é 10 MB."); return; }
+        subir(b, "imagem", f.name.replace(/\.[^.]+$/, "") + ".jpg", URL.createObjectURL(b));
+      }, function(){ erroEm("#ev-erro", "Não consegui abrir essa imagem. Use JPG ou PNG."); });
+    });
+    desenharMidia();
     function mostrar(){
       var r = $("#ev-rep").value;
       $("#ev-em-c").hidden = r !== "nao"; $("#ev-dias-c").hidden = r !== "semanal"; $("#ev-mes-c").hidden = r !== "mensal";
@@ -488,16 +589,19 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
     });
     mostrar();
     $("#ev-teste").addEventListener("click", function(){
-      var t = $("#ev-texto").value.trim(); if(!t){ toast("Escreva a mensagem."); return; }
-      var b = this; b.disabled = true;
-      chamar("envio_teste", { texto: t, mencionar: $("#ev-mencionar").getAttribute("aria-checked") === "true" }).then(function(j){
-        b.disabled = false; toast(j.error || "Teste enviado para o seu WhatsApp.");
+      var t = $("#ev-texto").value.trim();
+      if(subindo){ toast("Espere o arquivo terminar de subir."); return; }
+      if(!t && !midia){ toast("Escreva a mensagem ou escolha uma imagem ou um vídeo."); return; }
+      var b = this; b.disabled = true; b.textContent = midia ? "Mandando…" : b.textContent;
+      chamar("envio_teste", { texto: t, mencionar: $("#ev-mencionar").getAttribute("aria-checked") === "true", midia: midia ? { path: midia.path, nome: midia.nome } : null }).then(function(j){
+        b.disabled = false; b.textContent = "Mandar teste para mim"; toast(j.error || "Teste enviado para o seu WhatsApp.");
       });
     });
     $("#ev-salvar").addEventListener("click", function(){
       var r = $("#ev-rep").value, b = this;
       var dados = {
         id: editando ? editando.id : null, texto: $("#ev-texto").value,
+        midia: midia ? { path: midia.path, nome: midia.nome } : null,
         jids: $$("#ev-grupos input:checked").map(function(i){ return i.value; }),
         mencionar: $("#ev-mencionar").getAttribute("aria-checked") === "true",
         repetir: r === "agora" ? "nao" : r, agora: r === "agora",
@@ -505,13 +609,16 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
         hora: $("#ev-hora").value, ate: $("#ev-ate").value || null, dia_mes: Number($("#ev-mes").value),
         dias_semana: $$("#ev-dias-c input:checked").map(function(i){ return Number(i.value); })
       };
+      if(subindo){ erroEm("#ev-erro", "Espere o arquivo terminar de subir."); return; }
+      if(!dados.texto.trim() && !dados.midia){ erroEm("#ev-erro", "Escreva a mensagem ou escolha uma imagem ou um vídeo."); return; }
       if(!dados.jids.length){ erroEm("#ev-erro", "Escolha pelo menos um grupo."); return; }
       if(r === "agora" && !confirm("Enviar agora para " + dados.jids.length + " grupo(s)?")) return;
       b.disabled = true; erroEm("#ev-erro", "");
       chamar("envio_salvar", dados).then(function(j){
         b.disabled = false;
         if(j.error){ erroEm("#ev-erro", j.error); return; }
-        fecharFolha(); toast(r === "agora" ? "Na fila: sai em até 2 minutos." : "Envio programado."); carregar(true);
+        var aos = dados.midia && dados.jids.length > 3 ? " " + (midia.tipo === "video" ? "Vídeo" : "Imagem") + " sai aos poucos: " + dados.jids.length + " grupos em uns " + Math.ceil(dados.jids.length / (midia.tipo === "video" ? 3 : 5)) * 2 + " min." : "";
+        fecharFolha(); toast((r === "agora" ? "Na fila: começa em até 2 minutos." : "Envio programado.") + aos); carregar(true);
       });
     });
   }

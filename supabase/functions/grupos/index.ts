@@ -13,7 +13,8 @@ import Anthropic from "npm:@anthropic-ai/sdk";
 //   5. avisa no WhatsApp (instância 1575 → número do Jimmy) o que é novo
 //   6. depois da hora do resumo, resume o dia de cada grupo ligado e manda o apanhado
 // Painel (token da sessão do /painel, só o número do Jimmy): estado, grupo_salvar,
-//   grupos_sugeridos, sincronizar, mensagens, item, resumir, perguntar, envio_salvar,
+//   grupos_sugeridos, sincronizar, mensagens, item, resumir, perguntar, midia_link (link para o
+//   painel subir a imagem ou o vídeo do envio direto no Storage), envio_salvar, envio_pausar,
 //   envio_remover, envio_teste, config_salvar.
 // IA: por configuração (grupos_config.modelo_triagem / modelo_resumo). "claude-*" vai direto à API da
 // Anthropic (ANTHROPIC_API_KEY, SDK oficial, JSON validado por schema na triagem); qualquer outro nome
@@ -33,6 +34,13 @@ const BRT_MS = -3 * 3_600_000; // Brasília, sem horário de verão
 const TIPOS_GRUPO = ["instrucoes", "licenciados", "envios"];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const JID_GRUPO = /^[0-9-]{6,40}@g\.us$/;
+// imagem ou vídeo dos envios (db/26-grupos-midia.sql): bucket público, nome aleatório
+const BUCKET = "grupos-midia";
+const MIDIA_PATH = /^envios\/[0-9a-f-]{36}\.(jpg|mp4)$/;
+const MIDIA_MAX = { imagem: 10 * 1024 * 1024, video: 50 * 1024 * 1024 };
+// quanto a função espera a Evolution baixar e mandar (um vídeo de 50 MB leva ~10 s)
+const MIDIA_ESPERA = { imagem: 30_000, video: 60_000 };
+const publica = (path: string) => `${SB_URL}/storage/v1/object/public/${BUCKET}/${path}`;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -138,6 +146,64 @@ async function enviarTexto(instancia: string, numero: string, texto: string, men
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message.slice(0, 200) : "falha de rede" };
   }
+}
+
+// Imagem ou vídeo com a mensagem como legenda. A Evolution baixa o arquivo pelo link
+// público e manda ao WhatsApp; com mentionsEveryOne, num grupo ela menciona todos também.
+async function enviarMidia(instancia: string, numero: string, texto: string, midia: { path: string; tipo: string }, mencionar = false) {
+  const video = midia.tipo === "video";
+  try {
+    const r = await evo(`/message/sendMedia/${encodeURIComponent(instancia)}`, {
+      method: "POST",
+      body: JSON.stringify({
+        number: numero, mediatype: video ? "video" : "image", mimetype: video ? "video/mp4" : "image/jpeg",
+        media: publica(midia.path), fileName: video ? "video.mp4" : "imagem.jpg",
+        ...(texto ? { caption: texto } : {}), delay: 1200, ...(mencionar ? { mentionsEveryOne: true } : {}),
+      }),
+    }, MIDIA_ESPERA[video ? "video" : "imagem"]);
+    return r.ok ? { ok: true, erro: "" } : { ok: false, erro: `HTTP ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}` };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "falha de rede";
+    return { ok: false, erro: /timed? ?out|abort/i.test(msg) ? "sem confirmação da Evolution a tempo (pode ter saído)" : msg.slice(0, 200) };
+  }
+}
+
+/* ---------------- Storage (mídia dos envios) ---------------- */
+
+async function storage(path: string, init: RequestInit = {}) {
+  const r = await fetch(`${SB_URL}/storage/v1/${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, ...((init.headers as Record<string, string>) ?? {}) },
+  });
+  const txt = await r.text();
+  let body: any = txt;
+  try { body = JSON.parse(txt); } catch { /* texto */ }
+  return { ok: r.ok, status: r.status, body };
+}
+async function apagarMidias(paths: string[]) {
+  const ok = paths.filter((p) => MIDIA_PATH.test(p));
+  if (!ok.length) return;
+  await storage(`object/${BUCKET}`, { method: "DELETE", body: JSON.stringify({ prefixes: ok }) }).catch(() => {});
+}
+// Arquivo que subiu e não virou envio (formulário fechado sem salvar), com mais de um dia.
+async function limparMidias() {
+  const r = await storage(`object/list/${BUCKET}`, {
+    method: "POST", body: JSON.stringify({ prefix: "envios", limit: 1000, offset: 0, sortBy: { column: "created_at", order: "asc" } }),
+  });
+  if (!r.ok || !Array.isArray(r.body)) return 0;
+  const usados = new Set((await linhas("grupo_envios?midia_path=not.is.null&select=midia_path")).map((e) => e.midia_path));
+  const velhos = r.body
+    .filter((o: any) => o?.name && Date.now() - Date.parse(o.created_at ?? "") > 86_400_000)
+    .map((o: any) => `envios/${o.name}`)
+    .filter((p: string) => !usados.has(p));
+  await apagarMidias(velhos);
+  return velhos.length;
+}
+// Confere se o arquivo subiu mesmo e devolve o tamanho.
+async function midiaNoAr(path: string) {
+  const r = await fetch(publica(path), { method: "HEAD" }).catch(() => null);
+  if (!r || !r.ok) return null;
+  return Number(r.headers.get("content-length") ?? 0) || 0;
 }
 
 // Mensagens da Evolution num intervalo (messageTimestamp em ISO: com número a busca volta vazia).
@@ -601,34 +667,51 @@ function proximaVez(e: any, depois: Date): Date | null {
 
 const montarTexto = (t: string) => t.replace(/\{saudacao\}/gi, saudacao());
 
-async function mandarEnvios(cfg: any, prazo: number) {
+// limite: até quando um envio pode estar rodando nesta chamada (o worker cai aos 150 s).
+// Vídeo para muitos grupos não cabe numa chamada: `pendentes` guarda quem falta na vez
+// atual e a próxima chamada (2 min) continua dali, sem repetir os primeiros grupos.
+async function mandarEnvios(cfg: any, limite: number) {
   const agora = new Date().toISOString();
   const vencidos = await linhas(
     `grupo_envios?ativo=eq.true&proximo_em=lte.${q(agora)}&or=(enviando_ate.is.null,enviando_ate.lt.${q(agora)})&order=proximo_em&limit=5`,
   );
   let feitos = 0;
   for (const e of vencidos) {
-    if (Date.now() > prazo) break;
+    const midia = e.midia_path ? { path: e.midia_path, tipo: e.midia_tipo } : null;
+    // o pior caso de um envio (a espera pela Evolution e o registro)
+    const custo = midia ? MIDIA_ESPERA[midia.tipo === "video" ? "video" : "imagem"] + 5_000 : 20_000;
+    if (Date.now() + custo > limite) break;
     const trava = await rest(
       `grupo_envios?id=eq.${e.id}&or=(enviando_ate.is.null,enviando_ate.lt.${q(new Date().toISOString())})`,
       { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ enviando_ate: new Date(Date.now() + 170_000).toISOString() }) },
     );
     if (!Array.isArray(trava) || !trava.length) continue;
-    const erros: string[] = [];
-    for (let i = 0; i < e.jids.length; i++) {
-      const jid = e.jids[i];
-      const r = await enviarTexto(cfg.instancia, jid, montarTexto(e.texto), e.mencionar);
+    let pend: string[] = Array.isArray(e.pendentes) ? e.pendentes.filter((j: string) => e.jids.includes(j)) : [...e.jids];
+    const vez = e.ocorrencia_em ?? new Date().toISOString();
+    if (!Array.isArray(e.pendentes)) await patch(`grupo_envios?id=eq.${e.id}`, { pendentes: pend, ocorrencia_em: vez });
+    const texto = montarTexto(e.texto ?? "");
+    while (pend.length && Date.now() + custo <= limite) {
+      const jid = pend[0];
+      const r = midia ? await enviarMidia(cfg.instancia, jid, texto, midia, e.mencionar) : await enviarTexto(cfg.instancia, jid, texto, e.mencionar);
       await rest("grupo_envios_log", {
         method: "POST", headers: { Prefer: "return=minimal" },
         body: JSON.stringify({ envio_id: e.id, jid, ok: r.ok, erro: r.ok ? null : r.erro }),
       }).catch(() => {});
-      if (!r.ok) erros.push(r.erro);
-      if (i < e.jids.length - 1) await espera(4000 + Math.random() * 5000);
+      pend = pend.slice(1);
+      await patch(`grupo_envios?id=eq.${e.id}`, { pendentes: pend }).catch(() => {});
+      if (pend.length && Date.now() + 9_000 + custo <= limite) await espera(4000 + Math.random() * 5000);
     }
+    if (pend.length) {
+      await patch(`grupo_envios?id=eq.${e.id}`, { enviando_ate: null, atualizado_em: new Date().toISOString() });
+      break;
+    }
+    const falhas = await linhas(`grupo_envios_log?envio_id=eq.${e.id}&ok=eq.false&enviado_em=gte.${q(vez)}&select=erro&limit=20`);
     const prox = proximaVez(e, new Date());
     await patch(`grupo_envios?id=eq.${e.id}`, {
-      ultimo_em: new Date().toISOString(), ultimo_erro: erros.length ? erros.join(" | ").slice(0, 500) : null,
-      proximo_em: prox ? prox.toISOString() : null, ativo: !!prox, enviando_ate: null, atualizado_em: new Date().toISOString(),
+      ultimo_em: new Date().toISOString(),
+      ultimo_erro: falhas.length ? [...new Set(falhas.map((f) => f.erro))].join(" | ").slice(0, 500) : null,
+      proximo_em: prox ? prox.toISOString() : null, ativo: !!prox, enviando_ate: null, pendentes: null, ocorrencia_em: null,
+      atualizado_em: new Date().toISOString(),
     });
     feitos++;
   }
@@ -741,6 +824,7 @@ async function processar() {
   try {
     if (!cfg.lista_em || Date.now() - Date.parse(cfg.lista_em) > 86_400_000) {
       await passo("lista", () => sincronizarGrupos(cfg));
+      await passo("limpeza", () => limparMidias());
     }
     // a cada hora relê as últimas 26 h (pega mensagem que a Evolution recebeu atrasada)
     const releitura = brt(agora).getUTCMinutes() < 2;
@@ -751,8 +835,8 @@ async function processar() {
       await patch("grupos_config?id=eq.1", { cursor_em: agora.toISOString() });
       return r;
     });
+    await passo("envios", () => mandarEnvios(cfg, inicio + 120_000));
     await passo("audios", () => transcreverPendentes(cfg, prazo - 40_000));
-    await passo("envios", () => mandarEnvios(cfg, prazo - 25_000));
     // triagem a cada 10 min (menção e resposta ao Jimmy já avisam na hora, sem IA)
     const triarAgora = !cfg.triagem_em || Date.now() - Date.parse(cfg.triagem_em) >= 9.5 * 60_000;
     if (iaDisponivel(cfg.modelo_triagem) && triarAgora) {
@@ -819,13 +903,28 @@ async function estado() {
   };
 }
 
+// Imagem ou vídeo que o painel subiu pelo link de envio (ação midia_link).
+function lerMidia(m: any) {
+  if (!m || !m.path) return null;
+  const path = String(m.path);
+  exige(MIDIA_PATH.test(path), "Arquivo inválido. Escolha a imagem ou o vídeo de novo.");
+  const tipo = path.endsWith(".mp4") ? "video" : "imagem";
+  return { path, tipo, nome: String(m.nome ?? "").slice(0, 160) || null };
+}
+
 function lerEnvio(b: any) {
   const texto = String(b.texto ?? "").trim();
-  exige(texto.length >= 1 && texto.length <= 4096, "Escreva a mensagem (até 4.096 caracteres).");
+  const midia = lerMidia(b.midia);
+  exige(texto.length <= 4096, "A mensagem passa de 4.096 caracteres.");
+  exige(texto.length >= 1 || midia, "Escreva a mensagem ou escolha uma imagem ou um vídeo.");
   const jids = [...new Set<string>((Array.isArray(b.jids) ? b.jids : []).map(String))].filter((j) => JID_GRUPO.test(j));
   exige(jids.length >= 1 && jids.length <= 50, "Escolha de 1 a 50 grupos.");
   const repetir = ["nao", "diario", "semanal", "mensal"].includes(b.repetir) ? b.repetir : "nao";
-  const e: any = { texto, jids, mencionar: b.mencionar !== false, repetir, dias_semana: null, dia_mes: null, hora: null, ate: null };
+  const e: any = {
+    texto, jids, mencionar: b.mencionar !== false, repetir, dias_semana: null, dia_mes: null, hora: null, ate: null,
+    midia_path: midia?.path ?? null, midia_tipo: midia?.tipo ?? null, midia_nome: midia?.nome ?? null, midia_bytes: null,
+    pendentes: null, ocorrencia_em: null,
+  };
   if (repetir === "nao") {
     const em = b.agora ? new Date() : new Date(String(b.em ?? ""));
     exige(!isNaN(em.getTime()), "Escolha o dia e a hora do envio.");
@@ -1015,12 +1114,33 @@ Deno.serve(async (req) => {
 
     if (acao === "perguntar") return json(await perguntar(cfg, body));
 
+    if (acao === "midia_link") {
+      const tipo = body.tipo === "video" ? "video" : body.tipo === "imagem" ? "imagem" : "";
+      exige(tipo, "Escolha uma imagem ou um vídeo.");
+      const bytes = Math.round(Number(body.bytes));
+      exige(bytes > 0, "Arquivo vazio.");
+      exige(bytes <= MIDIA_MAX[tipo as "imagem" | "video"], tipo === "video" ? "O vídeo passa de 50 MB." : "A imagem passa de 10 MB.");
+      const path = `envios/${crypto.randomUUID()}.${tipo === "video" ? "mp4" : "jpg"}`;
+      const r = await storage(`object/upload/sign/${BUCKET}/${path}`, { method: "POST", body: "{}" });
+      exige(r.ok && r.body?.url, `Não consegui preparar o envio do arquivo (${r.status}).`);
+      return json({ ok: true, path, upload: `${SB_URL}/storage/v1${r.body.url}`, publica: publica(path) });
+    }
+
     if (acao === "envio_salvar") {
       const e = lerEnvio(body);
+      if (e.midia_path) {
+        const bytes = await midiaNoAr(e.midia_path);
+        exige(bytes !== null, "O arquivo não terminou de subir. Escolha de novo.");
+        e.midia_bytes = bytes || null;
+      }
       const id = body.id ? String(body.id) : null;
       if (id) {
         exige(UUID.test(id), "Envio inválido.");
+        const [antes] = await linhas(`grupo_envios?id=eq.${id}&select=midia_path,enviando_ate`);
+        exige(antes, "Envio não encontrado.");
+        exige(!antes.enviando_ate || Date.parse(antes.enviando_ate) < Date.now(), "Esse envio está saindo agora. Espere terminar para editar.");
         await patch(`grupo_envios?id=eq.${id}`, { ...e, ativo: true, ultimo_erro: null, atualizado_em: new Date().toISOString() });
+        if (antes.midia_path && antes.midia_path !== e.midia_path) await apagarMidias([antes.midia_path]);
         return json({ ok: true, id });
       }
       const [novo] = await rest("grupo_envios", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(e) });
@@ -1035,9 +1155,9 @@ Deno.serve(async (req) => {
       if (body.ativo === true) {
         const prox = e.repetir === "nao" ? (Date.parse(e.proximo_em ?? "") > Date.now() ? new Date(e.proximo_em) : null) : proximaVez(e, new Date());
         exige(prox, "Esse envio não tem mais data. Edite e escolha outra.");
-        await patch(`grupo_envios?id=eq.${id}`, { ativo: true, proximo_em: prox!.toISOString(), atualizado_em: new Date().toISOString() });
+        await patch(`grupo_envios?id=eq.${id}`, { ativo: true, proximo_em: prox!.toISOString(), pendentes: null, ocorrencia_em: null, atualizado_em: new Date().toISOString() });
       } else {
-        await patch(`grupo_envios?id=eq.${id}`, { ativo: false, atualizado_em: new Date().toISOString() });
+        await patch(`grupo_envios?id=eq.${id}`, { ativo: false, pendentes: null, ocorrencia_em: null, atualizado_em: new Date().toISOString() });
       }
       return json({ ok: true });
     }
@@ -1045,15 +1165,25 @@ Deno.serve(async (req) => {
     if (acao === "envio_remover") {
       const id = String(body.id ?? "");
       exige(UUID.test(id), "Envio inválido.");
-      await rest(`grupo_envios?id=eq.${id}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+      const apagados = await rest(`grupo_envios?id=eq.${id}&select=midia_path`, { method: "DELETE", headers: { Prefer: "return=representation" } });
+      const paths = (Array.isArray(apagados) ? apagados : []).map((e: any) => e.midia_path).filter(Boolean);
+      if (paths.length) await apagarMidias(paths);
       return json({ ok: true });
     }
 
     if (acao === "envio_teste") {
       const texto = String(body.texto ?? "").trim();
-      exige(texto, "Escreva a mensagem.");
-      const r = await enviarTexto(cfg.instancia_avisos, cfg.numero_avisos,
-        `🧪 *Teste de envio* (é assim que chega nos grupos${body.mencionar !== false ? ", com todos mencionados" : ""}):\n\n${montarTexto(texto)}`);
+      const midia = lerMidia(body.midia);
+      exige(texto || midia, "Escreva a mensagem ou escolha uma imagem ou um vídeo.");
+      const cabeca = `🧪 *Teste de envio* (é assim que chega nos grupos${body.mencionar !== false ? ", com todos mencionados" : ""})`;
+      if (midia) {
+        exige(await midiaNoAr(midia.path) !== null, "O arquivo não terminou de subir. Escolha de novo.");
+        await enviarTexto(cfg.instancia_avisos, cfg.numero_avisos, `${cabeca}: ${midia.tipo === "video" ? "o vídeo" : "a imagem"} logo abaixo${texto ? ", com a legenda" : ""}.`);
+        const r = await enviarMidia(cfg.instancia_avisos, cfg.numero_avisos, montarTexto(texto), midia);
+        exige(r.ok, `Não saiu: ${r.erro}`);
+        return json({ ok: true });
+      }
+      const r = await enviarTexto(cfg.instancia_avisos, cfg.numero_avisos, `${cabeca}:\n\n${montarTexto(texto)}`);
       exige(r.ok, `Não saiu: ${r.erro}`);
       return json({ ok: true });
     }
