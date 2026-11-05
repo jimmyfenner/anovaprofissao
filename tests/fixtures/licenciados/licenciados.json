@@ -1,0 +1,10 @@
+{
+  "fulanateste": {
+    "nome": "Fulana Teste", "nome_curto": "Fulana", "nome_completo": "Fulana Teste de Souza", "feminino": true,
+    "cidade": "Balneário Camboriú", "uf": "SC", "regiao": "", "whatsapp": "5547999106123",
+    "link_cadastro": "https://expansao.igreenenergy.com.br/?id=555&checkout=true&tipolicenca=CONNECT",
+    "link_grupo": "", "meta_pixel": "", "desde": null, "qualificacao": "",
+    "bio": ["Sou Fulana Teste, de Balneário Camboriú/SC, e atuo como licenciada independente da iGreen Energy."],
+    "instagram": "", "youtube": "", "foto": "fulanateste-1762280000000.jpg", "versao": "20261104T190000"
+  }
+}

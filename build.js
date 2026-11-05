@@ -229,7 +229,7 @@ ${miolo}
   ${outros.map(o => `<a href="${base}/${o.slug}">${o.title.split(' | ')[0]}</a>`).join('\n  ')}
   ${contato}
 </div>
-<div class="wrap"><p class="aviso">Site mantido por ${dono}, licenciado independente da iGreen Energy. Não é o site oficial da iGreen Energy e não representa a empresa.</p></div>
+<div class="wrap"><p class="aviso">Site mantido por ${dono}, ${lic && lic.feminino ? 'licenciada' : 'licenciado'} independente da iGreen Energy. Não é o site oficial da iGreen Energy e não representa a empresa.</p></div>
 </footer>`;
 }
 
@@ -462,17 +462,23 @@ PUBLICADOR.forEach(p => {
 
 /* ---------------- espelhos para licenciados ----------------
    anovaprofissao.com.br/<slug>: a home com o contato, o link de cadastro, a
-   apresentação e as páginas jurídicas do licenciado (dados/licenciados.json).
+   apresentação e as páginas jurídicas do licenciado (ficha no banco, lida por
+   tools/licenciados.mjs).
    Os blocos que pertencem ao Jimmy estão marcados na home.html com
    <!--lic:nome-->...<!--/lic:nome-->; o resto é igual para todos.
    noindex: o espelho é quase idêntico à home e não pode disputar a busca com
    ela. Ao final, o build PARA se sobrar no espelho qualquer coisa do Jimmy
    (nome visível, WhatsApp, ID de cadastro) — é a trava contra uma edição da
-   home que esqueça de marcar um bloco novo. */
+   home que esqueça de marcar um bloco novo.
+   Desde nov/2026 as fichas vêm do Supabase (tabela licenciados, cadastro pelo
+   /admin): tools/licenciados.mjs lê licenciados_publicos() e baixa as fotos.
+   Se o Supabase não responder, o build para (a versão anterior fica no ar). */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
   'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao',
   'agendar', 'agendamento', 'home-agendar', 'painel']);
-const LICS = JSON.parse(fs.readFileSync(path.join(__dirname, 'dados', 'licenciados.json'), 'utf8')).licenciados;
+const LICS = JSON.parse(require('child_process').execFileSync(process.execPath,
+  [path.join(__dirname, 'tools', 'licenciados.mjs'), out('media', 'licenciados')],
+  { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], timeout: 120000 }));
 const esc = escHtml;
 
 function trocaBloco(html, nome, novo) {
@@ -485,11 +491,12 @@ function trocaExato(html, de, para) {
   return html.split(de).join(para);
 }
 function legalDoLicenciado(miolo, lic) {
+  const lo = lic.feminino ? 'licenciada' : 'licenciado', est = lic.feminino ? 'estabelecida' : 'estabelecido';
   const zap = `<a href="https://wa.me/${lic.whatsapp}" target="_blank" rel="noopener">${lic.whatsapp_exibir}</a>`;
   const operador = ` A página é hospedada e operada tecnicamente por Jimmy Fenner, também licenciado independente da iGreen Energy, que atua como operador: armazena os dados em nome do responsável, apenas para viabilizar o funcionamento do site e o aviso de novos contatos.`;
   return miolo
     .replace(/<strong>Jimmy Fenner<\/strong>, licenciado independente da iGreen Energy, estabelecido em Balneário Camboriú, Santa Catarina\./,
-      `<strong>${esc(lic.nome_completo)}</strong>, licenciado independente da iGreen Energy, estabelecido em ${esc(lic.cidade)}, ${esc(lic.estado)}.${operador}`)
+      `<strong>${esc(lic.nome_completo)}</strong>, ${lo} independente da iGreen Energy, ${est} em ${esc(lic.cidade)}, ${esc(lic.estado)}.${operador}`)
     .replace(/use o e-mail <a href="mailto:contato@jimmyfenner\.com\.br">contato@jimmyfenner\.com\.br<\/a> ou o WhatsApp <a[^>]*>[^<]*<\/a>/,
       `use o WhatsApp ${zap}`)
     .replace(/basta escrever para <a href="mailto:contato@jimmyfenner\.com\.br">contato@jimmyfenner\.com\.br<\/a>/,
@@ -497,10 +504,13 @@ function legalDoLicenciado(miolo, lic) {
     .replace(/Dúvidas sobre estes termos: <a href="mailto:contato@jimmyfenner\.com\.br">contato@jimmyfenner\.com\.br<\/a>/,
       `Dúvidas sobre estes termos: WhatsApp ${zap}`)
     .replace(/comarca de Balneário Camboriú, Santa Catarina/, `comarca de ${esc(lic.cidade)}, ${esc(lic.estado)}`)
+    // "Jimmy Fenner, licenciado independente" (termos, aviso legal): o gênero acompanha o dono
+    .replace(/(Jimmy Fenner(?:<\/strong>)?), licenciado independente/g, `$1, ${lo} independente`)
     .replace(/Jimmy Fenner(?!, também licenciado)/g, esc(lic.nome_completo));
 }
 function homeDoLicenciado(src, lic) {
   const n = esc(lic.nome), nc = esc(lic.nome_curto);
+  const lo = lic.feminino ? 'licenciada' : 'licenciado', Lo = lic.feminino ? 'Licenciada' : 'Licenciado';
   const zapMsg = encodeURIComponent(`Olá ${lic.nome_curto}! Vi a sua página A Nova Profissão e quero entender melhor a oportunidade.`);
   const redes = [
     lic.instagram && `<a href="https://instagram.com/${esc(lic.instagram.replace(/^@/, ''))}" target="_blank" rel="noopener" data-ev="instagram_rodape">Instagram</a>`,
@@ -513,8 +523,8 @@ function homeDoLicenciado(src, lic) {
       <div class="reveal">
         <h3 style="font-size:clamp(1.35rem,3vw,1.9rem);font-weight:700">${esc(lic.nome_completo)}</h3>
         <div class="creds">
-          <span class="chip">Licenciado desde ${esc(lic.desde_curto)}</span>
-          <span class="chip">Qualificação ${esc(lic.qualificacao)}</span>
+          ${lic.desde_curto ? `<span class="chip">${Lo} desde ${esc(lic.desde_curto)}</span>` : ''}
+          ${lic.qualificacao ? `<span class="chip">Qualificação ${esc(lic.qualificacao)}</span>` : ''}
           <span class="chip">${esc(lic.cidade)}, ${esc(lic.uf)}${lic.regiao ? ' · ' + esc(lic.regiao) : ''}</span>
         </div>
         <div class="prose" style="margin-top:1.6rem">
@@ -529,9 +539,11 @@ function homeDoLicenciado(src, lic) {
       </div>
     </div>`;
   let h = src;
-  h = trocaBloco(h, 'ctx', `<p class="hero__ctx">Uma oportunidade profissional desenvolvida através do modelo de licenciamento da <b>iGreen Energy</b>.<br>Esta página é de <a href="#jimmy" style="color:var(--muted);font-weight:500;text-decoration:none;border-bottom:1px solid var(--line)">${n}</a>, licenciado independente da iGreen Energy em ${esc(lic.cidade)}/${esc(lic.uf)}.</p>`);
+  h = trocaBloco(h, 'ctx', `<p class="hero__ctx">Uma oportunidade profissional desenvolvida através do modelo de licenciamento da <b>iGreen Energy</b>.<br>Esta página é de <a href="#jimmy" style="color:var(--muted);font-weight:500;text-decoration:none;border-bottom:1px solid var(--line)">${n}</a>, ${lo} independente da iGreen Energy em ${esc(lic.cidade)}/${esc(lic.uf)}.</p>`);
   h = trocaBloco(h, 'pessoa', pessoa);
   h = trocaBloco(h, 'redes', redes);
+  // o marcador some na troca do bloco: o gênero do aviso do rodapé vem antes
+  if (lic.feminino) h = trocaExato(h, '<!--/lic:dono-->, licenciado independente', '<!--/lic:dono-->, licenciada independente');
   h = trocaBloco(h, 'dono', esc(lic.nome_completo));
   h = trocaBloco(h, 'cidade', `${esc(lic.cidade)}, ${esc(lic.uf)}`);
   // agenda é a do Jimmy: no espelho, os botões de agendar somem (o do resultado do quiz já some pelo LIC)
@@ -551,7 +563,8 @@ function homeDoLicenciado(src, lic) {
   // páginas jurídicas do próprio licenciado
   h = h.replace(/href="\/(privacidade|termos|aviso-legal)"/g, `href="/${lic.slug}/$1"`);
   const dados = { slug: lic.slug, nome: lic.nome, nome_curto: lic.nome_curto, nome_completo: lic.nome_completo,
-                  whatsapp: lic.whatsapp, link_cadastro: lic.link_cadastro, link_grupo: lic.link_grupo || '', meta_pixel: lic.meta_pixel || '' };
+                  whatsapp: lic.whatsapp, link_cadastro: lic.link_cadastro, link_grupo: lic.link_grupo || '', meta_pixel: lic.meta_pixel || '',
+                  versao: lic.versao || '' };   // o /admin confere esta versão para saber que a página nova entrou no ar
   return `<script>window.ANP_LIC=${JSON.stringify(dados)};</script>\n` + h;
 }
 function conferirEspelho(html, slug) {
@@ -579,11 +592,12 @@ Object.entries(LICS).forEach(([slug, l]) => {
     body: corpo, links: home.links,
     title: `${lic.nome} · A Nova Profissão | Licenciamento iGreen Energy`,
     desc: SITE.desc, canonical: SITE.url + '/' + slug, noindex: true, autor: lic.nome_completo,
-    ogAlt: `A venda acontece uma vez. A conta do cliente chega todo mês. ${lic.nome}, licenciado independente iGreen Energy.`,
+    ogAlt: `A venda acontece uma vez. A conta do cliente chega todo mês. ${lic.nome}, ${lic.feminino ? 'licenciada' : 'licenciado'} independente iGreen Energy.`,
   }));
   LEGAIS.forEach(p => {
     const corpoLegal = paginaLegal(p, lic);
-    const sobra = corpoLegal.replace(/operada tecnicamente por Jimmy Fenner/, '').match(/Jimmy|jimmyfenner|99106|Balneário/);
+    const sobra = corpoLegal.replace(/operada tecnicamente por Jimmy Fenner/, '').split(lic.cidade).join('')
+      .match(/Jimmy|jimmyfenner|99106-7007|5548991067007|Balneário Camboriú/);
     if (sobra) { console.error(`ERRO: /${slug}/${p.slug} ainda cita o Jimmy (${sobra[0]}).`); process.exit(1); }
     mkdir(out(slug, p.slug));
     fs.writeFileSync(out(slug, p.slug, 'index.html'), documento({

@@ -9,9 +9,11 @@ import path from "node:path";
 import vm from "node:vm";
 
 const RAIZ = fileURLToPath(new URL("..", import.meta.url));
+// licenciados de teste no lugar do Supabase (tools/licenciados.mjs, LICENCIADOS_TESTE)
+const FIXTURE = path.join(RAIZ, "tests", "fixtures", "licenciados");
 
 test("build.js põe o renderizador e o selo no painel, sem export", () => {
-  execFileSync(process.execPath, ["build.js"], { cwd: RAIZ, stdio: "pipe" });
+  execFileSync(process.execPath, ["build.js"], { cwd: RAIZ, stdio: "pipe", env: { ...process.env, LICENCIADOS_TESTE: FIXTURE } });
   const html = readFileSync(path.join(RAIZ, "dist", "admin", "index.html"), "utf8");
   assert.match(html, /function renderizar\(modelo, dados, agora, sorteio\)/);
   assert.match(html, /function variaveisDesconhecidas\(/);
@@ -29,4 +31,19 @@ test("build.js põe o renderizador e o selo no painel, sem export", () => {
   assert.ok(painel, "script do painel com o renderizador");
   assert.ok(painel.includes("function selosMensagem("), "o selo entra no mesmo script do painel");
   assert.doesNotThrow(() => new vm.Script(painel, { filename: "admin.js" }));
+});
+
+test("página de licenciada sai do banco com gênero, versão e sem nada do Jimmy", () => {
+  execFileSync(process.execPath, ["build.js"], { cwd: RAIZ, stdio: "pipe", env: { ...process.env, LICENCIADOS_TESTE: FIXTURE } });
+  const html = readFileSync(path.join(RAIZ, "dist", "fulanateste", "index.html"), "utf8");
+  assert.match(html, /"versao":"20261104T190000"/, "versão que o /admin confere");
+  assert.match(html, /licenciada independente da iGreen Energy em Balneário Camboriú\/SC/);
+  assert.match(html, /src="\/media\/licenciados\/fulanateste-1762280000000\.jpg"/);
+  assert.ok(!/Licenciad[ao] desde|Qualificação /.test(html), "sem data nem qualificação, os selos somem");
+  assert.ok(!/5548991067007|99106-7007|[?&]id=1971\b/.test(html), "nada do Jimmy");
+  const priv = readFileSync(path.join(RAIZ, "dist", "fulanateste", "privacidade", "index.html"), "utf8");
+  assert.match(priv, /licenciada independente da iGreen Energy, estabelecida em Balneário Camboriú/);
+  const termos = readFileSync(path.join(RAIZ, "dist", "fulanateste", "termos", "index.html"), "utf8");
+  assert.match(termos, /mantido por Fulana Teste de Souza, licenciada independente/);
+  assert.ok(!/licenciado independente/.test(termos.replace(/Jimmy Fenner, também licenciado independente/, "")), "o gênero vale em todo o texto");
 });

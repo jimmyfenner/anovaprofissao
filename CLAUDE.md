@@ -425,7 +425,16 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 19 (painel dos licenciados) aplicada em 04/nov/2026 com o "pode aplicar" do
+Nenhuma. 20 (licenciados cadastrados pelo /admin) aplicada em 04/nov/2026 com o "sim"
+do Jimmy: o modo automático barrou o `db query`, então o Jimmy rodou um script com a
+migração, o upload da foto do Mario (`supabase storage cp ... ss:///licenciados/<arquivo>
+--content-type image/jpeg --experimental`) e o `update` da coluna `foto`. Junto: deploy
+hook `admin-licenciados` (id d6Q0rBCrRU, branch main) criado com `vercel deploy-hooks
+create` e gravado como secret `VERCEL_DEPLOY_HOOK` sem passar pela tela, e a função
+`painel` republicada (lic_* sem login dão 403). Conferido: `licenciados_publicos()`
+devolve o Mario sem e-mail, a foto é pública, a tabela segue fechada para anon, e as 4
+páginas do Mario geradas do banco são idênticas às do ar (fora o nome da foto e a versão).
+19 (painel dos licenciados) aplicada em 04/nov/2026 com o "pode aplicar" do
 Jimmy, com as funções `painel` (nova) e `whatsapp` publicadas pela CLI. Conferido no ar:
 token falso dá 401, config sem login dá 403, número sem acesso não gera código, e o
 código pedido para 5548991067007 saiu pela instância 1575 (`envio_ok`).
@@ -881,11 +890,10 @@ Pedido do Jimmy em 23/10/2026: licenciados podem usar o site com os próprios
 contatos. Primeiro espelho: **/mariogomes** (Mario Henrique Gomes da Silva,
 Santos/SP, licenciado desde dez/2025, qualificação Sênior, ID iGreen 114882).
 
-- **Ficha** em `dados/licenciados.json` (nome, WhatsApp, link de cadastro, foto
-  em `media/licenciados/<slug>.jpg` 760x950, apresentação, redes, pixel). O
-  **e-mail não fica na ficha** (o site é público): fica só na tabela
-  `licenciados` do Supabase, que recebe os avisos. Para criar um espelho:
-  ficha + foto + linha na tabela `licenciados` (migração 13 tem o modelo).
+- **Ficha**: desde 04/11/2026 fica na tabela `licenciados` do Supabase e a
+  foto no bucket público `licenciados` (ver "Cadastro de licenciados pelo
+  /admin" abaixo). `dados/licenciados.json` e `media/licenciados/` saíram do
+  repositório. O e-mail fica só no banco (recebe os avisos), nunca no site.
 - **Build**: gera `dist/<slug>/` a partir da home, trocando os blocos
   marcados `<!--lic:ctx|pessoa|redes|dono|cidade-->` e alguns trechos exatos
   ("Jimmy, isso é pirâmide?", "Falar com Jimmy"), troca a configuração do
@@ -1224,4 +1232,43 @@ WhatsApp, como o /painel do igreencel.com.br.
   termina com "Seus leads: anovaprofissao.com.br/painel".
 - **Para dar acesso a um licenciado novo**: basta a linha dele em
   `licenciados` com o WhatsApp certo (o mesmo cadastro do espelho).
+
+## Cadastro de licenciados pelo /admin (nov/2026)
+
+Pedido do Jimmy em 04/11/2026: ele mesmo cria e edita os licenciados, sem
+pedir ao Claude. /admin > **Licenciados** > **Novo licenciado** (ou Editar).
+
+- **Formulário**: nome completo, nome na página, como é chamado, tratamento
+  (licenciado/licenciada), endereço (`/<slug>`, não muda depois de criado),
+  WhatsApp, e-mail, cidade, UF, região, link de cadastro da iGreen ou só o ID
+  (com só o ID sai `?id=<ID>&checkout=true&tipolicenca=CONNECT`, igual ao
+  dele), desde (mês), qualificação, apresentação (vazia = texto modelo),
+  Instagram, YouTube, grupo, Pixel e a foto. A foto é recortada no navegador
+  em 4:5 (arrasta e aproxima) e sai JPEG 760x950. "Testar link" abre o link
+  de cadastro para ele conferir se o ID é mesmo da pessoa.
+- **Função `painel`**, ações com o login do /admin: `lic_salvar` valida tudo
+  (a mesma trava do build: nada de Jimmy/Fenner, do número, do ID 1971 nem das
+  redes dele; WhatsApp único entre licenciados; endereço livre e fora de
+  `RESERVADOS`, que precisa ficar igual ao do build.js), sobe a foto no bucket
+  (`<slug>-<ms>.jpg`, apaga a antiga), grava a ficha e chama o deploy hook;
+  `lic_ativo` põe/tira a página do ar (coluna `ativo`, que também decide para
+  quem vão os leads); `lic_publicar` só publica de novo.
+- **Publicação**: deploy hook da Vercel `admin-licenciados` (branch main), no
+  segredo `VERCEL_DEPLOY_HOOK` da função. O build roda `tools/licenciados.mjs`,
+  que lê `licenciados_publicos()` com a chave anon (só ativos com ficha
+  completa, sem e-mail), baixa as fotos para `dist/media/licenciados/` (nome
+  com data: o /media tem cache de 30 dias) e devolve as fichas. Se o Supabase
+  falhar, o build para e a versão anterior fica no ar (de propósito: publicar
+  sem um licenciado apagaria a página dele).
+- **Acompanhamento**: a página leva `versao` em `window.ANP_LIC`; o /admin
+  consulta `/<slug>` a cada 10 s até ver a versão nova (ou o 404, ao tirar do
+  ar) e avisa "No ar"; em 6 min sem mudança, avisa que a versão anterior
+  continua no ar e manda tocar em "Publicar de novo".
+- **Build local sem banco**: `LICENCIADOS_TESTE=tests/fixtures/licenciados node build.js`
+  (os testes usam isso). Sem a variável, o build lê o banco de produção.
+- **Gênero**: `feminino` troca "licenciado/estabelecido" por "licenciada/
+  estabelecida" no topo, nos selos, no rodapé e nas páginas jurídicas.
+  "Licenciado desde" e "Qualificação" somem quando vazios.
+- Migração `db/20-licenciados-no-admin.sql` (colunas da ficha, bucket,
+  `licenciados_publicos()`, índice único do WhatsApp e a ficha do Mario).
 

@@ -9,7 +9,10 @@
 // navegador; no banco fica só o hash dele (db/19-painel-licenciados.sql).
 //
 // Ações do painel (com o token no corpo): codigo, entrar, dados, lead, sair.
-// Ações do /admin (login do Jimmy no Supabase): config, config_salvar, config_teste.
+// Ações do /admin (login do Jimmy no Supabase): config, config_salvar, config_teste,
+// e o cadastro dos licenciados (db/20): lic_salvar (ficha + foto + publicar), lic_ativo
+// (página no ar ou não) e lic_publicar. Depois de gravar, chama o deploy hook da Vercel
+// (segredo VERCEL_DEPLOY_HOOK): o build lê as fichas no banco e gera as páginas.
 // Publicar: supabase functions deploy painel --project-ref buapklmgdjcoyzrmhhcd --use-api
 // (verify_jwt ligado: o site chama com a chave anon, o /admin com o login).
 
@@ -17,6 +20,7 @@ const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
 const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
 const SB_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const VERCEL_HOOK = Deno.env.get("VERCEL_DEPLOY_HOOK") ?? "";
 
 // quem entra no painel com acesso a todos os licenciados
 const ADMINS: Record<string, string> = { "5548991067007": "Jimmy" };
@@ -159,6 +163,165 @@ async function usuarioAdmin(req: Request): Promise<boolean> {
   const r = await fetch(`${SB_URL}/auth/v1/user`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${token}` } });
   const u = r.ok ? await r.json().catch(() => null) : null;
   return typeof u?.id === "string";
+}
+
+
+/* ---------- cadastro de licenciados pelo /admin (db/20) ---------- */
+// manter igual ao RESERVADOS do build.js (endereços que já são páginas do site)
+const RESERVADOS = new Set(["admin", "home", "integradores", "transicao-energetica", "transicaoenergetica",
+  "privacidade", "termos", "aviso-legal", "media", "fonts", "seo", "dados", "og", "api", "blog", "publicador",
+  "apresentacao", "agendar", "agendamento", "home-agendar", "painel", "tools", "legal", "licenciados", "supabase"]);
+const UFS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE",
+  "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
+// a mesma trava do build (conferirEspelho): nada do Jimmy pode ir para a página de outro
+const DO_JIMMY = /jimmy|fenner|minerandoosol|99106-?7007|5548991067007/i;
+const NOME_OK = /^[\p{L}][\p{L} .'-]*$/u;
+
+const limpo = (v: unknown, max: number) => {
+  const t = String(v ?? "").replace(/\s+/g, " ").trim();
+  if (t.length > max) throw new Recusa(`Texto longo demais (máximo ${max} caracteres): "${t.slice(0, 30)}…"`);
+  return t;
+};
+function exige(cond: unknown, msg: string): asserts cond {
+  if (!cond) throw new Recusa(msg);
+}
+function semJimmy(campo: string, valor: string) {
+  if (DO_JIMMY.test(valor)) {
+    throw new Recusa(`${campo}: não pode citar o Jimmy, os contatos ou as redes dele. A página do licenciado não pode levar o visitante até você.`);
+  }
+}
+// 2024-03-01T12:00:00.000Z -> 20240301T120000 (o mesmo formato de licenciados_publicos)
+const versaoDe = (iso: string) => iso.replace(/[-:]/g, "").slice(0, 15);
+
+async function publicarSite(): Promise<boolean> {
+  if (!/^https:\/\/api\.vercel\.com\//.test(VERCEL_HOOK)) return false;
+  try {
+    const r = await fetch(VERCEL_HOOK, { method: "POST" });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function subirFoto(slug: string, base64: string): Promise<string> {
+  const b64 = base64.replace(/^data:image\/jpeg;base64,/, "");
+  exige(/^[A-Za-z0-9+/=]+$/.test(b64) && b64.length < 2_000_000, "A foto veio num formato que não reconheço. Escolha outra.");
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  exige(bytes.length > 5000 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff, "A foto precisa ser JPEG. Escolha outra.");
+  const arquivo = `${slug}-${Date.now()}.jpg`;
+  const r = await fetch(`${SB_URL}/storage/v1/object/licenciados/${arquivo}`, {
+    method: "POST",
+    headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, "Content-Type": "image/jpeg", "x-upsert": "false" },
+    body: bytes,
+  });
+  if (!r.ok) throw new Error(`storage ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  return arquivo;
+}
+async function apagarFoto(arquivo: string | null) {
+  if (!arquivo) return;
+  await fetch(`${SB_URL}/storage/v1/object/licenciados/${arquivo}`, {
+    method: "DELETE", headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` },
+  }).catch(() => {});
+}
+
+async function salvarLicenciado(b: any) {
+  const novo = b.novo === true;
+  const slug = String(b.slug ?? "").trim();
+  exige(/^[a-z0-9-]{3,40}$/.test(slug), "Endereço inválido: use de 3 a 40 letras minúsculas, números ou hífen, sem acento.");
+  const [atual] = await linhas(`licenciados?slug=eq.${slug}&select=slug,foto`);
+  if (novo) {
+    exige(!RESERVADOS.has(slug), `"/${slug}" já é uma página do site. Escolha outro endereço.`);
+    exige(!atual, `Já existe um licenciado em /${slug}. Escolha outro endereço ou edite o existente.`);
+  } else {
+    exige(atual, "Licenciado não encontrado. Atualize a lista.");
+  }
+
+  const nome = limpo(b.nome, 90);
+  exige(NOME_OK.test(nome) && nome.split(" ").length >= 2, "Nome completo: escreva nome e sobrenome, só com letras.");
+  const nome_pagina = limpo(b.nome_pagina, 40);
+  exige(nome_pagina && NOME_OK.test(nome_pagina), "Nome na página: só letras.");
+  const nome_curto = limpo(b.nome_curto, 24);
+  exige(nome_curto && NOME_OK.test(nome_curto), "Como é chamado: só letras.");
+  for (const [c, v] of [["Nome completo", nome], ["Nome na página", nome_pagina], ["Como é chamado", nome_curto]]) semJimmy(c, v);
+
+  let whatsapp = String(b.whatsapp ?? "").replace(/\D/g, "");
+  if (whatsapp.length === 10 || whatsapp.length === 11) whatsapp = "55" + whatsapp;
+  exige(/^55[1-9][0-9]9?[0-9]{8}$/.test(whatsapp), "WhatsApp: informe com DDD, por exemplo (47) 99999-0000.");
+  exige(!ADMINS[whatsapp] && whatsapp !== "5548991067007", "WhatsApp: esse é o seu número. Use o do licenciado.");
+  const mesmoZap = await linhas(`licenciados?whatsapp=eq.${whatsapp}&slug=neq.${slug}&select=nome`);
+  exige(!mesmoZap.length, `WhatsApp: esse número já é de ${mesmoZap[0]?.nome}. Cada licenciado entra no painel com o próprio número.`);
+
+  const email = limpo(b.email, 120).toLowerCase();
+  exige(/^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/.test(email), "E-mail inválido.");
+  exige(!/jimmyfenner|up\.novos\.cadastros/i.test(email), "E-mail: use o do licenciado, não o seu.");
+
+  const cidade = limpo(b.cidade, 60);
+  exige(cidade.length >= 2 && NOME_OK.test(cidade), "Cidade: só letras.");
+  const uf = String(b.uf ?? "").toUpperCase();
+  exige(UFS.includes(uf), "Escolha o estado.");
+  const regiao = limpo(b.regiao, 60);
+  exige(!regiao || NOME_OK.test(regiao), "Região: só letras.");
+  semJimmy("Cidade", cidade); semJimmy("Região", regiao);
+
+  // aceita o link da iGreen como vier (mantém tipolicenca etc.) ou só o ID; com só o ID,
+  // monta o mesmo tipo de link da home do Jimmy (licença Connect, a de R$ 1.997/ano)
+  const link = String(b.link ?? "").trim();
+  const LINK_OK = /^https:\/\/expansao\.igreenenergy\.com\.br\/\?id=([0-9]{1,9})(&[a-z]+=[A-Za-z0-9]+)*$/;
+  let link_cadastro = "";
+  if (/^\d{1,9}$/.test(link)) link_cadastro = `https://expansao.igreenenergy.com.br/?id=${link}&checkout=true&tipolicenca=CONNECT`;
+  else if (LINK_OK.test(link)) link_cadastro = link;
+  exige(link_cadastro, "Link de cadastro: cole o link de licenciamento da iGreen (expansao.igreenenergy.com.br/?id=...) ou só o número do ID.");
+  exige(link_cadastro.match(LINK_OK)![1] !== "1971", "Link de cadastro: esse é o seu ID. Use o do licenciado, senão os cadastros da página dele caem com você.");
+
+  let desde: string | null = null;
+  if (b.desde) {
+    const m = String(b.desde).match(/^(\d{4})-(\d{2})$/);
+    const agora = new Date();
+    exige(m && +m[2] >= 1 && +m[2] <= 12 && +m[1] >= 2015 &&
+      (+m[1] < agora.getUTCFullYear() || (+m[1] === agora.getUTCFullYear() && +m[2] <= agora.getUTCMonth() + 1)),
+      "Licenciado desde: escolha um mês que já passou.");
+    desde = `${m[1]}-${m[2]}-01`;
+  }
+  const qualificacao = limpo(b.qualificacao, 40);
+  exige(!qualificacao || NOME_OK.test(qualificacao), "Qualificação: só letras.");
+
+  const bio = (Array.isArray(b.bio) ? b.bio : []).map((t: unknown) => limpo(t, 600)).filter(Boolean);
+  exige(bio.length >= 1 && bio.length <= 4, "Apresentação: escreva de 1 a 4 parágrafos (ou use o texto modelo).");
+  bio.forEach((t: string) => semJimmy("Apresentação", t));
+
+  let instagram = limpo(b.instagram, 120).replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/^@/, "").replace(/[/?].*$/, "");
+  exige(!instagram || /^[A-Za-z0-9._]{1,30}$/.test(instagram), "Instagram: informe o @ do perfil.");
+  const youtube = limpo(b.youtube, 200);
+  exige(!youtube || /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\/[^\s"<>]+$/.test(youtube), "YouTube: cole o link do canal, começando com https://.");
+  const link_grupo = limpo(b.link_grupo, 200);
+  exige(!link_grupo || /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+$/.test(link_grupo), "Grupo: cole o convite do grupo do WhatsApp (https://chat.whatsapp.com/...).");
+  const meta_pixel = String(b.meta_pixel ?? "").replace(/\D/g, "");
+  exige(!meta_pixel || /^[0-9]{10,20}$/.test(meta_pixel), "Pixel da Meta: só os números do ID.");
+  semJimmy("Instagram", instagram); semJimmy("YouTube", youtube);
+
+  exige(!novo || b.foto_base64, "Escolha a foto do licenciado.");
+  const foto = b.foto_base64 ? await subirFoto(slug, String(b.foto_base64)) : undefined;
+
+  const agoraIso = new Date().toISOString();
+  const ficha: Record<string, unknown> = {
+    nome, nome_pagina, nome_curto, feminino: b.feminino === true, whatsapp, email, cidade, uf,
+    regiao: regiao || null, link_cadastro, link_grupo: link_grupo || null, meta_pixel: meta_pixel || null,
+    desde, qualificacao: qualificacao || null, bio, instagram: instagram || null, youtube: youtube || null,
+    atualizado_em: agoraIso,
+  };
+  if (foto) ficha.foto = foto;
+  try {
+    if (novo) {
+      await rest("licenciados", { method: "POST", body: JSON.stringify({ slug, ativo: true, painel_ativo: true, ...ficha }) });
+    } else {
+      await rest(`licenciados?slug=eq.${slug}`, { method: "PATCH", body: JSON.stringify(ficha) });
+    }
+  } catch (e) {
+    if (foto) await apagarFoto(foto);
+    throw e;
+  }
+  if (foto && atual?.foto) await apagarFoto(atual.foto);
+  return { slug, versao: versaoDe(agoraIso) };
 }
 
 Deno.serve(async (req) => {
@@ -304,6 +467,26 @@ Deno.serve(async (req) => {
       const [w] = await linhas("whatsapp_config?id=eq.1&select=instancia");
       const ultimos = await linhas("acessos_painel?select=whatsapp,criado_em,envio_ok,envio_erro,usado_em&order=criado_em.desc&limit=10");
       return json({ instancia_codigos: c?.instancia_codigos ?? null, instancia_avisos: w?.instancia ?? null, ultimos });
+    }
+
+
+    if (acao === "lic_salvar" || acao === "lic_ativo" || acao === "lic_publicar") {
+      if (!(await usuarioAdmin(req))) throw new Recusa("Sem permissão.", 403);
+      let r: Record<string, unknown> = {};
+      if (acao === "lic_salvar") r = await salvarLicenciado(body);
+      if (acao === "lic_ativo") {
+        const slug = String(body.slug ?? "");
+        exige(/^[a-z0-9-]{3,40}$/.test(slug), "Licenciado inválido.");
+        const agoraIso = new Date().toISOString();
+        const { body: feito } = await rest(`licenciados?slug=eq.${slug}`, {
+          method: "PATCH", headers: { Prefer: "return=representation" },
+          body: JSON.stringify({ ativo: body.ativo === true, atualizado_em: agoraIso }),
+        });
+        exige(Array.isArray(feito) && feito.length, "Licenciado não encontrado.");
+        r = { slug, versao: versaoDe(agoraIso), ativo: body.ativo === true };
+      }
+      const publicando = await publicarSite();
+      return json({ ok: true, ...r, publicando });
     }
 
     return json({ error: "Ação inválida." }, 400);

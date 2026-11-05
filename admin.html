@@ -201,6 +201,31 @@ body.modal-aberto{overflow:hidden}
 .cp-ag{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;width:100%}
 .cp-ag small{font-size:.76rem;color:var(--muted-dim)}
 .dica.is-erro{color:var(--st-perdido)}
+/* cadastro de licenciado (db/20) */
+.lf{max-width:720px}
+.lf-grid{display:grid;gap:0 1rem;grid-template-columns:minmax(0,1fr)}
+@media(min-width:640px){.lf-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.lf-largo{grid-column:1 / -1}}
+.lf .campo{min-width:0}
+.lf-slug{display:flex;align-items:center;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);overflow:hidden}
+.lf-slug span{padding:0 .1em 0 .85em;font-size:.84rem;color:var(--muted-dim);white-space:nowrap}
+.lf-slug .inp{border:0;background:none;padding-left:.1em;min-width:0;flex:1}
+.lf-slug .inp:disabled{color:var(--muted)}
+.lf-linha{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.lf-linha .inp{flex:1;min-width:12rem}
+.lf-bio{min-height:150px;line-height:1.5}
+.lf-foto{display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start}
+.lf-quadro{position:relative;width:184px;aspect-ratio:4/5;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2);flex:none}
+.lf-quadro canvas,.lf-quadro img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lf-quadro canvas{cursor:grab;touch-action:none}
+.lf-quadro canvas:active{cursor:grabbing}
+.lf-vazio{position:absolute;inset:0;display:grid;place-items:center;font-size:.8rem;color:var(--muted-dim);margin:0}
+.lf-foto__ctl{display:flex;flex-direction:column;gap:.6rem;align-items:flex-start;flex:1;min-width:12rem}
+.lf-zoom{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--muted)}
+.lf-zoom input{accent-color:var(--credit)}
+.lf-mais{margin:.4rem 0 .2rem;font-size:.88rem}
+.lf-mais summary{cursor:pointer;color:var(--muted)}
+.lc-acoes{display:flex;gap:.45rem;flex-wrap:wrap}
+.lf [hidden]{display:none!important}
 .aviso--alerta{background:rgba(224,168,60,.09);border:1px solid rgba(224,168,60,.3);color:#E0A83C;margin-top:.6rem}
 .cp-feito{margin-top:1rem;display:flex;flex-wrap:wrap;gap:.55rem}
 .anp-modal .dica{font-size:.78rem;color:var(--muted-dim);line-height:1.5}
@@ -705,8 +730,13 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <div id="lc-ultimos"><p class="sub">Carregando…</p></div>
       </div>
       <div class="box">
-        <div class="dsp-cab"><h2>Licenciados</h2><button class="btn btn--sm" type="button" id="lc-atualizar">Atualizar</button></div>
-        <p class="sub">Cada um vê só os leads da própria página. Desligar o acesso tira a pessoa do painel na hora, sem apagar nada. Para cadastrar um licenciado novo (página, foto e apresentação), peça ao Claude.</p>
+        <div class="dsp-cab"><h2>Licenciados</h2>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn--primary btn--sm" type="button" id="lc-novo">Novo licenciado</button>
+            <button class="btn btn--sm" type="button" id="lc-atualizar">Atualizar</button>
+          </div></div>
+        <p class="sub">Cada licenciado tem a própria página (anovaprofissao.com.br/endereço) e vê só os leads dela no painel. Ao salvar, o site publica sozinho em cerca de 1 minuto. Desligar o acesso tira a pessoa do painel na hora, sem apagar nada. Tirar do ar apaga a página, e os leads dela voltam a cair com você.</p>
+        <div id="lc-pub"></div>
         <div id="lc-lista"><p class="sub">Carregando…</p></div>
       </div>
     </div>
@@ -720,6 +750,90 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
     <span class="selbar__n" id="selbar-n"></span>
     <button class="btn btn--primary btn--sm" type="button" id="selbar-ir">Escrever mensagem</button>
     <button class="btn btn--sm selbar__x" type="button" id="selbar-x" aria-label="Limpar seleção" title="Limpar seleção">✕</button>
+  </div>
+
+  <div class="anp-modal hidden" id="lf">
+    <form class="box modal__box lf" role="dialog" aria-modal="true" aria-labelledby="lf-tit" id="lf-form" novalidate>
+      <div class="modal__top">
+        <div><h2 id="lf-tit">Novo licenciado</h2><p class="sub" id="lf-sub">A página fica igual à sua home, com o contato, a foto e a apresentação dele.</p></div>
+        <button class="btn btn--sm" type="button" id="lf-fechar" aria-label="Fechar">✕</button>
+      </div>
+
+      <div class="lf-grid">
+        <div class="campo lf-largo"><label for="lf-nome">Nome completo *</label>
+          <input class="inp" id="lf-nome" autocomplete="off" maxlength="90" placeholder="Nome e sobrenome">
+          <span class="dica">Vai nas páginas de privacidade e termos dele.</span></div>
+        <div class="campo"><label for="lf-pagina">Nome na página *</label>
+          <input class="inp" id="lf-pagina" autocomplete="off" maxlength="40" placeholder="Ex.: Ana Paula"></div>
+        <div class="campo"><label for="lf-curto">Como é chamado *</label>
+          <input class="inp" id="lf-curto" autocomplete="off" maxlength="24" placeholder="Ex.: Ana">
+          <span class="dica">Usado em "Falar com Ana", por exemplo.</span></div>
+        <div class="campo"><label for="lf-genero">Tratamento</label>
+          <select class="inp" id="lf-genero"><option value="o">Licenciado</option><option value="a">Licenciada</option></select></div>
+        <div class="campo"><label for="lf-slug">Endereço da página *</label>
+          <div class="lf-slug"><span>anovaprofissao.com.br/</span><input class="inp" id="lf-slug" autocomplete="off" maxlength="40" placeholder="anasouza"></div>
+          <span class="dica" id="lf-slug-dica">Letras minúsculas, sem acento. Não muda depois de criado.</span></div>
+
+        <div class="campo"><label for="lf-zap">WhatsApp *</label>
+          <input class="inp" id="lf-zap" inputmode="tel" autocomplete="off" placeholder="(DDD) 90000-0000">
+          <span class="dica">Recebe os leads e entra no /painel com ele.</span></div>
+        <div class="campo"><label for="lf-email">E-mail *</label>
+          <input class="inp" id="lf-email" type="email" autocomplete="off" maxlength="120" placeholder="nome@email.com">
+          <span class="dica">Só recebe os avisos. Não aparece no site.</span></div>
+
+        <div class="campo"><label for="lf-cidade">Cidade *</label>
+          <input class="inp" id="lf-cidade" autocomplete="off" maxlength="60" placeholder="Cidade onde atua"></div>
+        <div class="campo"><label for="lf-uf">Estado *</label>
+          <select class="inp" id="lf-uf"><option value="">Escolha</option></select></div>
+        <div class="campo lf-largo"><label for="lf-regiao">Região (opcional)</label>
+          <input class="inp" id="lf-regiao" autocomplete="off" maxlength="60" placeholder="Ex.: Grande Florianópolis"></div>
+
+        <div class="campo lf-largo"><label for="lf-link">Link de cadastro da iGreen ou ID *</label>
+          <div class="lf-linha"><input class="inp" id="lf-link" autocomplete="off" placeholder="https://expansao.igreenenergy.com.br/?id=...">
+            <button class="btn btn--sm" type="button" id="lf-testar">Testar link</button></div>
+          <span class="dica">É por onde o lead se cadastra. Abra o teste e confira se o cadastro é mesmo dele: um número trocado manda os cadastros para outra pessoa. Com só o ID, o link sai igual ao seu (licença Connect).</span></div>
+
+        <div class="campo"><label for="lf-desde">Licenciado desde (opcional)</label>
+          <input class="inp" id="lf-desde" type="month"></div>
+        <div class="campo"><label for="lf-qual">Qualificação (opcional)</label>
+          <input class="inp" id="lf-qual" autocomplete="off" maxlength="40" placeholder="Ex.: Sênior"></div>
+      </div>
+
+      <div class="campo"><label for="lf-bio">Apresentação</label>
+        <textarea class="inp lf-bio" id="lf-bio" maxlength="2400" placeholder="Um parágrafo por linha em branco. Deixe vazio para usar o texto modelo."></textarea>
+        <div class="lf-linha" style="justify-content:space-between"><span class="dica">Escrita em primeira pessoa. Separe os parágrafos com uma linha em branco.</span>
+          <button class="btn btn--sm" type="button" id="lf-modelo">Usar texto modelo</button></div></div>
+
+      <div class="campo"><label>Foto *</label>
+        <div class="lf-foto">
+          <div class="lf-quadro">
+            <canvas id="lf-canvas" width="608" height="760" aria-label="Recorte da foto"></canvas>
+            <img id="lf-atual" alt="Foto atual" hidden>
+            <p class="lf-vazio" id="lf-vazio">Sem foto</p>
+          </div>
+          <div class="lf-foto__ctl">
+            <button class="btn btn--sm" type="button" id="lf-escolher">Escolher foto</button>
+            <input type="file" id="lf-arq" accept="image/jpeg,image/png,image/webp,image/heic" hidden>
+            <div class="lf-zoom" id="lf-zoom-l" hidden><span>Aproximar</span> <input type="range" id="lf-zoom" min="1" max="3" step="0.01" value="1" aria-label="Aproximar a foto"></div>
+            <span class="dica" id="lf-foto-dica">Rosto bem iluminado, de frente. Depois de escolher, arraste para enquadrar e use o controle para aproximar.</span>
+          </div>
+        </div></div>
+
+      <details class="lf-mais"><summary>Mais opções: redes, grupo e Pixel</summary>
+        <div class="lf-grid" style="margin-top:.9rem">
+          <div class="campo"><label for="lf-insta">Instagram</label><input class="inp" id="lf-insta" autocomplete="off" placeholder="@perfil"></div>
+          <div class="campo"><label for="lf-yt">YouTube</label><input class="inp" id="lf-yt" autocomplete="off" placeholder="https://youtube.com/@canal"></div>
+          <div class="campo"><label for="lf-grupo">Grupo do WhatsApp</label><input class="inp" id="lf-grupo" autocomplete="off" placeholder="https://chat.whatsapp.com/..."></div>
+          <div class="campo"><label for="lf-pixel">Pixel da Meta</label><input class="inp" id="lf-pixel" inputmode="numeric" autocomplete="off" placeholder="Só os números"></div>
+        </div>
+      </details>
+
+      <div id="lf-msg"></div>
+      <div class="btn-row modal__acts" style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn btn--sm" type="button" id="lf-cancelar">Cancelar</button>
+        <button class="btn btn--primary btn--sm" type="submit" id="lf-salvar">Salvar e publicar</button>
+      </div>
+    </form>
   </div>
 
   <div class="anp-modal hidden" id="comp">
@@ -2488,31 +2602,262 @@ function carregarPainelLic(){
   });
   carregarLicenciados();
 }
+var LICS = [];
+var LIC_COLS = "slug,nome,whatsapp,email,ativo,painel_ativo,ultimo_acesso_painel,nome_pagina,nome_curto,feminino,cidade,uf,regiao,link_cadastro,link_grupo,meta_pixel,desde,qualificacao,bio,instagram,youtube,foto,atualizado_em";
 function carregarLicenciados(){
   if(DEMO){ $("#lc-lista").innerHTML = '<p class="sub">Sem licenciados no modo de demonstração.</p>'; return; }
-  sb.from("licenciados").select("slug,nome,whatsapp,email,ativo,painel_ativo,ultimo_acesso_painel").order("nome").then(function(r){
-    if(r.error){ $("#lc-lista").innerHTML = '<p class="aviso aviso--erro">'+esc(/painel_ativo/.test(r.error.message) ? "Falta aplicar a migração db/19-painel-licenciados.sql." : r.error.message)+'</p>'; return; }
-    var ls = r.data || [];
-    if(!ls.length){ $("#lc-lista").innerHTML = '<p class="sub">Nenhum licenciado cadastrado.</p>'; return; }
-    $("#lc-lista").innerHTML = ls.map(function(l){
+  sb.from("licenciados").select(LIC_COLS).order("nome").then(function(r){
+    if(r.error){ $("#lc-lista").innerHTML = '<p class="aviso aviso--erro">'+esc(/painel_ativo/.test(r.error.message) ? "Falta aplicar a migração db/19-painel-licenciados.sql." : /nome_pagina|foto|feminino/.test(r.error.message) ? "Falta aplicar a migração db/20-licenciados-no-admin.sql." : r.error.message)+'</p>'; return; }
+    LICS = r.data || [];
+    if(!LICS.length){ $("#lc-lista").innerHTML = '<p class="sub">Nenhum licenciado cadastrado. Toque em Novo licenciado.</p>'; return; }
+    $("#lc-lista").innerHTML = LICS.map(function(l){
       var n = leads.filter(function(x){ return x.licenciado === l.slug; }).length;
       var ligado = l.painel_ativo && l.ativo;
-      return '<div style="padding:.8rem 0;border-bottom:1px solid var(--line)">' +
-        '<div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap">' +
-          '<div><strong>'+esc(l.nome)+'</strong><br><span class="sub" style="margin:0">'+esc(fmtNumero(l.whatsapp))+' · <a href="/'+esc(l.slug)+'" target="_blank" rel="noopener" style="color:var(--credit)">/'+esc(l.slug)+'</a> · '+n+' lead'+(n===1?"":"s")+'</span><br>' +
-          '<span class="sub" style="margin:0">'+(l.ultimo_acesso_painel ? "Último acesso ao painel: " + esc(new Date(l.ultimo_acesso_painel).toLocaleString("pt-BR")) : "Ainda não entrou no painel")+(l.ativo ? "" : " · página desativada")+'</span></div>' +
-          '<button class="btn btn--sm'+(ligado?"":" btn--primary")+'" type="button" data-lc-acesso="'+esc(l.slug)+'" data-lc-v="'+(l.painel_ativo?"0":"1")+'">'+(l.painel_ativo ? "Desligar acesso" : "Ligar acesso")+'</button>' +
+      var foto = l.foto ? '<img src="'+esc(CFG.url+"/storage/v1/object/public/licenciados/"+l.foto)+'" alt="" width="44" height="55" style="border-radius:7px;object-fit:cover;flex:none">' : "";
+      return '<div style="padding:.9rem 0;border-bottom:1px solid var(--line)">' +
+        '<div style="display:flex;gap:.8rem;align-items:flex-start">' + foto +
+          '<div style="flex:1;min-width:0"><strong>'+esc(l.nome)+'</strong><br><span class="sub" style="margin:0">'+esc(fmtNumero(l.whatsapp))+' · <a href="/'+esc(l.slug)+'" target="_blank" rel="noopener" style="color:var(--credit)">/'+esc(l.slug)+'</a> · '+n+' lead'+(n===1?"":"s")+'</span><br>' +
+          '<span class="sub" style="margin:0">'+(l.ativo ? "" : "Página fora do ar · ")+(l.ultimo_acesso_painel ? "Último acesso ao painel: " + esc(new Date(l.ultimo_acesso_painel).toLocaleString("pt-BR")) : "Ainda não entrou no painel")+'</span>' +
+          (l.ativo && !l.foto ? '<br><span class="sub" style="margin:0;color:var(--st-conversa)">Ficha incompleta: a página não é publicada até você completar em Editar.</span>' : "") +
+          '<div class="lc-acoes" style="margin-top:.6rem">' +
+            '<button class="btn btn--sm" type="button" data-lc-editar="'+esc(l.slug)+'">Editar</button>' +
+            '<button class="btn btn--sm" type="button" data-lc-ativo="'+esc(l.slug)+'" data-lc-v="'+(l.ativo?"0":"1")+'">'+(l.ativo ? "Tirar do ar" : "Pôr no ar")+'</button>' +
+            '<button class="btn btn--sm'+(ligado?"":" btn--primary")+'" type="button" data-lc-acesso="'+esc(l.slug)+'" data-lc-v="'+(l.painel_ativo?"0":"1")+'">'+(l.painel_ativo ? "Desligar acesso" : "Ligar acesso")+'</button>' +
+          '</div></div>' +
         '</div></div>';
-    }).join("");
+    }).join("") +
+    '<p class="sub" style="margin-top:1rem">Página desatualizada? <button class="btn btn--sm" type="button" id="lc-republicar">Publicar de novo</button></p>';
   });
 }
 $("#lc-lista").addEventListener("click", function(e){
+  var ed = e.target.closest("[data-lc-editar]");
+  if(ed){ abrirLicForm(LICS.filter(function(l){ return l.slug === ed.getAttribute("data-lc-editar"); })[0]); return; }
+  var at = e.target.closest("[data-lc-ativo]");
+  if(at){
+    var slugA = at.getAttribute("data-lc-ativo"), liga = at.getAttribute("data-lc-v") === "1";
+    if(!liga && !confirm("Tirar /" + slugA + " do ar? A página sai do site e os leads novos dela passam a cair com você. Dá para pôr de volta depois.")) return;
+    at.disabled = true;
+    fnPainel("lic_ativo", {slug: slugA, ativo: liga}).then(function(r){
+      at.disabled = false;
+      if(r.error){ alert(r.error); return; }
+      carregarLicenciados();
+      acompanharPublicacao(r.slug, r.versao, !liga, r.publicando);
+    });
+    return;
+  }
+  if(e.target.closest("#lc-republicar")){
+    var bp = e.target.closest("#lc-republicar"); bp.disabled = true;
+    fnPainel("lic_publicar").then(function(r){
+      bp.disabled = false;
+      lcPub(r.error ? esc(r.error) : r.publicando ? "Pedido enviado. O site se publica de novo em cerca de 1 minuto." : "Não consegui pedir a publicação agora. Tente de novo em instantes; se continuar, chame o Claude.", r.error || !r.publicando ? "erro" : "ok");
+    });
+    return;
+  }
   var b = e.target.closest("[data-lc-acesso]");
   if(!b) return;
   b.disabled = true;
   sb.from("licenciados").update({painel_ativo: b.getAttribute("data-lc-v") === "1"}).eq("slug", b.getAttribute("data-lc-acesso")).select().then(function(r){
     if(r.error || !r.data || !r.data.length){ b.disabled = false; alert("Não consegui mudar o acesso: " + (r.error ? r.error.message : "o banco não confirmou.")); return; }
     carregarLicenciados();
+  });
+});
+
+/* ---- publicação: o build lê as fichas no banco; a página nova traz a versão em window.ANP_LIC ---- */
+var pubTimer = null;
+function lcPub(html, tipo){ $("#lc-pub").innerHTML = html ? '<p class="aviso aviso--'+(tipo||"ok")+'">'+html+'</p>' : ""; }
+function acompanharPublicacao(slug, versao, saiu, publicando){
+  clearTimeout(pubTimer);
+  if(!publicando){ lcPub("Salvo, mas não consegui pedir a publicação do site agora. Toque em Publicar de novo, no fim da lista. Se continuar, chame o Claude.", "erro"); return; }
+  var t0 = Date.now(), url = "/" + slug;
+  lcPub((saiu ? "Tirando /" + esc(slug) + " do ar" : "Publicando /" + esc(slug)) + "… leva cerca de 1 minuto. Pode continuar usando o painel.", "alerta");
+  (function rodada(){
+    fetch(url + "?v=" + Date.now(), {cache: "no-store"}).then(function(r){
+      if(saiu) return r.status === 404;
+      return r.ok ? r.text().then(function(t){ return t.indexOf('"versao":"' + versao + '"') >= 0; }) : false;
+    }).catch(function(){ return false; }).then(function(ok){
+      if(ok){
+        lcPub(saiu ? "/" + esc(slug) + " saiu do ar." : 'No ar: <a href="' + esc(url) + '" target="_blank" rel="noopener" style="color:inherit;font-weight:600">anovaprofissao.com.br/' + esc(slug) + '</a>. Abra e confira no computador e no celular.', "ok");
+        return;
+      }
+      if(Date.now() - t0 > 6 * 60000){
+        lcPub("A página não mudou em 6 minutos. A versão anterior continua no ar e nada se perdeu. Toque em Publicar de novo; se não resolver, chame o Claude.", "erro");
+        return;
+      }
+      pubTimer = setTimeout(rodada, 10000);
+    });
+  })();
+}
+
+/* ---- formulário de licenciado ---- */
+var UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+var MESES_LF = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+$("#lf-uf").innerHTML = '<option value="">Escolha</option>' + UFS.map(function(u){ return '<option>'+u+'</option>'; }).join("");
+var lfEdit = null, lfTocou = {};
+var CROP = {img: null, s: 1, s0: 1, x: 0, y: 0, mudou: false, arraste: null};
+
+function semAcento(t){ return String(t||"").normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+var PARTICULAS = {da:1, de:1, di:1, do:1, das:1, dos:1, e:1};
+function sugerirNomes(){
+  if(lfEdit) return;
+  var p = $("#lf-nome").value.trim().split(/\s+/).filter(Boolean);
+  if(!p.length) return;
+  var semPart = p.filter(function(x){ return !PARTICULAS[x.toLowerCase()]; });
+  if(!lfTocou.pagina) $("#lf-pagina").value = p.length > 1 && !PARTICULAS[p[1].toLowerCase()] ? p[0] + " " + p[1] : p[0];
+  if(!lfTocou.curto) $("#lf-curto").value = p[0];
+  if(!lfTocou.slug) $("#lf-slug").value = semAcento((semPart[0] || "") + (semPart.length > 1 ? semPart[semPart.length-1] : "")).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 40);
+}
+["pagina","curto","slug"].forEach(function(k){ $("#lf-"+k).addEventListener("input", function(){ lfTocou[k] = true; }); });
+$("#lf-nome").addEventListener("input", sugerirNomes);
+$("#lf-slug").addEventListener("input", function(){ this.value = semAcento(this.value).toLowerCase().replace(/[^a-z0-9-]/g, ""); });
+
+function linkCadastro(v){
+  v = String(v||"").trim();
+  if(/^\d{1,9}$/.test(v)) return "https://expansao.igreenenergy.com.br/?id=" + v + "&checkout=true&tipolicenca=CONNECT";
+  return /^https:\/\/expansao\.igreenenergy\.com\.br\/\?id=[0-9]{1,9}(&[a-z]+=[A-Za-z0-9]+)*$/.test(v) ? v : "";
+}
+$("#lf-testar").addEventListener("click", function(){
+  var l = linkCadastro($("#lf-link").value);
+  if(!l){ lfMsg("Cole o link de licenciamento da iGreen (expansao.igreenenergy.com.br/?id=...) ou só o número do ID."); return; }
+  window.open(l, "_blank", "noopener");
+});
+
+function textoModelo(){
+  var nome = $("#lf-pagina").value.trim() || "[nome]", cid = $("#lf-cidade").value.trim() || "[cidade]", uf = $("#lf-uf").value || "[UF]";
+  var lo = $("#lf-genero").value === "a" ? "licenciada" : "licenciado", d = $("#lf-desde").value, desde = "";
+  if(/^\d{4}-\d{2}$/.test(d)) desde = " desde " + MESES_LF[+d.slice(5) - 1] + " de " + d.slice(0, 4);
+  return "Sou " + nome + ", de " + cid + "/" + uf + ", e atuo como " + lo + " independente da iGreen Energy" + desde + ".\n\n" +
+    "Acompanho quem quer conhecer o modelo de licenciamento da iGreen Energy e construir uma renda recorrente com energia, telecom, seguros e outras soluções.";
+}
+$("#lf-modelo").addEventListener("click", function(){
+  var t = $("#lf-bio");
+  if(t.value.trim() && !confirm("Trocar o texto atual pelo texto modelo?")) return;
+  t.value = textoModelo();
+});
+
+function lfMsg(t, tipo){ $("#lf-msg").innerHTML = t ? '<p class="aviso aviso--'+(tipo||"erro")+'">'+esc(t)+'</p>' : ""; }
+
+/* recorte da foto: 760x950 (4:5), arrasta para enquadrar e aproxima pelo controle */
+function cropLimitar(){
+  var w = CROP.img.naturalWidth * CROP.s, h = CROP.img.naturalHeight * CROP.s;
+  CROP.x = Math.min(0, Math.max(760 - w, CROP.x));
+  CROP.y = Math.min(0, Math.max(950 - h, CROP.y));
+}
+function cropDesenhar(){
+  var c = $("#lf-canvas"), g = c.getContext("2d"), k = c.width / 760;
+  g.fillStyle = "#101513"; g.fillRect(0, 0, c.width, c.height);
+  if(!CROP.img) return;
+  g.imageSmoothingQuality = "high";
+  g.drawImage(CROP.img, CROP.x * k, CROP.y * k, CROP.img.naturalWidth * CROP.s * k, CROP.img.naturalHeight * CROP.s * k);
+}
+function mostrarFoto(modo, url){
+  $("#lf-canvas").hidden = modo !== "crop";
+  $("#lf-atual").hidden = modo !== "atual";
+  $("#lf-vazio").hidden = modo !== "vazio";
+  $("#lf-zoom-l").hidden = modo !== "crop";
+  if(modo === "atual") $("#lf-atual").src = url;
+}
+$("#lf-escolher").addEventListener("click", function(){ $("#lf-arq").click(); });
+$("#lf-arq").addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  this.value = "";
+  if(!f) return;
+  var url = URL.createObjectURL(f), img = new Image();
+  img.onload = function(){
+    if(img.naturalWidth < 380 || img.naturalHeight < 475){ lfMsg("Essa foto é pequena demais (mínimo 380 x 475). Escolha uma maior."); URL.revokeObjectURL(url); return; }
+    CROP.img = img; CROP.s0 = Math.max(760 / img.naturalWidth, 950 / img.naturalHeight); CROP.s = CROP.s0; CROP.mudou = true;
+    CROP.x = (760 - img.naturalWidth * CROP.s) / 2; CROP.y = (950 - img.naturalHeight * CROP.s) * 0.25;
+    $("#lf-zoom").value = 1; cropLimitar(); mostrarFoto("crop"); cropDesenhar(); lfMsg("");
+  };
+  img.onerror = function(){ URL.revokeObjectURL(url); lfMsg("Não consegui abrir essa foto. Use JPG ou PNG (foto de iPhone: exporte como JPG)."); };
+  img.src = url;
+});
+$("#lf-zoom").addEventListener("input", function(){
+  if(!CROP.img) return;
+  var cx = (380 - CROP.x) / CROP.s, cy = (475 - CROP.y) / CROP.s;   // ponto da foto no centro do quadro
+  CROP.s = CROP.s0 * parseFloat(this.value);
+  CROP.x = 380 - cx * CROP.s; CROP.y = 475 - cy * CROP.s;
+  cropLimitar(); cropDesenhar();
+});
+$("#lf-canvas").addEventListener("pointerdown", function(e){
+  if(!CROP.img) return;
+  this.setPointerCapture(e.pointerId);
+  CROP.arraste = {px: e.clientX, py: e.clientY, x: CROP.x, y: CROP.y, k: 760 / this.getBoundingClientRect().width};
+});
+$("#lf-canvas").addEventListener("pointermove", function(e){
+  var a = CROP.arraste; if(!a) return;
+  CROP.x = a.x + (e.clientX - a.px) * a.k; CROP.y = a.y + (e.clientY - a.py) * a.k;
+  cropLimitar(); cropDesenhar();
+});
+["pointerup","pointercancel"].forEach(function(ev){ $("#lf-canvas").addEventListener(ev, function(){ CROP.arraste = null; }); });
+function fotoExportada(){
+  var c = document.createElement("canvas"); c.width = 760; c.height = 950;
+  var g = c.getContext("2d"); g.imageSmoothingQuality = "high";
+  g.drawImage(CROP.img, CROP.x, CROP.y, CROP.img.naturalWidth * CROP.s, CROP.img.naturalHeight * CROP.s);
+  return c.toDataURL("image/jpeg", 0.86);
+}
+
+function abrirLicForm(l){
+  lfEdit = l || null; lfTocou = {}; CROP.img = null; CROP.mudou = false;
+  $("#lf-form").reset(); lfMsg("");
+  $("#lf-tit").textContent = l ? "Editar " + (l.nome_curto || l.nome) : "Novo licenciado";
+  $("#lf-sub").textContent = l ? "As mudanças vão para a página dele quando o site publicar, em cerca de 1 minuto." : "A página fica igual à sua home, com o contato, a foto e a apresentação dele.";
+  $("#lf-slug").disabled = !!l;
+  $("#lf-slug-dica").textContent = l ? "O endereço não muda depois de criado." : "Letras minúsculas, sem acento. Não muda depois de criado.";
+  $("#lf-salvar").textContent = l ? "Salvar e publicar" : "Criar e publicar";
+  if(l){
+    $("#lf-nome").value = l.nome || ""; $("#lf-pagina").value = l.nome_pagina || ""; $("#lf-curto").value = l.nome_curto || "";
+    $("#lf-genero").value = l.feminino ? "a" : "o"; $("#lf-slug").value = l.slug;
+    $("#lf-zap").value = l.whatsapp ? fmtNumero(l.whatsapp) : ""; $("#lf-email").value = l.email || "";
+    $("#lf-cidade").value = l.cidade || ""; $("#lf-uf").value = l.uf || ""; $("#lf-regiao").value = l.regiao || "";
+    $("#lf-link").value = l.link_cadastro || ""; $("#lf-desde").value = l.desde ? String(l.desde).slice(0, 7) : "";
+    $("#lf-qual").value = l.qualificacao || ""; $("#lf-bio").value = (l.bio || []).join("\n\n");
+    $("#lf-insta").value = l.instagram ? "@" + l.instagram : ""; $("#lf-yt").value = l.youtube || "";
+    $("#lf-grupo").value = l.link_grupo || ""; $("#lf-pixel").value = l.meta_pixel || "";
+    if(l.foto) mostrarFoto("atual", CFG.url + "/storage/v1/object/public/licenciados/" + l.foto); else mostrarFoto("vazio");
+  } else {
+    mostrarFoto("vazio");
+  }
+  $("#lf").classList.remove("hidden");
+  document.body.classList.add("modal-aberto");
+  $("#lf-nome").focus();
+}
+function fecharLicForm(){
+  $("#lf").classList.add("hidden");
+  document.body.classList.remove("modal-aberto");
+}
+$("#lc-novo").addEventListener("click", function(){ abrirLicForm(null); });
+$("#lf-fechar").addEventListener("click", fecharLicForm);
+$("#lf-cancelar").addEventListener("click", fecharLicForm);
+$("#lf").addEventListener("keydown", function(e){ if(e.key === "Escape") fecharLicForm(); });
+
+$("#lf-form").addEventListener("submit", function(e){
+  e.preventDefault();
+  if(!$("#lf-bio").value.trim()) $("#lf-bio").value = textoModelo();
+  var faltam = [];
+  [["lf-nome","Nome completo"],["lf-pagina","Nome na página"],["lf-curto","Como é chamado"],["lf-slug","Endereço"],["lf-zap","WhatsApp"],["lf-email","E-mail"],["lf-cidade","Cidade"],["lf-uf","Estado"],["lf-link","Link de cadastro"]]
+    .forEach(function(c){ if(!$("#"+c[0]).value.trim()) faltam.push(c[1]); });
+  if(!lfEdit && !CROP.img) faltam.push("Foto");
+  if(faltam.length){ lfMsg("Falta preencher: " + faltam.join(", ") + "."); return; }
+  if(/\[(nome|cidade|UF)\]/.test($("#lf-bio").value)){ lfMsg("Complete o texto da apresentação: ainda tem [nome], [cidade] ou [UF]."); return; }
+  var dados = {
+    novo: !lfEdit, slug: $("#lf-slug").value.trim(),
+    nome: $("#lf-nome").value, nome_pagina: $("#lf-pagina").value, nome_curto: $("#lf-curto").value,
+    feminino: $("#lf-genero").value === "a",
+    whatsapp: $("#lf-zap").value, email: $("#lf-email").value,
+    cidade: $("#lf-cidade").value, uf: $("#lf-uf").value, regiao: $("#lf-regiao").value,
+    link: $("#lf-link").value, desde: $("#lf-desde").value, qualificacao: $("#lf-qual").value,
+    bio: $("#lf-bio").value.split(/\n\s*\n/).map(function(t){ return t.trim(); }).filter(Boolean),
+    instagram: $("#lf-insta").value, youtube: $("#lf-yt").value.trim(), link_grupo: $("#lf-grupo").value.trim(), meta_pixel: $("#lf-pixel").value
+  };
+  if(CROP.img && CROP.mudou) dados.foto_base64 = fotoExportada();
+  var b = $("#lf-salvar"), rotulo = b.textContent;
+  b.disabled = true; b.textContent = "Salvando…"; lfMsg("");
+  fnPainel("lic_salvar", dados).then(function(r){
+    b.disabled = false; b.textContent = rotulo;
+    if(r.error){ lfMsg(r.error); return; }
+    fecharLicForm();
+    carregarLicenciados();
+    acompanharPublicacao(r.slug, r.versao, false, r.publicando);
   });
 });
 $("#lc-salvar").addEventListener("click", function(){
