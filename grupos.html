@@ -414,14 +414,15 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
       if(p.length < 4){ toast("Escreva a pergunta."); return; }
       if(!D.config.ia){ toast("A IA ainda não está ligada."); return; }
       b.disabled = true; b.textContent = "Procurando…";
-      $("#pq-resp").innerHTML = '<div class="gp-caixa gp-vazio">Lendo as mensagens…</div>';
+      $("#pq-resp").innerHTML = '<div class="gp-caixa gp-vazio">Lendo as mensagens… pode levar até 1 minuto.</div>';
       var g = $("#pq-grupo").value;
       chamar("perguntar", { pergunta: p, dias: Number($("#pq-dias").value), jids: g ? [g] : null }).then(function(j){
         b.disabled = false; b.textContent = "Perguntar";
         if(j.error){ $("#pq-resp").innerHTML = '<div class="gp-aviso gp-aviso--erro">' + esc(j.error) + '</div>'; return; }
         ultimaResposta = j;
         $("#pq-resp").innerHTML = '<div class="gp-caixa"><div class="gp-resposta">' + esc(j.resposta) + '</div><p class="gp-meta" style="margin-top:.8rem">Base: ' +
-          j.fontes.mensagens + ' mensagens, ' + j.fontes.itens + ' instruções/pendências e ' + j.fontes.resumos + ' resumos.</p></div>';
+          j.fontes.mensagens + ' mensagens, ' + j.fontes.itens + ' instruções/pendências e ' + j.fontes.resumos + ' resumos.' +
+          (j.modelo ? ' Respondido por ' + esc(j.modelo) + '.' : '') + '</p></div>';
       });
     });
   }
@@ -780,7 +781,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
       { id: "x2", ts: iso(20), autor_nome: "Ana", texto: "Comigo foi tirar a foto de novo", cita_texto: "Pessoal, alguém já pegou erro no envio da conta?" },
       { id: "x3", ts: iso(15), autor_nome: "Calebe Durante", texto: "@Jimmy o cliente aprovou a proposta mas o cadastro travou, o que eu faço?" },
       { id: "x4", ts: iso(5), de_mim: true, texto: "Calebe, me chama no privado que eu vejo agora." }], ao_vivo: false };
-    if(acao === "perguntar") return { resposta: "No grupo Diretoria iGreen, hoje às 14:05, a diretoria informou que a campanha Bônus Extra Green foi prorrogada até 30/11, com as mesmas distribuidoras do regulamento de novembro (Rennan Corrêa).", fontes: { mensagens: 12, itens: 2, resumos: 3 } };
+    if(acao === "perguntar") return { resposta: "No grupo Diretoria iGreen, hoje às 14:05, a diretoria informou que a campanha Bônus Extra Green foi prorrogada até 30/11, com as mesmas distribuidoras do regulamento de novembro (Rennan Corrêa).", modelo: "Claude Opus 5.5", fontes: { mensagens: 12, itens: 2, resumos: 3 } };
     if(acao === "grupos_sugeridos"){ d.grupos.forEach(function(g){ if(g.sugestao && g.sugestao !== "envios"){ g.ativo = true; g.tipo = g.sugestao; } }); return { ok: true, ligados: 2 }; }
     if(acao === "sincronizar") return { ok: true, grupos: d.grupos.length };
     return { ok: true };

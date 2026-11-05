@@ -16,7 +16,8 @@ import Anthropic from "npm:@anthropic-ai/sdk";
 //   grupos_sugeridos, sincronizar, mensagens, item, resumir, perguntar, midia_link (link para o
 //   painel subir a imagem ou o vídeo do envio direto no Storage), envio_salvar, envio_pausar,
 //   envio_remover, envio_teste, config_salvar.
-// IA: por configuração (grupos_config.modelo_triagem / modelo_resumo). "claude-*" vai direto à API da
+// IA: por configuração (grupos_config.modelo_triagem / modelo_resumo; a aba Perguntar usa
+// grupos_config.modelo_pergunta e, sem essa coluna, MODELO_PERGUNTA). "claude-*" vai direto à API da
 // Anthropic (ANTHROPIC_API_KEY, SDK oficial, JSON validado por schema na triagem); qualquer outro nome
 // vai à OpenRouter (OPENROUTER_API_KEY). Toda chamada fica em ai_usage com tokens e custo.
 // Publicar: supabase functions deploy grupos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt
@@ -302,13 +303,22 @@ function paraLinha(r: any, meus: Set<string>) {
 const PRECOS: Record<string, [number, number]> = {
   "claude-haiku-5-5": [0.10, 0.50], "claude-sonnet-5-5": [2, 10], "claude-opus-5-5": [4, 20],
 };
-// "claude-haiku-5-5@high": o sufixo escolhe o esforço de raciocínio (low, medium, high); sem sufixo, medium.
+// "claude-haiku-5-5@high": o sufixo escolhe o esforço de raciocínio (low, medium, high, xhigh, max);
+// sem sufixo, medium.
+const ESFORCOS = ["low", "medium", "high", "xhigh", "max"];
+// Perguntar: pedido do Jimmy (05/11/2026) de uma IA mais inteligente que a da triagem e dos resumos.
+// É chamada à mão e rara, então vale o Opus (~US$ 0,15 a 0,30 por pergunta, contra ~0,004 do Haiku).
+const MODELO_PERGUNTA = "claude-opus-5-5@high";
+const NOMES_MODELO: Record<string, string> = {
+  "claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-opus-5-5": "Claude Opus 5.5",
+};
+const nomeModelo = (modelo: string) => NOMES_MODELO[semEsforco(modelo)] ?? modelo.replace(/^openrouter:/, "");
 const semEsforco = (modelo: string) => modelo.split("@")[0];
 const ehClaude = (modelo: string) => modelo.startsWith("claude-");
 const iaDisponivel = (modelo: string) => ehClaude(modelo) ? !!ANT_KEY : !!OR_KEY;
 let anthropic: Anthropic | null = null;
 
-type OpcoesIa = { schema?: Record<string, unknown>; max?: number; esforco?: "low" | "medium" | "high" };
+type OpcoesIa = { schema?: Record<string, unknown>; max?: number; esforco?: "low" | "medium" | "high" | "xhigh" | "max" };
 
 async function ia(feature: string, modelo: string, sistema: string, usuario: string, opts: OpcoesIa = {}) {
   if (!iaDisponivel(modelo)) {
@@ -320,7 +330,7 @@ async function ia(feature: string, modelo: string, sistema: string, usuario: str
     if (ehClaude(modelo)) {
       anthropic ??= new Anthropic({ apiKey: ANT_KEY, timeout: 100_000, maxRetries: 2 });
       const [base, sufixo] = modelo.split("@");
-      const esforco = ["low", "medium", "high"].includes(sufixo) ? sufixo : (opts.esforco ?? "medium");
+      const esforco = ESFORCOS.includes(sufixo) ? sufixo : (opts.esforco ?? "medium");
       const params: any = {
         model: base, max_tokens: opts.max ?? 16000, system: sistema,
         messages: [{ role: "user", content: usuario }],
@@ -953,7 +963,8 @@ function lerEnvio(b: any) {
   return e;
 }
 
-async function perguntar(cfg: any, b: any) {
+async function perguntar(cfg: any, b: any, t: Teste = {}) {
+  const modelo = t.modelo ?? cfg.modelo_pergunta ?? MODELO_PERGUNTA;
   const pergunta = String(b.pergunta ?? "").trim().slice(0, 800);
   exige(pergunta.length >= 4, "Escreva a pergunta.");
   const dias = Math.min(Math.max(Number(b.dias) || 30, 1), 180);
@@ -967,29 +978,29 @@ async function perguntar(cfg: any, b: any) {
   if (chave.length) {
     achadas = await rest("rpc/grupos_buscar", {
       method: "POST",
-      body: JSON.stringify({ p_consulta: chave.join(" or "), p_desde: desde.toISOString(), p_jids: jids, p_limite: 160 }),
+      body: JSON.stringify({ p_consulta: chave.join(" or "), p_desde: desde.toISOString(), p_jids: jids, p_limite: 300 }),
     }) ?? [];
   }
   const resumos = await linhas(
     `grupo_resumos?dia=gte.${diaBrt(desde)}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,dia,texto&order=dia.desc&limit=60`,
   );
   const itens = await linhas(
-    `grupo_itens?ts=gte.${q(desde.toISOString())}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,tipo,titulo,detalhe,autor_nome,ts&order=ts.desc&limit=80`,
+    `grupo_itens?ts=gte.${q(desde.toISOString())}${jids ? `&jid=in.${lista(jids)}` : ""}&select=jid,tipo,titulo,detalhe,autor_nome,ts&order=ts.desc&limit=120`,
   );
   const nomes = new Map((await linhas("grupos?select=jid,nome")).map((g) => [g.jid, g.nome]));
   const fmt = (ts: string) => `${diaBrt(new Date(ts)).split("-").reverse().slice(0, 2).join("/")} ${horaBrt(new Date(ts))}`;
   const fontes =
     `MENSAGENS QUE BATEM COM A PERGUNTA:\n` +
     (achadas.length ? achadas.sort((a, b) => a.ts.localeCompare(b.ts)).map((m) =>
-      `- [${m.grupo}] ${fmt(m.ts)} ${m.autor_nome ?? "alguém"}: ${String(m.texto).slice(0, 700)}`).join("\n") : "(nenhuma)") +
+      `- [${m.grupo}] ${fmt(m.ts)} ${m.autor_nome ?? "alguém"}: ${comJimmy(String(m.texto).slice(0, 1000))}`).join("\n") : "(nenhuma)") +
     `\n\nINSTRUÇÕES E PENDÊNCIAS REGISTRADAS:\n` +
     (itens.length ? itens.map((i) => `- [${nomes.get(i.jid) ?? "grupo"}] ${fmt(i.ts)} ${i.tipo}: ${i.titulo}${i.detalhe ? " — " + String(i.detalhe).slice(0, 300) : ""}`).join("\n") : "(nenhuma)") +
     `\n\nRESUMOS DOS DIAS:\n` +
     (resumos.length ? resumos.map((r) => `- [${nomes.get(r.jid) ?? "grupo"}] ${r.dia.split("-").reverse().join("/")}:\n${r.texto}`).join("\n") : "(nenhum)");
-  const resposta = (await ia("grupos_pergunta", cfg.modelo_resumo,
+  const resposta = (await ia(t.seco ? "grupos_teste_pergunta" : "grupos_pergunta", modelo,
     QUEM + " Responda só com base nas fontes abaixo. Cite grupo, quem disse e quando. Se as fontes não respondem, diga isso claramente e sugira outra forma de perguntar.",
     `PERGUNTA: ${pergunta}\n\nPERÍODO: últimos ${dias} dias.\n\n${fontes}`, { max: 16000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim();
-  return { resposta, fontes: { mensagens: achadas.length, itens: itens.length, resumos: resumos.length } };
+  return { resposta, modelo: nomeModelo(modelo), fontes: { mensagens: achadas.length, itens: itens.length, resumos: resumos.length } };
 }
 
 Deno.serve(async (req) => {
@@ -1010,6 +1021,18 @@ Deno.serve(async (req) => {
       exige(m, "Mensagem não encontrada.");
       const t0 = Date.now();
       return json({ texto: await transcrever(cfg, m), ms: Date.now() - t0 });
+    }
+
+    if (acao === "teste_pergunta") {
+      const cfg = await config();
+      if (!cfg.teste_hash || await sha256(String(body.chave ?? "")) !== cfg.teste_hash) throw new Recusa("Sem permissão.", 403);
+      const resultados = [];
+      for (const m of (Array.isArray(body.modelos) ? body.modelos : []).slice(0, 3).map(String)) {
+        const t0 = Date.now();
+        try { resultados.push({ ...(await perguntar(cfg, body, { modelo: m, seco: true })), id: m, ms: Date.now() - t0 }); }
+        catch (e) { resultados.push({ id: m, erro: String(e), ms: Date.now() - t0 }); }
+      }
+      return json({ resultados });
     }
 
     if (acao === "comparar") {
