@@ -96,6 +96,7 @@ async function sessao(token: unknown) {
 async function config() {
   const [c] = await linhas("grupos_config?id=eq.1&select=*");
   if (!c) throw new Error("grupos_config vazia: aplicar db/23-grupos.sql");
+  meusIds = new Set(c.meus_jids ?? []);
   return c;
 }
 
@@ -331,9 +332,14 @@ const fone = (j: unknown) => {
   return d.length >= 12 ? `(${d.slice(2, 4)}) ${d.slice(4, -4)}-${d.slice(-4)}` : "";
 };
 const quem = (m: any) => m.de_mim ? "Jimmy" : (m.autor_nome || fone(m.autor) || "alguém");
+// ids do Jimmy (telefone e LID), lidos de grupos_config a cada chamada: menção a ele vira "@Jimmy" no texto
+// que a IA lê; "@<número>" é sempre outra pessoa.
+let meusIds = new Set<string>();
+const comJimmy = (t: string) => String(t).replace(/@(\d{8,})/g, (x, d) =>
+  meusIds.has(`${d}@lid`) || meusIds.has(`${d}@s.whatsapp.net`) ? "@Jimmy" : x);
 const linhaMsg = (m: any) =>
   `[${m.id}] ${horaBrt(new Date(m.ts))} ${quem(m)}: ` +
-  (m.cita_texto ? `(respondendo "${String(m.cita_texto).slice(0, 120)}") ` : "") + String(m.texto).slice(0, 1500);
+  (m.cita_texto ? `(respondendo "${comJimmy(String(m.cita_texto).slice(0, 120))}") ` : "") + comJimmy(String(m.texto).slice(0, 1500));
 
 const QUEM = "Você ajuda Jimmy Fenner, líder de licenciados da iGreen Energy (energia por assinatura, " +
   "telecom, seguros e eletropostos Mob, num modelo de licenciamento com equipes). Ele participa de muitos " +
@@ -351,13 +357,14 @@ const CRITERIO: Record<string, string> = {
     "saudação, comemoração de venda, piada, dúvida de colega, conversa paralela, convite ou divulgação de live, " +
     "evento, treinamento ou link de transmissão (a não ser que traga regra nova), pergunta de colega com resposta " +
     "incerta ou divergente, nem repetição de algo que já " +
-    "está no contexto. Use \"atencao\" só quando a mensagem pede algo ao Jimmy pelo nome ou responde a uma " +
-    "mensagem dele; pedido de ajuda para outra pessoa não é com ele.",
+    "está no contexto. Use \"atencao\" só quando a mensagem pede algo ao Jimmy (menção \"@Jimmy\", o nome dele) ou " +
+    "responde a uma mensagem dele; \"@\" seguido de número é outra pessoa, e pedido de ajuda para outra pessoa não é com ele.",
   licenciados:
     "Este é um grupo de licenciados que o Jimmy lidera e treina. Marque como \"atencao\" o que precisa dele: " +
     "pergunta feita a ele ou ao líder, dúvida que ficou sem resposta no grupo, pedido de ajuda, licenciado " +
     "travado, desanimado ou pensando em desistir, reclamação, problema com cliente, cadastro, pagamento ou " +
-    "comissão. Não marque o que outra pessoa já respondeu bem, nem conversa social.",
+    "comissão. Não marque o que outra pessoa já respondeu bem, nem conversa social. Menção ao Jimmy aparece como " +
+    "\"@Jimmy\"; \"@\" seguido de número é outra pessoa.",
 };
 
 type Teste = { modelo?: string; seco?: boolean };
@@ -373,7 +380,7 @@ async function triarGrupo(cfg: any, g: any, novas: any[], t: Teste = {}) {
     `"detalhe":"o que é preciso saber ou fazer, com números e regras exatamente como escritos e quem afirmou, até 600 caracteres",` +
     `"ids":["ids das mensagens de origem"]}]}. ` +
     `Junte num item só as mensagens do mesmo assunto. Se nada importa, {"itens":[]}.`;
-  const resp = jsonDe(await ia(t.seco ? "grupos_teste_triagem" : "grupos_triagem", t.modelo ?? cfg.modelo_triagem, QUEM, prompt, { schema: SCHEMA_TRIAGEM, max: 6000 }));
+  const resp = jsonDe(await ia(t.seco ? "grupos_teste_triagem" : "grupos_triagem", t.modelo ?? cfg.modelo_triagem, QUEM, prompt, { schema: SCHEMA_TRIAGEM, max: 16000 }));
   const validos = new Set(novas.map((m) => m.id));
   const porId = new Map(novas.map((m) => [m.id, m]));
   const itens = (Array.isArray(resp?.itens) ? resp.itens : [])
@@ -569,11 +576,11 @@ async function resumirGrupo(cfg: any, g: any, dia: string, t: Teste = {}) {
     ? "Destaque instruções, mudanças, prazos e materiais novos."
     : "Destaque dúvidas que se repetem, quem precisa de ajuda, o que ficou sem resposta e quem se destacou.";
   const texto = (await ia(t.seco ? "grupos_teste_resumo" : "grupos_resumo", t.modelo ?? cfg.modelo_resumo, QUEM,
-    `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos curtos ` +
+    `Resuma o dia ${dia.split("-").reverse().join("/")} do grupo "${g.nome}" em até 6 tópicos, cada um com no máximo 2 frases curtas ` +
         `(comece cada um com "• "), do mais importante para o menos. ${foco} Só se houver uma ação concreta e ainda ` +
         `pendente para o Jimmy (responder alguém, repassar uma regra, resolver um problema), termine com uma linha ` +
         `"Para você: ..."; nunca sugira ir a evento que já passou. Sem introdução, sem markdown além dos tópicos.\n\n` +
-        msgs.map(linhaMsg).join("\n"), { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").trim().slice(0, 2500);
+        msgs.map(linhaMsg).join("\n"), { max: 8000 })).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^#+\s*/gm, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 4000);
   if (t.seco) return texto;
   await inserir("grupo_resumos", [{ jid: g.jid, dia, texto, msgs: msgs.length, criado_em: new Date().toISOString() }], "juntar", "jid,dia");
   return texto;
@@ -625,6 +632,7 @@ async function processar() {
   });
   if (!Array.isArray(trava) || !trava.length) return { ocupado: true };
   const cfg = trava[0];
+  meusIds = new Set(cfg.meus_jids ?? []);
   const feito: Record<string, unknown> = {};
   const erros: string[] = [];
   const passo = async (nome: string, f: () => Promise<unknown>) => {
