@@ -535,6 +535,9 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
       '<button class="gp-btn" id="gr-sinc">Atualizar lista</button></div></div>';
     h += '<div class="gp-caixa" style="margin-bottom:14px"><div class="gp-linha" style="justify-content:space-between">' +
       '<label class="gp-linha" style="cursor:pointer"><button type="button" class="gp-chave" id="cf-avisar" role="switch" aria-checked="' + !!D.config.avisar + '"></button> Avisar no WhatsApp (pelo 1575)</label>' +
+      '<label class="gp-linha">Juntar os avisos: <select id="cf-intervalo" style="background:rgba(0,0,0,.25);border:0;border-radius:8px;padding:.35em .5em;box-shadow:inset 0 0 0 1px var(--line)">' +
+      [[15, "a cada 15 min"], [30, "a cada 30 min"], [60, "a cada 1 h"], [120, "a cada 2 h"], [240, "a cada 4 h"], [0, "só no resumo do dia"]].map(function(o){
+        return '<option value="' + o[0] + '"' + (Number(D.config.aviso_min) === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join("") + '</select></label>' +
       '<label class="gp-linha">Resumo do dia às <select id="cf-hora" style="background:rgba(0,0,0,.25);border:0;border-radius:8px;padding:.35em .5em;box-shadow:inset 0 0 0 1px var(--line)">' +
       Array.apply(null, Array(24)).map(function(_, i){ return '<option value="' + i + '"' + (i === D.config.resumo_hora ? ' selected' : '') + '>' + i + 'h</option>'; }).join("") + '</select></label>' +
       '<span class="gp-meta">Última leitura: ' + (D.config.cursor_em ? quando(D.config.cursor_em) : "ainda não") + '</span></div></div>';
@@ -565,6 +568,10 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
     $("#cf-avisar").addEventListener("click", function(){
       var novo = this.getAttribute("aria-checked") !== "true"; this.setAttribute("aria-checked", novo);
       chamar("config_salvar", { avisar: novo }).then(function(j){ toast(j.error || (novo ? "Avisos ligados." : "Avisos desligados.")); D.config.avisar = novo; });
+    });
+    $("#cf-intervalo").addEventListener("change", function(){
+      var mi = Number(this.value);
+      chamar("config_salvar", { aviso_min: mi }).then(function(j){ toast(j.error || (mi ? "Avisos juntos, no máximo um a cada " + (mi >= 60 ? mi / 60 + " h" : mi + " min") + "." : "Avisos só no resumo do dia.")); D.config.aviso_min = mi; });
     });
     $("#cf-hora").addEventListener("change", function(){
       var h2 = Number(this.value);
@@ -645,7 +652,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 14px 90px}
         ["5@g.us","LeadHub Imparáveis",37,"admin",true,false,"licenciados",129],["6@g.us","iGreen Energy - Time Jimmy",347,"criador",true,false,"envios",0],
         ["7@g.us","Padelistas BC e Região",661,"membro",false,false,null,283]];
       demo.D = { hoje: new Date().toISOString().slice(0, 10),
-        config: { instancia: "pessoal", instancia_avisos: "1575", numero_avisos: "5548991067007", avisar: true, resumo_hora: 20, modelo: "google/gemini-2.5-flash", ia: true, cursor_em: iso(1), lista_em: iso(300), ultimo_erro: null },
+        config: { instancia: "pessoal", instancia_avisos: "1575", numero_avisos: "5548991067007", avisar: true, aviso_min: 30, resumo_hora: 21, modelo: "google/gemini-2.5-flash", ia: true, cursor_em: iso(1), lista_em: iso(300), ultimo_erro: null },
         custo: { hoje: 0.04, mes: 0.61 },
         grupos: gs.map(function(g){ return { jid: g[0], nome: g[1], tamanho: g[2], papel: g[3], so_admins: g[4], ativo: g[5], tipo: g[6] || "licenciados", sugestao: g[6], msgs_14d: g[7], ultima_msg_em: g[5] ? iso(7) : null }; }),
         itens: [

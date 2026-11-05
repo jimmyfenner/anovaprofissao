@@ -359,7 +359,8 @@ const QUEM = "Você ajuda Jimmy Fenner, líder de licenciados da iGreen Energy (
   "do que foi só perguntado ou suposto (\"acho que\", \"será que\", \"?\"): dúvida nunca vira fato. Se as " +
   "respostas divergem, diga que divergem e não escolha um lado. Não diga \"confirmado\" sem confirmação explícita. " +
   "Menção ao Jimmy aparece como \"@Jimmy\"; \"@\" seguido de número é sempre outra pessoa, nunca o Jimmy. " +
-  "Texto citado numa resposta é de quem escreveu a mensagem citada, não de quem respondeu.";
+  "Texto citado numa resposta é de quem escreveu a mensagem citada, não de quem respondeu. " +
+  "Mensagem \"[áudio]\" ou \"[áudio de voz]\" sem texto ainda não foi transcrita: não crie item por causa disso.";
 
 const CRITERIO: Record<string, string> = {
   instrucoes:
@@ -395,10 +396,13 @@ async function triarGrupo(cfg: any, g: any, novas: any[], t: Teste = {}) {
     `"ids":["ids das mensagens de origem"]}]}. ` +
     `Junte num item só as mensagens do mesmo assunto. Se nada importa, {"itens":[]}.`;
   const resp = jsonDe(await ia(t.seco ? "grupos_teste_triagem" : "grupos_triagem", t.modelo ?? cfg.modelo_triagem, QUEM, prompt, { schema: SCHEMA_TRIAGEM, max: 16000 }));
+  // menção e resposta ao Jimmy já viraram aviso sem IA: a IA não repete o mesmo assunto
+  const jaAvisadas = new Set(novas.filter((m) => m.menciona_jimmy || m.responde_jimmy).map((m) => m.id));
   const validos = new Set(novas.map((m) => m.id));
   const porId = new Map(novas.map((m) => [m.id, m]));
   const itens = (Array.isArray(resp?.itens) ? resp.itens : [])
     .filter((it: any) => (it?.tipo === "instrucao" || it?.tipo === "atencao") && typeof it.titulo === "string" && it.titulo.trim())
+    .filter((it: any) => !(Array.isArray(it.ids) && it.ids.length && it.ids.every((id: string) => jaAvisadas.has(String(id)))))
     .slice(0, 12)
     .map((it: any) => {
       const ids = (Array.isArray(it.ids) ? it.ids : []).map(String).filter((id: string) => validos.has(id)).slice(0, 20);
@@ -415,6 +419,79 @@ async function triarGrupo(cfg: any, g: any, novas: any[], t: Teste = {}) {
   if (itens.length) await inserir("grupo_itens", itens);
   await patch(`grupo_mensagens?id=in.${lista(novas.map((m) => m.id))}`, { triada: true });
   return itens.length;
+}
+
+/* ---------------- áudio ---------------- */
+
+// Baixa o áudio da Evolution e transcreve pela OpenRouter (o Claude não recebe áudio). Volta o texto ou null.
+async function transcrever(cfg: any, m: any): Promise<string | null> {
+  if (!OR_KEY) return null;
+  const r = await evo(`/chat/getBase64FromMediaMessage/${encodeURIComponent(cfg.instancia)}`, {
+    method: "POST",
+    body: JSON.stringify({ message: { key: { id: m.id, remoteJid: m.jid, fromMe: !!m.de_mim, ...(m.autor ? { participant: m.autor } : {}) } }, convertToMp4: false }),
+  }, 90_000);
+  const b64 = typeof r.body?.base64 === "string" ? r.body.base64 : "";
+  if (!r.ok || !b64) throw new Error(`áudio não baixou (HTTP ${r.status})`);
+  if (b64.length > 14_000_000) return "(áudio longo demais para transcrever)";
+  const mime = String(r.body?.mimetype ?? "audio/ogg");
+  const formato = mime.includes("mpeg") ? "mp3" : mime.includes("mp4") || mime.includes("m4a") ? "m4a" : mime.includes("wav") ? "wav" : "ogg";
+  let ok = false, erro: string | null = null, texto = "";
+  let tin: number | null = null, tout: number | null = null, custo: number | null = null;
+  try {
+    const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${OR_KEY}`, "Content-Type": "application/json", "HTTP-Referer": PAINEL, "X-Title": "Grupos do Jimmy" },
+      body: JSON.stringify({
+        model: cfg.modelo_audio ?? "google/gemini-2.5-flash", max_tokens: 4000, temperature: 0, usage: { include: true },
+        messages: [{
+          role: "user",
+          content: [
+            { type: "text", text: "Transcreva este áudio de WhatsApp em português do Brasil, palavra por palavra. Responda só com a transcrição, sem comentários. Se não houver fala, responda só: (sem fala)" },
+            { type: "input_audio", input_audio: { data: b64, format: formato } },
+          ],
+        }],
+      }),
+      signal: AbortSignal.timeout(100_000),
+    });
+    const j = await resp.json().catch(() => null);
+    tin = j?.usage?.prompt_tokens ?? null; tout = j?.usage?.completion_tokens ?? null; custo = j?.usage?.cost ?? null;
+    texto = String(j?.choices?.[0]?.message?.content ?? "").trim();
+    ok = resp.ok && !!texto;
+    if (!ok) erro = `HTTP ${resp.status}: ${JSON.stringify(j?.error ?? j).slice(0, 300)}`;
+  } catch (e) {
+    erro = e instanceof Error ? e.message.slice(0, 300) : "falha";
+  }
+  await rest("ai_usage", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ feature: "grupos_audio", modelo: cfg.modelo_audio, ok, erro, tokens_in: tin, tokens_out: tout, custo_usd: custo }),
+  }).catch(() => {});
+  if (!ok) throw new Error(`transcrição: ${erro}`);
+  return texto.slice(0, 5000);
+}
+
+// Áudios ainda sem texto dos grupos ligados (últimas 26 h). Até 3 tentativas por áudio.
+async function transcreverPendentes(cfg: any, prazo: number) {
+  if (!OR_KEY) return 0;
+  const desde = new Date(Date.now() - 26 * 3_600_000).toISOString();
+  const ativos = new Set((await linhas("grupos?ativo=eq.true&tipo=neq.envios&select=jid")).map((g) => g.jid));
+  const pend = (await linhas(
+    `grupo_mensagens?tipo=eq.audioMessage&texto=in.(${q('"[áudio]"')},${q('"[áudio de voz]"')})&audio_tentativas=lt.3&ts=gte.${q(desde)}&select=id,jid,ts,de_mim,autor,audio_tentativas&order=ts&limit=20`,
+  )).filter((m) => ativos.has(m.jid));
+  let n = 0;
+  for (const m of pend) {
+    if (Date.now() > prazo) break;
+    try {
+      const t = await transcrever(cfg, m);
+      if (t == null) break;
+      // volta para a fila da triagem, agora com o que foi dito
+      await patch(`grupo_mensagens?id=eq.${q(m.id)}`, { texto: `[áudio] ${t}`, triada: !!m.de_mim, audio_tentativas: m.audio_tentativas + 1 });
+      n++;
+    } catch (e) {
+      console.error("áudio", m.id, e);
+      await patch(`grupo_mensagens?id=eq.${q(m.id)}`, { audio_tentativas: m.audio_tentativas + 1 }).catch(() => {});
+    }
+  }
+  return n;
 }
 
 /* ---------------- leitura ---------------- */
@@ -562,9 +639,13 @@ async function mandarEnvios(cfg: any, prazo: number) {
 
 async function avisar(cfg: any) {
   if (!cfg.avisar) return 0;
+  // um aviso a cada aviso_min minutos, juntando o que chegou no meio; 0 = só o resumo diário
+  const intervalo = Number(cfg.aviso_min ?? 30);
+  if (intervalo === 0) return 0;
+  if (cfg.aviso_em && Date.now() - Date.parse(cfg.aviso_em) < intervalo * 60_000 - 30_000) return 0;
   const desde = new Date(Date.now() - 6 * 3_600_000).toISOString();
   const itens = await linhas(
-    `grupo_itens?status=eq.novo&avisado_em=is.null&aviso_erro=is.null&criado_em=gte.${q(desde)}&select=id,jid,tipo,titulo,detalhe,autor_nome,ts&order=ts&limit=12`,
+    `grupo_itens?status=eq.novo&avisado_em=is.null&aviso_erro=is.null&criado_em=gte.${q(desde)}&select=id,jid,tipo,titulo,detalhe,autor_nome,ts&order=ts&limit=30`,
   );
   if (!itens.length) return 0;
   const nomes = new Map((await linhas(`grupos?jid=in.${lista([...new Set(itens.map((i) => i.jid))])}&select=jid,nome`)).map((g) => [g.jid, g.nome]));
@@ -577,6 +658,7 @@ async function avisar(cfg: any) {
   const r = await enviarTexto(cfg.instancia_avisos, cfg.numero_avisos, texto);
   await patch(`grupo_itens?id=in.${lista(itens.map((i) => i.id))}`,
     r.ok ? { avisado_em: new Date().toISOString() } : { aviso_erro: r.erro.slice(0, 300) });
+  if (r.ok) await patch("grupos_config?id=eq.1", { aviso_em: new Date().toISOString() });
   return itens.length;
 }
 
@@ -669,12 +751,13 @@ async function processar() {
       await patch("grupos_config?id=eq.1", { cursor_em: agora.toISOString() });
       return r;
     });
+    await passo("audios", () => transcreverPendentes(cfg, prazo - 40_000));
     await passo("envios", () => mandarEnvios(cfg, prazo - 25_000));
     // triagem a cada 10 min (menção e resposta ao Jimmy já avisam na hora, sem IA)
     const triarAgora = !cfg.triagem_em || Date.now() - Date.parse(cfg.triagem_em) >= 9.5 * 60_000;
     if (iaDisponivel(cfg.modelo_triagem) && triarAgora) {
       await passo("triagem", async () => {
-        const pendentes = await linhas("grupo_mensagens?triada=eq.false&select=id,jid,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto&order=ts&limit=600");
+        const pendentes = await linhas("grupo_mensagens?triada=eq.false&select=id,jid,ts,autor,autor_nome,de_mim,texto,cita_id,cita_autor,cita_texto,menciona_jimmy,responde_jimmy&order=ts&limit=600");
         const grupos = new Map((await linhas("grupos?ativo=eq.true&select=jid,nome,tipo")).map((g) => [g.jid, g]));
         const porJid = new Map<string, any[]>();
         for (const m of pendentes) {
@@ -727,7 +810,7 @@ async function estado() {
     hoje,
     config: {
       instancia: cfg.instancia, instancia_avisos: cfg.instancia_avisos, numero_avisos: cfg.numero_avisos,
-      avisar: cfg.avisar, resumo_hora: cfg.resumo_hora, modelo_triagem: cfg.modelo_triagem, modelo_resumo: cfg.modelo_resumo,
+      avisar: cfg.avisar, aviso_min: cfg.aviso_min ?? 30, resumo_hora: cfg.resumo_hora, modelo_triagem: cfg.modelo_triagem, modelo_resumo: cfg.modelo_resumo,
       ia: iaDisponivel(cfg.modelo_triagem) && iaDisponivel(cfg.modelo_resumo),
       cursor_em: cfg.cursor_em, lista_em: cfg.lista_em, ultimo_erro: cfg.ultimo_erro,
     },
@@ -821,6 +904,15 @@ Deno.serve(async (req) => {
 
     // Teste de qualidade entre modelos, sem gravar item nem resumo (só ai_usage). Chave de uso único:
     // o hash fica em grupos_config.teste_hash e é apagado depois do teste.
+    if (acao === "teste_audio") {
+      const cfg = await config();
+      if (!cfg.teste_hash || await sha256(String(body.chave ?? "")) !== cfg.teste_hash) throw new Recusa("Sem permissão.", 403);
+      const [m] = await linhas(`grupo_mensagens?id=eq.${q(String(body.id ?? ""))}&select=id,jid,de_mim,autor`);
+      exige(m, "Mensagem não encontrada.");
+      const t0 = Date.now();
+      return json({ texto: await transcrever(cfg, m), ms: Date.now() - t0 });
+    }
+
     if (acao === "comparar") {
       const cfg = await config();
       if (!cfg.teste_hash || await sha256(String(body.chave ?? "")) !== cfg.teste_hash) throw new Recusa("Sem permissão.", 403);
@@ -969,6 +1061,11 @@ Deno.serve(async (req) => {
     if (acao === "config_salvar") {
       const p: Record<string, unknown> = { atualizado_em: new Date().toISOString() };
       if (body.avisar !== undefined) p.avisar = body.avisar === true;
+      if (body.aviso_min !== undefined) {
+        const mi = Math.round(Number(body.aviso_min));
+        exige([0, 15, 30, 60, 120, 240].includes(mi), "Intervalo inválido.");
+        p.aviso_min = mi;
+      }
       if (body.resumo_hora !== undefined) {
         const h = Math.round(Number(body.resumo_hora));
         exige(h >= 0 && h <= 23, "Hora inválida.");
