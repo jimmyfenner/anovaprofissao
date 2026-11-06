@@ -432,6 +432,143 @@ async function agendados() {
   return { items: (j.items ?? []).map((i: any) => ({ ...i, lead_id: porContato.get(i.contact_id) ?? null })) };
 }
 
+// ── reunião nova (ou remarcada) direto no Google Agenda ───────
+// Mesma agenda e mesma credencial do /agendar (contato@, GOOGLE_* nos segredos do projeto).
+// O evento sai no formato dos que o Turbo cria ("(55…)" e o link da conversa na descrição),
+// para o assistente do Mac ler telefone e Turbo dele, e a reunião entra no diário como
+// "agendada". Quando a transcrição do Meet chegar, a rotina junta pelo event_id.
+const AGENDA = () => Deno.env.get("AGENDA_CALENDAR_ID") ?? "primary";
+const TZ = "America/Sao_Paulo";
+let googleToken: { valor: string; ate: number } | null = null;
+async function google(path: string, init: RequestInit = {}) {
+  if (!googleToken || googleToken.ate < Date.now() + 60_000) {
+    const r = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: Deno.env.get("GOOGLE_CLIENT_ID") ?? "",
+        client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET") ?? "",
+        refresh_token: Deno.env.get("GOOGLE_REFRESH_TOKEN") ?? "",
+        grant_type: "refresh_token",
+      }),
+    });
+    if (!r.ok) throw new Recusa("O Google Agenda recusou o acesso. Avise o Claude.", 502);
+    const j = await r.json();
+    googleToken = { valor: j.access_token, ate: Date.now() + j.expires_in * 1000 };
+  }
+  const r = await fetch(`https://www.googleapis.com/calendar/v3${path}`, {
+    ...init,
+    headers: { Authorization: `Bearer ${googleToken.valor}`, "Content-Type": "application/json" },
+    signal: AbortSignal.timeout(20_000),
+  });
+  const j: any = await r.json().catch(() => ({}));
+  return { ok: r.ok, status: r.status, j };
+}
+function diaHora(d: Date) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(d).map((x) => [x.type, x.value]));
+  return { data: `${p.year}-${p.month}-${p.day}`, hora: `${p.hour}:${p.minute}` };
+}
+const EMAIL = /^[^\s@<>(),;:]+@[^\s@<>(),;:]+\.[a-z]{2,}$/i;
+
+async function marcarReuniao(b: any) {
+  const id = idLead(b.lead_id);
+  const [lead] = await rest(`reunioes_leads?id=eq.${id}&select=id,nome,telefone,turbo_url,instancia,produto`);
+  if (!lead) throw new Recusa("Lead não encontrado.", 404);
+  const inicio = new Date(quandoValido(b.inicio));
+  if (inicio.getTime() < Date.now() - 5 * 60_000) throw new Recusa("Esse horário já passou.");
+  const dur = Math.round(Number(b.duracao_min ?? 30));
+  if (!Number.isFinite(dur) || dur < 15 || dur > 240) throw new Recusa("Duração entre 15 minutos e 4 horas.");
+  const fim = new Date(inicio.getTime() + dur * 60_000);
+
+  // a reunião que está sendo remarcada (ou a última do lead): título e convidados saem dela
+  let antiga: any = null;
+  if (b.de_chave) {
+    [antiga] = await rest(`reunioes?chave=eq.${enc(String(b.de_chave))}&lead_id=eq.${id}&select=chave,event_id,titulo`);
+    if (!antiga) throw new Recusa("Reunião de origem não encontrada.", 404);
+  } else {
+    [antiga] = await rest(`reunioes?lead_id=eq.${id}&event_id=not.is.null&select=chave,event_id,titulo&order=inicio.desc.nullslast&limit=1`);
+  }
+  let eventoAntigo: any = null;
+  if (antiga?.event_id) {
+    const g = await google(`/calendars/${encodeURIComponent(AGENDA())}/events/${encodeURIComponent(antiga.event_id)}`);
+    if (g.ok) eventoAntigo = g.j;
+  }
+  const convidados = new Map<string, string | undefined>();
+  if (b.copiar_convidados !== false) {
+    for (const a of eventoAntigo?.attendees ?? []) {
+      if (!a.self && !a.organizer && a.email && EMAIL.test(a.email)) convidados.set(a.email.toLowerCase(), a.displayName);
+    }
+  }
+  for (const e of Array.isArray(b.convidados) ? b.convidados : []) {
+    const m = String(e ?? "").trim().toLowerCase();
+    if (!m) continue;
+    if (!EMAIL.test(m)) throw new Recusa(`E-mail inválido: ${m}`);
+    convidados.set(m, convidados.get(m));
+  }
+  if (convidados.size > 20) throw new Recusa("No máximo 20 convidados.");
+
+  // horário ocupado: avisa antes, e o painel pergunta se marca mesmo assim
+  if (b.forcar !== true) {
+    const fb = await google("/freeBusy", {
+      method: "POST",
+      body: JSON.stringify({ timeMin: inicio.toISOString(), timeMax: fim.toISOString(), timeZone: TZ, items: [{ id: AGENDA() }] }),
+    });
+    const ocupado = fb.ok ? (fb.j.calendars?.[AGENDA()]?.busy ?? []) : [];
+    if (ocupado.length) return { conflito: true, ocupado };
+  }
+
+  const titulo = /^reuni[aã]o com /i.test(eventoAntigo?.summary ?? antiga?.titulo ?? "")
+    ? (eventoAntigo?.summary ?? antiga.titulo)
+    : `Reunião com ${lead.nome}${lead.instancia ? ` - ${lead.instancia}` : ""}`;
+  const descricao = [
+    `${antiga ? "Remarcada" : "Marcada"} pelo diário de reuniões (anovaprofissao.com.br/reunioes).`,
+    "",
+    `Lead: ${lead.nome}${lead.telefone ? ` (${lead.telefone})` : ""}`,
+    lead.turbo_url ? `Conversa no Turbo: ${lead.turbo_url}` : "",
+  ].filter((l, i) => l || i === 1).join("\n");
+  const g = await google(
+    `/calendars/${encodeURIComponent(AGENDA())}/events?conferenceDataVersion=1&sendUpdates=${convidados.size ? "all" : "none"}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        summary: titulo,
+        description: descricao,
+        start: { dateTime: inicio.toISOString(), timeZone: TZ },
+        end: { dateTime: fim.toISOString(), timeZone: TZ },
+        attendees: [...convidados].map(([email, displayName]) => ({ email, ...(displayName ? { displayName } : {}) })),
+        conferenceData: { createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: "hangoutsMeet" } } },
+        reminders: { useDefault: true },
+      }),
+    },
+  );
+  if (!g.ok) {
+    console.error("reunioes google insert", g.status, g.j?.error?.message);
+    throw new Recusa("O Google Agenda não criou o evento. Tente de novo.", 502);
+  }
+  const ev = g.j;
+  const meet = ev.hangoutLink ?? ev.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === "video")?.uri ?? null;
+  const { data, hora } = diaHora(inicio);
+  const agora = new Date().toISOString();
+  // status_por "painel" (não "jimmy"): a rotina pode trocar para realizada quando a transcrição chegar
+  const [nova] = await rest("reunioes", {
+    method: "POST",
+    body: JSON.stringify({
+      chave: `evt:${ev.id}`, lead_id: id, event_id: ev.id, data, hora,
+      inicio: inicio.toISOString(), fim: fim.toISOString(), duracao_min: dur,
+      titulo, tipo: "lead", produto: lead.produto ?? null,
+      status: "agendada", status_por: "painel", status_em: agora,
+    }),
+  });
+  if (antiga && b.de_chave) {
+    await rest(`reunioes?chave=eq.${enc(antiga.chave)}`, {
+      method: "PATCH", body: JSON.stringify({ remarcada_para: inicio.toISOString(), atualizado_em: agora }),
+    });
+  }
+  return { conflito: false, reuniao: nova, meet, convidados: convidados.size, link: ev.htmlLink ?? null };
+}
+
 // só nome, estado e número — o token da instância nunca sai daqui
 async function evo(path: string, init: RequestInit = {}, timeoutMs = 15_000) {
   const ctrl = new AbortController();
@@ -591,6 +728,7 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
     if (acao === "agendar") return json(await agendar(b));
+    if (acao === "reuniao_marcar") return json(await marcarReuniao(b));
     if (acao === "agendados") return json(await agendados());
     if (acao === "agendado_cancelar") return json(await turbo("/api/public/extension/schedule", { action: "cancel", id: String(b.id ?? "") }));
     if (acao === "instancias") return json({ instancias: await instancias() });

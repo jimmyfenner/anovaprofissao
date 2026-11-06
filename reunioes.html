@@ -350,8 +350,11 @@ function renderLeads(){
   el.innerHTML = lista.map(cardLead).join("");
 }
 function cardLead(l){
-  var rs = reunioesDe(l.id), ult = rs[0], lb = lembretesDe(l.id).sort(function(a,b){ return a.quando.localeCompare(b.quando); })[0];
-  var meta = [PRODUTO[l.produto] || "", l.cidade || "", ult ? "última reunião " + dataCurta(ult.data) + " " + (ult.hora || "") : ""].filter(Boolean).join(" · ");
+  var rs = reunioesDe(l.id), lb = lembretesDe(l.id).sort(function(a,b){ return a.quando.localeCompare(b.quando); })[0];
+  var ult = rs.filter(function(r){ return !futura(r); })[0];
+  var proxR = rs.filter(function(r){ return futura(r) && r.status === "agendada"; }).sort(function(a,b){ return momento(a) - momento(b); })[0];
+  var meta = [PRODUTO[l.produto] || "", l.cidade || "", ult ? "última reunião " + dataCurta(ult.data) + " " + (ult.hora || "") : "",
+    proxR ? "🗓️ próxima " + quandoCurto(momento(proxR).toISOString()) : ""].filter(Boolean).join(" · ");
   var prox = lb ? "⏰ " + (lb.status === "enviado" ? "enviado, sem resposta" : quandoCurto(lb.quando)) + ": " + esc(lb.texto) : "";
   var h = '<article class="card' + (abertos[l.id] ? " aberto" : "") + '" data-lead="' + l.id + '">';
   h += '<div class="card__cab" data-acao="abrir"><div class="card__qm"><div class="card__nome"><span class="seta">▸</span>' + esc(l.nome);
@@ -370,6 +373,17 @@ function cardLead(l){
   if(contatoAberto[l.id]) h += formContato(l);
   if(abertos[l.id]) h += corpoLead(l, rs);
   return h + "</article>";
+}
+function momento(r){ return r.inicio ? new Date(r.inicio) : new Date((r.data || "1970-01-01") + "T" + (r.hora || "12:00") + ":00-03:00"); }
+function futura(r){ return momento(r) > new Date(); }
+// próximo dia útil (seg a sex) às h horas, no horário de Brasília
+function proximoUtil(h){
+  for(var d = 1; d < 8; d++){
+    var p = partes(Date.now() + d * 864e5), dt = new Date(p.year + "-" + p.month + "-" + p.day + "T12:00:00-03:00");
+    var dow = new Date(dt.getTime() - 3 * 36e5).getUTCDay();
+    if(dow !== 0 && dow !== 6) return new Date(p.year + "-" + p.month + "-" + p.day + "T" + (h < 10 ? "0" + h : h) + ":00:00-03:00");
+  }
+  return amanhaAs(h);
 }
 function ehTurbo(u){ return typeof u === "string" && u.indexOf("https://igreenturbo.com.br/") === 0; }
 var DICA_TURBO = "No Turbo, abra a conversa com o lead e copie o endereço do navegador (igreenturbo.com.br/app/inbox?contact=…).";
@@ -427,7 +441,14 @@ function corpoLead(l, rs){
     h += "</div>";
   }
   // reuniões
-  h += '<div class="bloco"><h3>Reuniões</h3>';
+  h += '<form class="bloco hidden" data-form="marcar"><h3 data-titulo>Marcar reunião no Google Agenda</h3><input type="hidden" name="de_chave" value="">';
+  h += '<div class="linha-acoes"><input class="inp" type="datetime-local" name="inicio" value="' + paraLocal(proximoUtil(10)) + '" aria-label="Quando" required>';
+  h += '<select class="sel" name="duracao" aria-label="Duração"><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option></select></div>';
+  h += '<label class="mini mudo" style="display:flex;gap:.35rem;align-items:center;margin-top:.55rem"><input type="checkbox" name="copiar" checked> convidar quem estava na reunião anterior (o Google manda o convite)</label>';
+  h += '<input class="inp" name="convidados" type="text" inputmode="email" placeholder="Outros e-mails para convidar (opcional, separados por vírgula)" style="width:100%;margin-top:.5rem" autocomplete="off">';
+  h += '<p class="dica mini mudo" style="margin-top:.4rem">Cria o evento com Meet na sua agenda (contato@), com o telefone e o link do Turbo na descrição, e a reunião entra aqui como agendada.</p>';
+  h += '<div class="linha-acoes" style="margin-top:.6rem"><button class="btn btn--primary btn--sm" type="submit">Marcar no Google Agenda</button><button class="btn btn--sm" type="button" data-acao="fechar-form">Cancelar</button></div></form>';
+  h += '<div class="bloco"><h3>Reuniões <button class="btn btn--sm" type="button" data-acao="marcar-reuniao" style="margin-left:.5rem;letter-spacing:0;text-transform:none;font-family:var(--body)">+ Marcar reunião</button></h3>';
   if(!rs.length) h += '<p class="mudo mini">Nenhuma reunião registrada.</p>';
   rs.forEach(function(r){ h += blocoReuniao(r, false); });
   h += "</div>";
@@ -458,7 +479,12 @@ function blocoReuniao(r, comLead){
   if((r.proximos_passos || []).length){
     h += "<ul>" + r.proximos_passos.map(function(p){ return "<li>" + esc((p.quem ? p.quem + ": " : "") + p.o_que + (p.quando_dito ? " (" + p.quando_dito + ")" : "")) + (p.minuto ? ' <span class="mono">[' + esc(p.minuto) + "]</span>" : "") + "</li>"; }).join("") + "</ul>";
   }
-  if(!comLead) h += '<button class="btn btn--sm btn--perigo" data-acao="remover-reuniao" style="margin-top:.5rem">Remover reunião</button>';
+  if(r.remarcada_para) h += '<p class="mini" style="color:#9FD3FF">🔁 remarcada para ' + quandoCurto(r.remarcada_para) + "</p>";
+  if(!comLead){
+    h += '<div class="linha-acoes" style="margin-top:.5rem">';
+    if(!futura(r)) h += '<button class="btn btn--sm" data-acao="remarcar">🔁 Remarcar</button>';
+    h += '<button class="btn btn--sm btn--perigo" data-acao="remover-reuniao">Remover reunião</button></div>';
+  }
   return h + "</div>";
 }
 
@@ -528,6 +554,16 @@ document.addEventListener("click", function(e){
     return;
   }
   if(acao === "fechar-contato"){ delete contatoAberto[id]; renderLeads(); return; }
+  if(acao === "marcar-reuniao" || acao === "remarcar"){
+    var cardM = b.closest(".card"), fm = $('[data-form="marcar"]', cardM);
+    var origem = acao === "remarcar" ? b.closest("[data-reuniao]") : null;
+    fm.de_chave.value = origem ? origem.getAttribute("data-reuniao") : "";
+    var rOrig = origem && D.reunioes.find(function(x){ return x.chave === fm.de_chave.value; });
+    $("[data-titulo]", fm).textContent = rOrig ? "Remarcar a reunião de " + dataCurta(rOrig.data) + " " + (rOrig.hora || "") : "Marcar reunião no Google Agenda";
+    if(rOrig && rOrig.duracao_min && [30,45,60,90].indexOf(rOrig.duracao_min) >= 0) fm.duracao.value = String(rOrig.duracao_min);
+    fm.classList.remove("hidden"); fm.scrollIntoView({behavior:"smooth", block:"center"}); fm.inicio.focus();
+    return;
+  }
   if(acao === "cancelar-agendada"){
     if(confirm("Cancelar esta mensagem agendada? Ela some do Turbo também.")) fazer("agendado_cancelar", {id: b.closest("[data-agendada]").getAttribute("data-agendada")}, "Mensagem cancelada.").catch(function(){});
     return;
@@ -590,6 +626,23 @@ document.addEventListener("submit", function(e){
     }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "comentar"){
     trava(fazer("comentar", {lead_id:id, texto:f.texto.value}, "Comentário salvo.")).catch(function(){});
+  } else if(tipo === "marcar"){
+    var ini = deLocal(f.inicio.value);
+    if(!ini || new Date(ini) < new Date(Date.now() - 5 * 6e4)){ toast("Escolha um horário que ainda não passou.", true); btn.disabled = false; return; }
+    var extras = f.convidados.value.split(/[,;\s]+/).map(function(x){ return x.trim(); }).filter(Boolean);
+    var dadosM = {lead_id:id, inicio:ini, duracao_min:Number(f.duracao.value), copiar_convidados:f.copiar.checked, convidados:extras, de_chave:f.de_chave.value || null};
+    var marcar = function(forcar){
+      return chamar("reuniao_marcar", Object.assign({}, dadosM, {forcar:forcar})).then(function(j){
+        if(j.conflito){
+          var oc = (j.ocupado || []).map(function(o){ return hhmm(o.start) + "–" + hhmm(o.end); }).join(", ");
+          if(confirm("Você já tem compromisso nesse horário (" + oc + "). Marcar mesmo assim?")) return marcar(true);
+          return null;
+        }
+        toast("Marcada no Google Agenda: " + quandoCurto(ini) + (j.meet ? " · com Meet" : "") + (j.convidados ? " · convite para " + j.convidados : "") + " ✅");
+        return carregar();
+      });
+    };
+    trava(marcar(false).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "mensagem" && f.querySelector('[name="modo"]:checked').value === "agendar"){
     var q = deLocal(f.quando.value);
     if(!q || new Date(q) < new Date(Date.now() - 6e4)){ toast("Escolha um horário que ainda não passou.", true); btn.disabled = false; return; }
@@ -682,6 +735,16 @@ function demoChamar(acao, d){
   if(acao === "comentar") D.comentarios.unshift({id: Date.now(), lead_id:d.lead_id, texto:d.texto, criado_em:agora});
   if(acao === "comentario_remover") D.comentarios = D.comentarios.filter(function(c){ return c.id !== d.id; });
   if(acao === "agendados") return Promise.resolve({items: AG});
+  if(acao === "reuniao_marcar"){
+    var hIni = partes(d.inicio).hour;
+    if(hIni === "12" && !d.forcar) return Promise.resolve({conflito:true, ocupado:[{start:d.inicio, end:new Date(new Date(d.inicio).getTime() + 18e5).toISOString()}]});
+    var pI = partes(d.inicio), ldM = D.leads.find(function(x){ return x.id === d.lead_id; });
+    var nova = {chave:"evt:demo" + Date.now(), lead_id:d.lead_id, event_id:"demo", data:pI.year + "-" + pI.month + "-" + pI.day, hora:hhmm(d.inicio), inicio:d.inicio,
+      fim:new Date(new Date(d.inicio).getTime() + d.duracao_min * 6e4).toISOString(), duracao_min:d.duracao_min, titulo:"Reunião com " + ldM.nome.replace("[exemplo] ", ""), tipo:"lead", status:"agendada"};
+    D.reunioes.push(nova);
+    if(d.de_chave) D.reunioes.forEach(function(r){ if(r.chave === d.de_chave) r.remarcada_para = d.inicio; });
+    return Promise.resolve({conflito:false, reuniao:nova, meet:"https://meet.google.com/demo", convidados:(d.convidados || []).length + (d.copiar_convidados ? 1 : 0)});
+  }
   if(acao === "agendar"){
     var ld = D.leads.find(function(x){ return x.id === d.lead_id; });
     if(!ld.telefone && !ehTurbo(ld.turbo_url)) return Promise.reject(new Error("Ponha o telefone ou o link da conversa no Turbo antes de agendar."));
