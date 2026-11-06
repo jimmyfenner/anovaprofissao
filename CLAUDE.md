@@ -1325,6 +1325,17 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   Segredo `TURBO_TOKEN` (token gerado pelo Jimmy no Turbo, Configurações › Extensão do navegador;
   no Turbo fica só o hash em `extension_api_tokens`). Sem ele, o resto do painel funciona e o
   agendar responde "Falta ligar o Turbo". Gravou o segredo: publicar a função de novo.
+- **Marcar e remarcar reunião no Google Agenda** (06/11/2026): "+ Marcar reunião" no título
+  Reuniões do lead e "🔁 Remarcar" nas que já passaram (ação `reuniao_marcar`). Cria o evento com
+  Meet na mesma agenda do /agendar (contato@, segredos `GOOGLE_*` do projeto), com o título da
+  reunião anterior ("Reunião com X - instância") e a descrição no formato dos eventos do Turbo
+  ("Lead: Nome (55…)" e "Conversa no Turbo: link"), para o assistente do Mac ler. Convida quem
+  estava no evento anterior (lido no Google) e os e-mails extras; sem convidado, `sendUpdates=none`.
+  Horário ocupado (`freeBusy`) volta `conflito` e o painel pergunta antes (`forcar`). Grava a
+  reunião `evt:<id>` como `agendada` com `status_por = 'painel'` (não `jimmy`, para a rotina poder
+  trocar para realizada/sem gravação quando a transcrição chegar, juntando pelo `event_id`) e, na
+  remarcação, `remarcada_para` na antiga, sem mudar o status dela. Não cria agendamento no Turbo
+  (sem os lembretes automáticos de lá).
 
 ## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
 
