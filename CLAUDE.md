@@ -1407,3 +1407,13 @@ neste banco por decisão dele ("pra não termos que criar novos bancos de dados"
   a sugestão de tipo) foi carregada à parte, fora do repositório; "Atualizar lista" no
   painel relê nomes e tamanhos da Evolution (`fetchAllGroups`, ~50 s).
 - Publicar: `supabase functions deploy grupos --project-ref buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt`.
+
+## Abrir o site dentro da lousa — ipad.anovaprofissao.com.br (nov/2026)
+
+Pedido do Jimmy em 10/11/2026: a lousa dele (projeto Vercel `lousa`, pasta
+`/Volumes/Sandisk/Claude/lousa`) abre sites por baixo do desenho, num iframe.
+Este site recusava com `X-Frame-Options: SAMEORIGIN`. No `vercel.json` esse
+cabeçalho deu lugar a `Content-Security-Policy: frame-ancestors 'self'
+https://ipad.anovaprofissao.com.br`: o próprio site e a lousa podem enquadrar,
+qualquer outro endereço continua barrado. Vale para todos os domínios do
+projeto. Não voltar o `X-Frame-Options`: ele não aceita lista de endereços.
