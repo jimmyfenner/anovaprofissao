@@ -948,7 +948,7 @@ contador nessas páginas: a política diz que não há cookies.
 
 ## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
 
-Deck HTML animado (26 slides, 16:9, setas/passador) que o Jimmy usa ao vivo
+Deck HTML animado (28 slides desde 11/11/2026, 16:9, setas/passador) que o Jimmy usa ao vivo
 e manda por link. Pedido dele em 27/10/2026. A fonte **não é deste repo**: o
 original fica em `/Volumes/Sandisk/Claude/apresentacao-igreen-2026/` (HTML de
 arquivo único, com fonte Montserrat e imagens embutidas, e o PDF gerado por
@@ -972,14 +972,14 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   outras páginas (integradores, transição) segue sendo decisão a reabrir com
   o Jimmy (CVM/SCP na Licença Mob, ver "Transição energética").
 - A capa traz o aviso de licenciado independente, como a home.
-- Slides de campanha (11 "Bônus Extra Garantido" e 23 "Campanhas do mês",
+- Slides de campanha (13 "Bônus Extra Garantido", 25 "Campanhas do mês" e a coluna "Na hora · Nov/26" do 10 "Cashback",
   mais as etiquetas "Nov/26" em Seguros e Livre e a legenda ⚡ do mapa)
   vencem em 30/11/2026. Desde 03/11/2026 a fonte é a newsletter do mês
   (`~/Downloads/Newsletter_<Mês>-2026.pdf`, a de novembro tem 81 páginas);
   o Academy completa os regulamentos. Os valores de GP são de licenciado PRO
   (regra por vertical). Pendências e histórico do deck: memória
   `apresentacao-plano-negocios-igreen` do Claude.
-- **Mapa de cobertura (slide 9)**: SVG dos 27 estados (malha do IBGE, a mesma
+- **Mapa de cobertura (slide 11)**: SVG dos 27 estados (malha do IBGE, a mesma
   de `mapa-conexao-green/componente/geometria-ufs.js`) com as distribuidoras
   por estado vindas de `mapa-conexao-green/regras.json` (gerado do backup do
   Academy) mais as exceções que o Jimmy passou em 27/10/2026: sem cobertura em
@@ -995,7 +995,7 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   no ponto do cursor (até 7×), arrasto move, pinça no toque, duplo clique ou
   o botão "Brasil inteiro" volta; a página não dá zoom. Para atualizar:
   regerar `regras.json` com o backup novo, ajustar `BONUS`/`BONUS_VIGENCIA`
-  e rodar `patch_mapa.py` (idempotente: refaz só o slide 9, o CSS e o JS do
+  e rodar `patch_mapa.py` (idempotente: refaz só o slide do mapa (`id="slide-green"`), o CSS e o JS do
   mapa).
 - **Teste do estado final dos números**: `?static&pop#N` renderiza o slide
   com a classe `pop` (fim da contagem) aplicada. Em 28/10/2026 o pulso do
@@ -1006,7 +1006,7 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   que quebram linha — as métricas de fonte variam um pouco entre navegadores
   (no Chromium do app sobravam 45 px para fora), então nada ali é `nowrap`
   rígido.
-- **Slide 18 "Na prática"**: os exemplos do treinamento da Conexão Mob
+- **Slide 20 "Na prática"**: os exemplos do treinamento da Conexão Mob
   (Manual de Negócio + Academy: Gestor Base vendendo um Mob Fast, liberação
   por etapa, royalty pela diferença, requisito das recargas, fidelidade de 90
   dias, troca de bandeira e carteira). A projeção de retorno do investidor
@@ -1031,6 +1031,27 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   iniciam. Toda publicação do deck passa por esse teste.
 - Avisos estilo push (canto superior direito, aleatórios, rotulados
   "exemplo"): tecla N liga/desliga; `?semavisos` abre sem eles.
+- **Mudanças de 11/11/2026 (pedidos do Jimmy)**, feitas por
+  `apresentacao-igreen-2026/fontes/patch_2026-11-11.py` sobre a versão anterior:
+  slide 7 na ordem Green, Telecom, Seguros, Livre, Placas/Solar, Mob (+ Expansão
+  e Club); **9 "iGreen Club"** (o app do cliente + clube com 30 mil+ empresas,
+  descontos de até 90%, 16 logos de farmácias, cinemas e lojas em
+  `fontes/club-logos/`, os mesmos do vídeo da Telecom); **10 "Cashback"** (o
+  cliente indica pelo link do Club e recebe 50% do GP do licenciado na fatura:
+  energia 2%, telefonia R$ 3,50 por linha, seguros 2,5%; "na hora" = campanhas
+  de novembro: R$ 20 por conexão Green, R$ 20 por portabilidade, R$ 100 por
+  seguro; fonte: Academy de 08/11); Telecom com 5 benefícios (GB que acumulam,
+  planos flexíveis, descontos nos 30 mil parceiros, link de indicação para zerar
+  a fatura, atendimento 24h no WhatsApp); Livre com o logo da Comerc Energia
+  (SVG oficial branco do comerc.com.br, `fontes/comerc-logo-white.svg`; a
+  Conexão Livre é com clientes e Executivos Comerc); Placas com "Único sem
+  recorrência". **Simulação (slide 21)**: 6 cenários (10 e 20 de cada por mês;
+  Green, + Telecom, + Seguros), ganho no mês 60 e acumulado, churn de 5% ao ano
+  (retenção mensal 0,95^(1/12), ~530 de 600 ativos no mês 60), só GP de
+  licenciado PRO (Green R$ 12,80 = 4% de R$ 320; Telecom R$ 7; Seguros R$ 17,50
+  = 5% de R$ 350), sem royalties, porque pelo manual novo a graduação depende da
+  estrutura da rede. Saíram os cenários com rede (B1/B2); o Jimmy vai criar
+  outro. A caixa "Com equipe, o ganho é exponencial" fica embaixo.
 - **Último slide = chamada com dois caminhos** (pedido de 28/10/2026): "Como
   você quer começar?" → Licença Mob (igreenmob.com.br com o `ref` do Jimmy) ou
   Connect FULL (expansao.igreenenergy.com.br, `id=1971&checkout=true&tipolicenca=CONNECT`),
