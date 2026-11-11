@@ -487,6 +487,98 @@ a.cta .quem{font-size:15px;color:var(--dim);margin-top:12px;font-weight:600}
 .expo svg{flex:none;width:300px;height:118px;overflow:visible}
 .expo h3{font-size:34px}
 .expo p{font-size:21px;margin-top:6px}
+/* ===== 11/11/2026: slide 8 em órbita (GP, GI, Royalties) ===== */
+.obleft{width:760px;flex:1;min-height:0;display:flex;flex-direction:column;position:relative;z-index:2}
+.obleft h2{font-size:62px}
+.obls{display:flex;flex-direction:column;gap:2px;margin-top:22px}
+.obl{display:grid;grid-template-columns:142px 1fr;gap:20px;align-items:center;padding:9px 18px;margin:0 -18px;border-radius:22px;border:1px solid transparent;cursor:pointer;transition:background-color .3s,border-color .3s}
+.obl:hover{background:rgba(255,255,255,.03)}
+.obl.sel{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
+.obl b{display:block;font-size:28px;font-weight:800;letter-spacing:-.01em}
+.obl b em{font-style:normal;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#FFC24B;border:1px solid rgba(255,194,75,.5);border-radius:999px;padding:4px 10px;margin-left:10px;vertical-align:4px;white-space:nowrap}
+.obl .t{display:block;font-size:19px;line-height:1.38;color:var(--mut);margin-top:4px}
+.obc{justify-self:start;display:inline-flex;align-items:center;justify-content:center;height:46px;min-width:70px;padding:0 18px;border-radius:999px;font-size:21px;font-weight:900;color:#04120a;transition:transform .35s var(--spring),box-shadow .35s}
+.obc.gp{background:var(--g)}.obc.gi{background:#fff}.obc.roy{background:#FFC24B;color:#2b1a00}
+.obl.ping .obc{transform:scale(1.1)}
+.obl.ping .obc.gp{box-shadow:0 0 0 7px rgba(0,226,107,.16),0 0 34px rgba(0,226,107,.75)}
+.obl.ping .obc.gi{box-shadow:0 0 0 7px rgba(255,255,255,.13),0 0 34px rgba(255,255,255,.55)}
+.obl.ping .obc.roy{box-shadow:0 0 0 7px rgba(255,194,75,.16),0 0 34px rgba(255,194,75,.7)}
+.obeq{font-size:17px;line-height:1.45;color:var(--dim);margin-top:14px;padding-left:2px}
+.obeq b{color:#fff;font-weight:800}
+.obpro{padding:20px 26px;margin-right:-90px}
+.obpro .obpro-h{display:flex;align-items:center;gap:18px}
+.obpro .obpro-h .pill{font-size:22px;flex:none}
+.obpro .obpro-h p{margin:0;font-size:17px;line-height:1.4;color:var(--mut)}
+.obpro .obpro-h p b{color:#fff}
+.obreq{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.obreq span{font-size:14.5px;font-weight:700;line-height:1.3;padding:7px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.obreq span.g{color:#04120a;background:var(--g);border-color:var(--g)}
+.obhint{position:absolute;right:60px;bottom:40px;font-size:15px;color:var(--dim);letter-spacing:.04em}
+body.static .obhint{display:none}
+.obwrap{position:absolute;right:30px;top:50%;width:960px;height:960px;margin-top:-480px;z-index:1}
+.orb-svg{width:100%;height:100%;display:block;overflow:visible}
+.orb-svg text{font-family:Montserrat,system-ui,sans-serif}
+.rg{fill:none;stroke-width:2;transform-box:fill-box;transform-origin:center}
+.rg1{stroke:rgba(0,226,107,.6)}
+.rg2{stroke:rgba(255,255,255,.34);stroke-dasharray:3 9;stroke-linecap:round}
+.rg3{stroke:rgba(255,194,75,.5);stroke-dasharray:1 10;stroke-width:3;stroke-linecap:round}
+.rg4{stroke:rgba(255,194,75,.24);stroke-dasharray:1 16;stroke-width:3;stroke-linecap:round}
+.slide.active .rg{animation:obRing 1.3s var(--spring-soft) var(--d) both}
+.slide.active .rg2{animation:obRing 1.3s var(--spring-soft) var(--d) both,obDash2 36s linear infinite}
+.slide.active .rg3{animation:obRing 1.3s var(--spring-soft) var(--d) both,obDash3 30s linear infinite}
+.slide.active .rg4{animation:obRing 1.3s var(--spring-soft) var(--d) both,obDash4 44s linear infinite}
+@keyframes obDash2{to{stroke-dashoffset:-240}}
+@keyframes obDash3{to{stroke-dashoffset:220}}
+@keyframes obDash4{to{stroke-dashoffset:-170}}
+@keyframes obRing{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:none}}
+.obrl{font-size:14px;font-weight:800;letter-spacing:.22em;paint-order:stroke;stroke:#05080A;stroke-width:9px;stroke-linejoin:round}
+.obrl.l1{fill:var(--g);font-size:13px;letter-spacing:.14em}.obrl.l2{fill:rgba(255,255,255,.82)}.obrl.l3{fill:#FFC24B}.obrl.l4{fill:rgba(255,194,75,.62)}
+.slide.active .ob-labels{animation:obFade .8s 1.1s both}
+.slide.active .ob-links{animation:obFade .8s .9s both}
+@keyframes obFade{from{opacity:0}to{opacity:1}}
+.obk{stroke:rgba(255,255,255,.13);stroke-width:1.5}
+.obk.deep{stroke:rgba(255,194,75,.3);stroke-dasharray:3 6}
+.obn-i{transform-box:fill-box;transform-origin:center}
+.slide.active .obn-i{animation:obPop .7s var(--spring) both;animation-delay:var(--d)}
+@keyframes obPop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:none}}
+.obn use,.ob-key use{fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.obn.own circle{fill:#0a1610;stroke:var(--g);stroke-width:2.5}
+.obn.own{color:var(--g)}
+.obn.lic circle{fill:url(#obLic);stroke:rgba(255,255,255,.7);stroke-width:2}
+.obn.lic{color:#fff}
+.obn.lic.l2 circle{stroke:rgba(255,194,75,.75)}
+.obn.lic.l2{color:#ffe2a6}
+.obn.moon circle{fill:#0a1610;stroke-width:1.8}
+.obn.moon use{stroke-width:2.6}
+.obn.moon.m1 circle{stroke:rgba(255,255,255,.62)}.obn.moon.m1{color:#fff}
+.obn.moon.m2 circle{stroke:rgba(255,194,75,.62)}.obn.moon.m2{color:#FFC24B}
+.obn.deep circle{fill:rgba(255,194,75,.18);stroke:rgba(255,194,75,.55);stroke-width:1.5}
+.obcore{stroke:rgba(255,255,255,.45);stroke-width:2;filter:drop-shadow(0 0 26px rgba(0,226,107,.55))}
+.obyou{font-size:25px;font-weight:900;letter-spacing:.06em;fill:#04120a;text-anchor:middle;dominant-baseline:middle}
+.slide.active .ob-core{animation:obCoreIn .9s var(--spring) both}
+@keyframes obCoreIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+.obhalo{transform-box:fill-box;transform-origin:center;animation:obBreathe 4s ease-in-out infinite}
+@keyframes obBreathe{50%{transform:scale(1.08);opacity:.8}}
+.obchip rect{stroke:rgba(4,18,10,.35);stroke-width:1}
+.obchip text{font-size:16px;font-weight:900;text-anchor:middle;dominant-baseline:middle;letter-spacing:.02em}
+.obchip.gp rect{fill:var(--g)}.obchip.gp text{fill:#04120a}
+.obchip.gi rect{fill:#fff}.obchip.gi text{fill:#04120a}
+.obchip.roy rect{fill:#FFC24B}.obchip.roy text{fill:#2b1a00}
+.obchip.gp{filter:drop-shadow(0 0 10px rgba(0,226,107,.85))}
+.obchip.gi{filter:drop-shadow(0 0 10px rgba(255,255,255,.6))}
+.obchip.roy{filter:drop-shadow(0 0 12px rgba(255,194,75,.8))}
+.obchip.sm{filter:none;opacity:.92}
+.obchip.sm text{font-size:13px}
+.obrip{fill:none;stroke-width:2.5}
+.obrip.gp{stroke:var(--g)}.obrip.gi{stroke:#fff}.obrip.roy{stroke:#FFC24B}
+.obcap{font-size:15px;font-weight:700;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#05080A;stroke-width:7px;stroke-linejoin:round}
+.ob-key text{font-size:15px;font-weight:700;fill:var(--dim)}
+.ob-key .k-lic{fill:url(#obLic);stroke:rgba(255,255,255,.7);stroke-width:1.5}
+.ob-key .k-cli{fill:#0a1610;stroke:var(--g);stroke-width:1.5}
+.ob-key g:first-child{color:#fff}.ob-key g:nth-of-type(2){color:var(--g)}
+.orb-svg .ob-nodes>*,.orb-svg .ob-links>*{transition:opacity .45s}
+.orb-svg.f-gp .z-gi,.orb-svg.f-gp .z-roy,.orb-svg.f-gi .z-gp,.orb-svg.f-gi .z-roy,.orb-svg.f-roy .z-gp,.orb-svg.f-roy .z-gim{opacity:.16}
+body.static .rg,body.static .obn-i,body.static .ob-core,body.static .ob-labels,body.static .ob-links,body.static .obhalo{animation:none!important}
 body.static *{transition:none!important;transition-delay:0s!important}
 body.static .slide.active,body.static .pop{animation:none!important}
 body.clean .ui,body.clean .prog{display:none}
@@ -502,6 +594,7 @@ body.clean .ui,body.clean .prog{display:none}
   <symbol id="phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
   <symbol id="shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
   <symbol id="users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></symbol>
   <symbol id="factory" viewBox="0 0 24 24"><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1M12 18h1M7 18h1"/></symbol>
   <symbol id="plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></symbol>
   <symbol id="gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C9 3 11 5 12 8c1-3 3-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
@@ -648,33 +741,71 @@ body.clean .ui,body.clean .prog{display:none}
     </div>
   </section>
 
-  <!-- 08 VOCABULÁRIO + PRO -->
-  <section class="slide">
-    <div class="k r">O vocabulário em 1 minuto</div>
-    <h2 class="r" style="--i:1">Cada venda pode te pagar <span class="hl">até 3 vezes</span>.</h2>
-    <div class="row mt">
-      <div class="card hot r zoom" style="--i:2;flex:1"><div class="big hl">GP</div><h3 style="margin-top:14px">Geração Própria</h3><p>Você mesmo conecta o cliente.</p></div>
-      <div class="r" style="--i:3;font-size:60px;font-weight:300;align-self:center;color:var(--dim)">ou</div>
-      <div class="card r zoom" style="--i:4;flex:1"><div class="big">GI</div><h3 style="margin-top:14px">Geração Indireta</h3><p>Seu licenciado direto conecta.</p></div>
-      <div class="r" style="--i:5;font-size:60px;font-weight:300;align-self:center;color:var(--g)">+</div>
-      <div class="card r zoom" style="--i:6;flex:1"><div class="big">RO</div><h3 style="margin-top:14px">Royalties</h3><p>% sobre a produção da rede inteira.</p></div>
-      <div class="r" style="--i:7;font-size:60px;font-weight:300;align-self:center;color:var(--g)">+</div>
-      <div class="card r zoom" style="--i:8;flex:1"><div class="big">EQ</div><h3 style="margin-top:14px">Equiparação</h3><p>Quando alguém da rede chega ao seu nível.</p></div>
-    </div>
-    <div class="fill"></div>
-    <div class="card r" style="--i:10;padding:28px 40px">
-      <div class="row" style="align-items:center;gap:26px">
-        <div class="pill g" style="font-size:26px">PRO</div>
-        <div style="font-size:25px;line-height:1.4"><b style="color:#fff">Dobra o seu GP</b> e libera GI, royalties e equiparação. Sem PRO: metade do GP e nada da rede. <span class="mut">Os valores de GP desta apresentação são para licenciado PRO.</span></div>
+  <!-- 08 COMO VOCÊ GANHA: GP, GI e Royalties em órbita (11/11/2026) -->
+  <section class="slide" id="slide-orbita">
+    <div class="obleft">
+      <div class="k r">Como você ganha</div>
+      <h2 class="r" style="--i:1">Cada conta paga<br>gira <span class="hl">em torno de você.</span></h2>
+      <div class="obls">
+        <div class="r" style="--i:3"><div class="obl" data-t="gp"><span class="obc gp">GP</span><div><b>Geração Própria</b><span class="t">Seu cliente paga a luz, o celular, o seguro ou a recarga. Você recebe, todo mês.</span></div></div></div>
+        <div class="r" style="--i:4"><div class="obl" data-t="gi"><span class="obc gi">GI</span><div><b>Geração Indireta</b><span class="t">O cliente do seu licenciado direto paga: ele recebe o GP e você, o GI.</span></div></div></div>
+        <div class="r" style="--i:5"><div class="obl" data-t="roy"><span class="obc roy">Royalties</span><div><b>Royalties <em>a partir de Sênior</em></b><span class="t">Um extra sobre tudo o que a equipe conecta, inclusive GP e GI, sem limite de profundidade.</span></div></div></div>
       </div>
-      <div class="row" style="gap:12px;margin-top:18px;flex-wrap:wrap">
-        <span class="pill">⚡ Energia · 5 Green ou 1 Livre / Solar / Placas</span>
-        <span class="pill">📱 Telecom · 5 portabilidades</span>
-        <span class="pill">🛡️ Seguros · 2 seguros</span>
-        <span class="pill" style="font-size:16px;white-space:nowrap">🆕 Base Ativa · 100% do GP sem PRO em Telecom e Seguros</span>
-        <span class="pill g">PRO 360 (todas) · 1 Energia + 1 Seguro + 1 portabilidade · ou 1 Mob direta · ou 2 Expansão Full</span>
+      <div class="obeq r" style="--i:6"><b>+ Equiparação</b> (de Executivo em diante): quando alguém da linha chega à sua graduação, os royalties daquela linha viram Equiparação, paga até o 5º nível.</div>
+      <div class="fill"></div>
+      <div class="card r obpro" style="--i:7">
+        <div class="obpro-h"><span class="pill g">PRO</span><p><b>Dobra o seu GP</b> e libera GI, royalties e equiparação. Sem PRO: metade do GP e nada da equipe. <span class="dim">Os valores de GP desta apresentação são de licenciado PRO.</span></p></div>
+        <div class="obreq">
+          <span>⚡ Energia · 5 Green ou 1 Livre / Solar / Placas</span>
+          <span>📱 Telecom · 5 portabilidades</span>
+          <span>🛡️ Seguros · 2 seguros</span>
+          <span>🆕 Base Ativa · 100% do GP sem PRO em Telecom e Seguros</span>
+          <span class="g">PRO 360 (todas) · 1 Energia + 1 Seguro + 1 portabilidade, ou 1 Mob direta, ou 2 Expansão Full</span>
+        </div>
       </div>
     </div>
+    <div class="obwrap r zoom" style="--i:2">
+      <svg class="orb-svg" viewBox="-500 -500 1000 1000" role="img" aria-label="Você no centro. Na primeira órbita, seus clientes geram GP. Na segunda, os clientes dos seus licenciados diretos geram GI. Da terceira em diante, a equipe deles, sem limite de profundidade, gera royalties.">
+        <defs>
+          <radialGradient id="obCore" cx="50%" cy="38%" r="68%"><stop offset="0" stop-color="#9dffc6"/><stop offset=".5" stop-color="#00E26B"/><stop offset="1" stop-color="#00a24c"/></radialGradient>
+          <radialGradient id="obHalo"><stop offset="0" stop-color="#00E26B" stop-opacity=".42"/><stop offset=".55" stop-color="#00E26B" stop-opacity=".1"/><stop offset="1" stop-color="#00E26B" stop-opacity="0"/></radialGradient>
+          <radialGradient id="obZone"><stop offset="0" stop-color="#00E26B" stop-opacity="0"/><stop offset=".7" stop-color="#00E26B" stop-opacity=".05"/><stop offset="1" stop-color="#00E26B" stop-opacity="0"/></radialGradient>
+          <radialGradient id="obLic" cx="50%" cy="32%" r="72%"><stop offset="0" stop-color="#22432f"/><stop offset="1" stop-color="#09140e"/></radialGradient>
+          <path id="obp1" d="M -194 0 A 194 194 0 0 1 194 0"/>
+          <path id="obp2" d="M -295 0 A 295 295 0 0 1 295 0"/>
+          <path id="obp3" d="M -415 0 A 415 415 0 0 1 415 0"/>
+          <path id="obp4" d="M -478 0 A 478 478 0 0 1 478 0"/>
+        </defs>
+        <circle class="obzone" r="480" fill="url(#obZone)"/>
+        <g class="ob-rings">
+          <circle class="rg rg4" r="478" style="--d:520ms"/>
+          <circle class="rg rg3" r="415" style="--d:400ms"/>
+          <circle class="rg rg2" r="295" style="--d:280ms"/>
+          <circle class="rg rg1" r="165" style="--d:160ms"/>
+        </g>
+        <g class="ob-links"></g>
+        <g class="ob-labels">
+          <text class="obrl l1"><textPath href="#obp1" startOffset="50%" text-anchor="middle">SEUS CLIENTES</textPath></text>
+          <text class="obrl l2" dy="5"><textPath href="#obp2" startOffset="50%" text-anchor="middle">SEUS LICENCIADOS DIRETOS</textPath></text>
+          <text class="obrl l3" dy="5"><textPath href="#obp3" startOffset="50%" text-anchor="middle">A EQUIPE DELES</textPath></text>
+          <text class="obrl l4" dy="5"><textPath href="#obp4" startOffset="50%" text-anchor="middle">E ASSIM POR DIANTE · SEM LIMITE</textPath></text>
+        </g>
+        <g class="ob-nodes"></g>
+        <g class="ob-fx"></g>
+        <g class="ob-core">
+          <circle r="106" fill="url(#obHalo)" class="obhalo"/>
+          <circle r="64" fill="url(#obCore)" class="obcore"/>
+          <text class="obyou" y="2">VOCÊ</text>
+        </g>
+        <g class="ob-key" transform="translate(500 -486)">
+          <g transform="translate(-14 0)"><circle r="11" class="k-lic"/><use href="#user" x="-7" y="-7" width="14" height="14"/></g>
+          <text x="-34" y="5" text-anchor="end">licenciado</text>
+          <g transform="translate(-14 34)"><circle r="11" class="k-cli"/><use href="#zap" x="-7" y="-7" width="14" height="14"/></g>
+          <text x="-34" y="39" text-anchor="end">cliente</text>
+        </g>
+      </svg>
+    </div>
+    <div class="obhint">Toque em GP, GI ou Royalties para isolar o fluxo</div>
   </section>
 
   <!-- 09 iGREEN CLUB (11/11/2026) -->
@@ -1474,6 +1605,189 @@ body.clean .ui,body.clean .prog{display:none}
     if(location.search.includes('demo=mapa')){ const q=new URLSearchParams(location.search); const alvo=svg.querySelector('[data-uf="'+(q.get('uf')||'SP')+'"]'); setTimeout(()=>{ if(q.get('zoom')){ const bb=alvo.getBBox(), pt=svg.createSVGPoint(); pt.x=bb.x+bb.width/2; pt.y=bb.y+bb.height/2; const sp=pt.matrixTransform(alvo.getScreenCTM()); zoomEm(sp.x,sp.y,parseFloat(q.get('zoom'))); } fixo=alvo; alvo.classList.add('sel'); mostrar(alvo); },600); }
   })();
   } catch(e){ console.error('mapa:',e); }
+
+  try {
+  // ---- slide 8: GP, GI e Royalties em órbita (11/11/2026) ----
+  // você no centro; 1ª órbita = seus clientes (GP); 2ª = seus licenciados diretos e os clientes deles (GI);
+  // 3ª em diante = a equipe deles, sem limite de profundidade (Royalties). Cada conta paga solta uma ficha
+  // que viaja até você; o licenciado dono do cliente ganha um selo "GP".
+  (function(){
+    const sec=document.getElementById('slide-orbita'); if(!sec) return;
+    const svg=sec.querySelector('.orb-svg'), NS='http://www.w3.org/2000/svg', D=Math.PI/180;
+    const gK=svg.querySelector('.ob-links'), gN=svg.querySelector('.ob-nodes'), gF=svg.querySelector('.ob-fx');
+    const mk=(tag,at,par)=>{ const e=document.createElementNS(NS,tag); for(const k in at) e.setAttribute(k,at[k]); if(par) par.appendChild(e); return e; };
+    const R0=64,R1=165,R2=295,R3=415,R4=478, W1=2*Math.PI/80;
+    // a equipe balança devagar (±8°) em vez de girar inteira: assim nenhum nó passa por cima dos rótulos das órbitas
+    const sway=t=>8*D*Math.sin(2*Math.PI*t/44);
+    const CEN={x:0,y:0,size:R0};
+    const nodes=[], links=[];
+    function node(o,cls,size,ic,icSize,delay){
+      o.g=mk('g',{class:'obn '+cls},gN);
+      const inner=mk('g',{class:'obn-i'},o.g); inner.style.setProperty('--d',delay+'ms');
+      mk('circle',{r:size},inner);
+      if(ic) mk('use',{href:'#'+ic,x:-icSize/2,y:-icSize/2,width:icSize,height:icSize},inner);
+      o.size=size; nodes.push(o); return o;
+    }
+    const link=(a,b,cls)=>links.push({a,b,l:mk('line',{class:'obk '+cls},gK)});
+    // licenciados diretos (2ª órbita), a equipe deles (3ª) e a profundidade (4ª)
+    const L1=[-30,90,210].map((a,k)=>node({kind:'net',a:a*D,r:R2,moons:[],kids:[]},'lic l1 z-gi',31,'user',30,520+k*90));
+    const L2=[[0,-19],[0,19],[1,-19],[1,19],[2,22]].map(([p,da],k)=>{ const par=L1[p]; const o=node({kind:'net',a:par.a+da*D,r:R3,par,moons:[],kids:[]},'lic l2 z-roy',24,'user',22,800+k*70); par.kids.push(o); return o; });
+    const L3=[]; L2.forEach((q,k)=>[-6.5,6.5].forEach((da,j)=>{ const o=node({kind:'net',a:q.a+da*D,r:R4,par:q},'deep z-roy',7,null,0,1150+k*60+j*30); q.kids.push(o); L3.push(o); }));
+    L1.forEach(p=>link(CEN,p,'z-gi')); L2.forEach(q=>link(q.par,q,'z-roy')); L3.forEach(d=>link(d.par,d,'deep z-roy'));
+    // seus clientes (1ª órbita): 60° entre eles, fora das linhas dos diretos e do rótulo do topo
+    const OWN=[['phone',-120],['zap',-60],['plug',0],['shield',60],['zap',120],['phone',180]].map(([ic,a],k)=>node({kind:'own',a:a*D,ic},'own z-gp',27,ic,27,300+k*60));
+    // os clientes de cada licenciado (luas)
+    const ICS=[['zap','shield','phone'],['plug','phone','zap'],['shield','zap','plug']];
+    L1.forEach((p,k)=>ICS[k].forEach((ic,j)=>p.moons.push(node({kind:'moon',p,a:(j*120+k*40)*D,r:52,w:(k%2?-1:1)*2*Math.PI/17,ic},'moon m1 z-gi z-gim',14,ic,15,700+k*90+j*50))));
+    const IC2=[['zap','phone'],['phone','zap'],['phone','plug'],['zap','shield'],['plug','zap']];
+    L2.forEach((q,k)=>IC2[k].forEach((ic,j)=>q.moons.push(node({kind:'moon',p:q,a:(j*180+k*50)*D,r:41,w:(k%2?1:-1)*2*Math.PI/14,ic},'moon m2 z-roy',12,ic,13,950+k*70+j*40))));
+
+    function place(t){
+      const sw=sway(t);
+      for(const n of nodes){
+        if(n.kind==='own'){ const a=n.a+t*W1; n.x=R1*Math.cos(a); n.y=R1*Math.sin(a); }
+        else if(n.kind==='net'){ const a=n.a+sw; n.x=n.r*Math.cos(a); n.y=n.r*Math.sin(a); }
+        else { const a=n.a+t*n.w; n.x=n.p.x+n.r*Math.cos(a); n.y=n.p.y+n.r*Math.sin(a); }
+        n.g.setAttribute('transform',`translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`);
+      }
+      for(const k of links){ k.l.setAttribute('x1',k.a.x.toFixed(1)); k.l.setAttribute('y1',k.a.y.toFixed(1)); k.l.setAttribute('x2',k.b.x.toFixed(1)); k.l.setAttribute('y2',k.b.y.toFixed(1)); }
+    }
+
+    // ---- fichas de comissão ----
+    const LBL={gp:'GP',gi:'GI',roy:'Royalties'};
+    const CAP={zap:'conta de luz paga ✓',phone:'plano de celular pago ✓',shield:'seguro pago ✓',plug:'recarga paga ✓'};
+    const rows={}; sec.querySelectorAll('.obl').forEach(r=>rows[r.dataset.t]=r);
+    function chip(ty,sm){
+      const g=mk('g',{class:'obchip '+ty+(sm?' sm':''),opacity:0},gF);
+      const w=sm?40:(ty==='roy'?112:52), h=sm?24:32;
+      mk('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:h/2},g);
+      const tx=mk('text',{y:1},g); tx.textContent=sm?'GP':LBL[ty];
+      return g;
+    }
+    function along(path,u){
+      const seg=[]; let L=0;
+      for(let i=1;i<path.length;i++){ const d=Math.hypot(path[i].x-path[i-1].x,path[i].y-path[i-1].y); seg.push(d); L+=d; }
+      let s=u*L;
+      for(let i=0;i<seg.length;i++){ if(s<=seg[i]||i===seg.length-1){ const f=seg[i]?Math.min(1,s/seg[i]):1, a=path[i], b=path[i+1]; return [a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f]; } s-=seg[i]; }
+      return [path[0].x,path[0].y];
+    }
+    const atSeg=(path,i,f)=>{ const a=path[i], b=path[i+1]; return [a.x+(b.x-a.x)*f,a.y+(b.y-a.y)*f]; };
+    const plen=p=>{ let L=0; for(let i=1;i<p.length;i++) L+=Math.hypot(p[i].x-p[i-1].x,p[i].y-p[i-1].y); return L; };
+    const ease=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+    const pop=u=>u<=0?0:u>=1?1:1+2.2*Math.pow(u-1,3)+1.2*Math.pow(u-1,2);
+    const clamp=v=>Math.max(0,Math.min(1,v));
+    const pick=a=>a[Math.floor(Math.random()*a.length)];
+    const f1=v=>v.toFixed(1);
+    let events=[], focus=null, raf=0, t0=0, script=[], nextAt=0;
+
+    function spawn(kind,t,o){
+      o=o||{};
+      let origin,path,dono=null,ty=kind;
+      if(kind==='gp'){ origin=o.origin||pick(OWN); path=[origin,CEN]; }
+      else if(kind==='gi'){ origin=o.origin||pick(pick(L1).moons); dono=origin.p; path=[origin,dono,CEN]; }
+      else if(kind==='roy'){ origin=o.origin||pick(pick(L2).moons); dono=origin.p; path=[origin,dono,dono.par,CEN]; }
+      else { ty='roy'; origin=o.origin||pick(L3); path=[origin,origin.par,origin.par.par,CEN]; }
+      const ev={ty,t0:t,path,dono,origin,dur:Math.max(.95,Math.min(2,plen(path)/330)),
+        el:chip(ty),badge:dono?chip('gp',true):null,
+        rip:mk('circle',{class:'obrip '+ty,r:0,opacity:0},gF),
+        ripDono:dono?mk('circle',{class:'obrip gp',r:0,opacity:0},gF):null,
+        ripCen:mk('circle',{class:'obrip '+ty,r:0,opacity:0},gF),
+        cap:null,arrived:false};
+      if(o.cap && origin.ic){ ev.cap=mk('text',{class:'obcap',opacity:0},gF); ev.cap.textContent=CAP[origin.ic]; }
+      events.push(ev); return ev;
+    }
+    function ping(ty){ const r=rows[ty]; if(!r) return; r.classList.remove('ping'); void r.offsetWidth; r.classList.add('ping'); clearTimeout(r._pt); r._pt=setTimeout(()=>r.classList.remove('ping'),650); }
+    const anel=(c,x,y,r,op)=>{ c.setAttribute('cx',f1(x)); c.setAttribute('cy',f1(y)); c.setAttribute('r',f1(r)); c.setAttribute('opacity',op.toFixed(2)); };
+    // e = segundos desde que a conta foi paga; ov = posições fixas (quadro parado)
+    function draw(ev,e,ov){
+      const o=ev.origin;
+      // pulso na conta paga
+      const p=ov?ov.rip:clamp(e/.9);
+      anel(ev.rip,o.x,o.y,o.size+4+(o.size*.9+6)*(1-Math.pow(1-p,3)),p>=1?0:.95*(1-p));
+      // o licenciado dono do cliente recebe o GP dele (selo)
+      if(ev.dono){
+        const q=ev.dono, pb=ov?1:clamp((e-.45)/.35), fim=ov?1:clamp(1-(e-1.75)/.35);
+        ev.badge.setAttribute('transform',`translate(${f1(q.x+q.size*.82)} ${f1(q.y-q.size*.82)}) scale(${pop(pb).toFixed(2)})`);
+        ev.badge.setAttribute('opacity',(pb<=0?0:fim).toFixed(2));
+        const pr=ov?ov.ripDono:clamp((e-.45)/.7);
+        anel(ev.ripDono,q.x,q.y,q.size+3+18*pr,(pr<=0||pr>=1)?0:.8*(1-pr));
+      }
+      // a sua ficha viaja até o centro
+      const u=ov?.5:clamp((e-.3)/ev.dur), [x,y]=ov?atSeg(ev.path,ov.main[0],ov.main[1]):along(ev.path,ease(u));
+      ev.el.setAttribute('transform',`translate(${f1(x)} ${f1(y)}) scale(${(u<.1?.4+.6*u/.1:1).toFixed(2)})`);
+      ev.el.setAttribute('opacity',(u<=0||u>=1)?0:1);
+      if(u>=1 && !ev.arrived && !ov){ ev.arrived=e; ping(ev.ty); }
+      const pc=ev.arrived?clamp((e-ev.arrived)/1):0;
+      anel(ev.ripCen,0,0,R0+60*(1-Math.pow(1-pc,3)),(pc<=0||pc>=1)?0:.85*(1-pc));
+      // legenda "conta paga", do lado de fora do nó e sem sair da tela
+      if(ev.cap){
+        const pa=clamp(e/1.9), ref=o.p||CEN; let dx=o.x-ref.x, dy=o.y-ref.y; const n=Math.hypot(dx,dy)||1; dx/=n; dy/=n;
+        const d=o.size+10+(ov?0:5*pa), w=ev.cap.textContent.length*8.6;
+        let anc=dx>.45?'start':dx<-.45?'end':'middle', cx=o.x+dx*d, cy=o.y+dy*d+(dy>.35?13:dy<-.35?-2:5);
+        // sem espaço para o lado: vai para cima do nó
+        if((anc==='start' && cx+w>490)||(anc==='end' && cx-w<-490)){ anc='middle'; cx=o.x; cy=o.y-o.size-12; }
+        if(anc==='middle') cx=Math.max(-490+w/2,Math.min(490-w/2,cx));
+        ev.cap.setAttribute('x',f1(cx)); ev.cap.setAttribute('y',f1(cy));
+        ev.cap.setAttribute('text-anchor',anc);
+        ev.cap.setAttribute('opacity',(ov?1:(pa<.12?pa/.12:pa>.75?(1-pa)/.25:1)).toFixed(2));
+      }
+      return ev.arrived && pc>=1 && e>2.2;
+    }
+    const kill=ev=>[ev.el,ev.badge,ev.rip,ev.ripDono,ev.ripCen,ev.cap].forEach(n=>n&&n.remove());
+
+    // isolar um fluxo: clique na legenda
+    Object.entries(rows).forEach(([ty,r])=>r.addEventListener('click',e=>{
+      e.stopPropagation();
+      focus=focus===ty?null:ty;
+      Object.values(rows).forEach(x=>x.classList.toggle('sel',x.dataset.t===focus));
+      svg.classList.remove('f-gp','f-gi','f-roy'); if(focus) svg.classList.add('f-'+focus);
+      nextAt=0;
+    }));
+
+    // quadro parado (PDF e movimento reduzido): uma ficha de cada no meio do caminho
+    const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(STATIC || reduced){
+      place(0);
+      [['gp',{origin:OWN[3],cap:1},{rip:.35,main:[0,.36]}],
+       ['gi',{origin:L1[0].moons[2],cap:1},{rip:.35,ripDono:.3,main:[1,.35]}],
+       ['roy',{origin:L2[3].moons[0],cap:1},{rip:.35,ripDono:.3,main:[1,.56]}],
+       ['deep',{origin:L3[8]},{rip:.3,main:[1,.5]}]]
+        .forEach(([k,o,ov])=>draw(spawn(k,0,o),1,ov));
+      return;
+    }
+
+    function frame(now){
+      const t=(now-t0)/1000;
+      place(t);
+      while(script.length && script[0][0]<=t){ const [,k,o]=script.shift(); spawn(k,t,o); }
+      if(!script.length && t>=nextAt){
+        if(events.length<7){
+          const r=Math.random();
+          let k=r<.34?'gp':r<.67?'gi':r<.87?'roy':'deep';
+          if(focus) k=focus==='roy'?(Math.random()<.7?'roy':'deep'):focus;
+          spawn(k,t);
+        }
+        nextAt=t+.6+Math.random()*.65;
+      }
+      events=events.filter(ev=>{ const fim=draw(ev,t-ev.t0); if(fim) kill(ev); return !fim; });
+      raf=requestAnimationFrame(frame);
+    }
+    function start(){
+      events.forEach(kill); events=[];
+      focus=null; Object.values(rows).forEach(x=>x.classList.remove('sel')); svg.classList.remove('f-gp','f-gi','f-roy');
+      // roteiro de abertura: uma conta de cada tipo, com legenda, antes do fluxo livre
+      script=[[1.5,'gp',{origin:OWN[3],cap:1}],[3.3,'gi',{origin:L1[1].moons[1],cap:1}],[5.3,'roy',{origin:L2[4].moons[0],cap:1}],[7,'deep',{origin:L3[2]}]];
+      nextAt=8.2; t0=performance.now(); place(0);
+      cancelAnimationFrame(raf); raf=requestAnimationFrame(frame);
+    }
+    function stop(){ cancelAnimationFrame(raf); raf=0; events.forEach(kill); events=[]; }
+    place(0);
+    const ativo=()=>sec.classList.contains('active')||sec.classList.contains('leaving');
+    new MutationObserver(()=>{ const on=ativo(); if(on && !raf) start(); else if(!on && raf) stop(); }).observe(sec,{attributes:true,attributeFilter:['class']});
+    if(ativo()) start();
+    document.addEventListener('visibilitychange',()=>{ if(document.hidden) stop(); else if(ativo()) start(); });
+  })();
+  } catch(e){ console.error('orbita:',e); }
 
   // ?medir: grava no título os retângulos dos links do último slide (usado para o PDF)
   if(location.search.includes('medir')){ setTimeout(()=>{ const st=stage.getBoundingClientRect(), k=parseFloat(stage.style.getPropertyValue('--s'))||1;

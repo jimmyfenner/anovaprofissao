@@ -1052,6 +1052,19 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   = 5% de R$ 350), sem royalties, porque pelo manual novo a graduação depende da
   estrutura da rede. Saíram os cenários com rede (B1/B2); o Jimmy vai criar
   outro. A caixa "Com equipe, o ganho é exponencial" fica embaixo.
+- **Slide 8 "Como você ganha" em órbita (11/11/2026, pedido do Jimmy)**: SVG
+  animado no lugar dos 4 cartões GP/GI/RO/EQ. Você no centro; 1ª órbita = seus
+  clientes (GP, verde); 2ª = seus licenciados diretos com os clientes deles em
+  volta (GI, branco); 3ª = a equipe deles e a 4ª pontilhada "sem limite"
+  (Royalties, âmbar). Cada conta paga solta uma ficha que viaja até o centro; o
+  licenciado dono do cliente ganha o selo "GP". **Formato orbital de propósito:
+  nada de distribuição de cima para baixo em triângulo** (não pode parecer
+  pirâmide). Equiparação só em texto (Executivo em diante, até o 5º nível) e o
+  cartão PRO continua no slide. A equipe balança ±8° em vez de girar, para os
+  nós nunca cobrirem os rótulos das órbitas. Clique em GP, GI ou Royalties isola
+  o fluxo. `?static` (PDF) mostra um quadro fixo com uma ficha de cada tipo.
+  Fonte: `apresentacao-igreen-2026/fontes/orbita/` (slide.html, orbita.css,
+  orbita.js) aplicada por `fontes/patch_2026-11-11-orbita.py` (idempotente).
 - **Último slide = chamada com dois caminhos** (pedido de 28/10/2026): "Como
   você quer começar?" → Licença Mob (igreenmob.com.br com o `ref` do Jimmy) ou
   Connect FULL (expansao.igreenenergy.com.br, `id=1971&checkout=true&tipolicenca=CONNECT`),
