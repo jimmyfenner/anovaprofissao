@@ -101,6 +101,10 @@ function separaCabeca(src) {
    kit do igreencel e do querocarregador): só elas têm preload. Archivo,
    Instrument Sans e Plex Mono continuam para painel, transição e jurídicas. */
 const UR_LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+/* Lousa Infinita (ipad.anovaprofissao.com.br): quando uma página do site é aberta dentro da lousa do Jimmy, este
+   trecho baixa a ponte e, a partir daí, a Apple Pencil desenha por cima e o dedo continua usando o site.
+   Fora da lousa não baixa nada: a condição é a página estar dentro de outra. A ponte só fala com a lousa. */
+const LOUSA = `<script>(function(){if(window.parent===window)return;var s=document.createElement('script');s.src='https://ipad.anovaprofissao.com.br/ponte.js';s.async=true;document.head.appendChild(s);})();</script>`;
 const FONTES = `<link rel="preload" href="/fonts/outfit.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/raleway.woff2" as="font" type="font/woff2" crossorigin>
 <style>
@@ -153,6 +157,7 @@ ${noindex ? '' : schemas(body, comSite)}
   img{max-width:100%}
   [hidden]{display:none!important}
 </style>
+${LOUSA}
 </head>
 <body>
 ${body}
@@ -646,7 +651,8 @@ if (fs.existsSync(APRES)) {
 <meta property="og:description" content="Energia, telecom, seguros e eletropostos: como funciona o licenciamento iGreen, produto a produto.">
 <meta property="og:url" content="${SITE.url}/apresentacao">
 <meta property="og:type" content="website">
-<link rel="canonical" href="${SITE.url}/apresentacao">`);
+<link rel="canonical" href="${SITE.url}/apresentacao">
+${LOUSA}`);
       fs.writeFileSync(out('apresentacao', 'index.html'), html);
     } else if (!f.startsWith('.')) {
       fs.copyFileSync(path.join(APRES, f), out('apresentacao', f));

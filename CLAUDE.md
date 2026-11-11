@@ -1417,3 +1417,15 @@ cabeçalho deu lugar a `Content-Security-Policy: frame-ancestors 'self'
 https://ipad.anovaprofissao.com.br`: o próprio site e a lousa podem enquadrar,
 qualquer outro endereço continua barrado. Vale para todos os domínios do
 projeto. Não voltar o `X-Frame-Options`: ele não aceita lista de endereços.
+
+### Ponte com a lousa (11/nov/2026)
+
+Toda página gerada pelo `build.js` (inclusive `/apresentacao`) leva no `<head>`
+a constante `LOUSA`: um trecho de uma linha que, **só quando a página está
+dentro de outra** (`window.parent !== window`), baixa
+`https://ipad.anovaprofissao.com.br/ponte.js`. A ponte só age depois que a
+lousa responde, e só fala com ela: manda a posição da Apple Pencil, a rolagem
+e os gestos de dois ou mais dedos. Com isso, na lousa, a Pencil desenha por
+cima do site e o dedo continua usando o site, sem trocar de modo. O visitante
+comum não baixa nada. O arquivo `ponte.js` é gerado no projeto da lousa
+(`/Volumes/Sandisk/Claude/lousa/build.js`), não aqui.
