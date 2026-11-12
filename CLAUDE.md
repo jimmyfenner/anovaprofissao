@@ -425,7 +425,9 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 22 (link do Turbo no lead do diário) aplicada em 04/nov/2026 com o "Sim, publicar"
+Nenhuma. 27 (tarefas e lembretes repetidos do diário) aplicada em 12/nov/2026 com o "Aplique" do
+Jimmy, com a função `reunioes` publicada; os 24 lembretes que existiam viraram `tipo = 'lembrete'`.
+22 (link do Turbo no lead do diário) aplicada em 04/nov/2026 com o "Sim, publicar"
 do Jimmy; a primeira versão da checagem usava `{1,500}` e o Postgres só aceita repetição até
 255 (o erro só aparece ao gravar, não ao criar a checagem), corrigida na mesma noite.
 21 (diário de reuniões) aplicada em 04/nov/2026 com o "pode aplicar" do
@@ -1370,6 +1372,16 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   trocar para realizada/sem gravação quando a transcrição chegar, juntando pelo `event_id`) e, na
   remarcação, `remarcada_para` na antiga, sem mudar o status dela. Não cria agendamento no Turbo
   (sem os lembretes automáticos de lá).
+- **Tarefas e lembretes que se repetem** (12/11/2026, migração 27): `reunioes_lembretes.tipo`
+  (`lembrete` sempre com hora; `tarefa` com prazo opcional), `avisar` (tarefa só manda mensagem na
+  hora se tiver hora e pedir; senão aparece na agenda das 06:30 e no comando *tarefas*) e `repetir`
+  (`{tipo: diario|uteis|semanal|mensal, hora, dias?, dia?}`). A regra e a próxima data ficam em
+  `supabase/functions/_shared/repeticao.mjs` (testes em `tests/repeticao.test.mjs`): repetido criado
+  sem `quando` começa na próxima vez da regra; `lembrete_enviado` (o Mac chama depois de mandar)
+  leva o repetido para a próxima vez e deixa os outros como "enviado"; `lembrete_pular` pula a
+  próxima. No painel: aba **Lembretes e tarefas**, tipo e repetição na criação, prazo opcional,
+  filtro, **Pular a próxima** e **Parar** no repetido. Os comandos de WhatsApp ficam no assistente
+  do Mac (*tarefa …*, *lembrar todo dia 9h …*, *pular*, *parar*, *tarefas*, *lembretes*).
 
 ## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
 
