@@ -182,7 +182,7 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
 
     <nav class="abas" role="tablist">
       <button class="aba" role="tab" data-aba="leads" aria-selected="true">Leads<span class="n" id="n-leads"></span></button>
-      <button class="aba" role="tab" data-aba="lembretes" aria-selected="false">Lembretes<span class="n" id="n-lembretes"></span></button>
+      <button class="aba" role="tab" data-aba="lembretes" aria-selected="false">Lembretes e tarefas<span class="n" id="n-lembretes"></span></button>
       <button class="aba" role="tab" data-aba="reunioes" aria-selected="false">Reuniões<span class="n" id="n-reunioes"></span></button>
     </nav>
 
@@ -203,14 +203,18 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
     <section id="aba-lembretes" class="hidden">
       <form class="card" id="form-lembrete" style="padding:1rem;margin-bottom:1rem">
         <div class="grade">
-          <label class="campo" style="grid-column:1/-1">Novo lembrete<input class="inp" id="nl-texto" maxlength="1000" placeholder="Ex.: ligar para o Pablo sobre a vistoria" required></label>
-          <label class="campo">Quando<input class="inp" id="nl-quando" type="datetime-local" required></label>
+          <label class="campo">Tipo<select class="sel" id="nl-tipo"><option value="lembrete">Lembrete (chega na hora)</option><option value="tarefa">Tarefa (lista do que fazer)</option></select></label>
           <label class="campo">Lead (opcional)<select class="sel" id="nl-lead"><option value="">Nenhum</option></select></label>
+          <label class="campo" style="grid-column:1/-1"><span id="nl-rotulo">Novo lembrete</span><input class="inp" id="nl-texto" maxlength="1000" placeholder="Ex.: ligar para o Pablo sobre a vistoria" required></label>
+          <label class="campo"><span id="nl-quando-rotulo">Quando</span><input class="inp" id="nl-quando" type="datetime-local" required></label>
+          <label class="campo" id="nl-repetir-campo">Repetir<select class="sel" id="nl-repetir"><option value="">Não repete</option><option value="diario">Todo dia</option><option value="uteis">Dias úteis (seg a sex)</option><option value="semanal">Toda semana, no mesmo dia</option><option value="mensal">Todo mês, no mesmo dia</option></select></label>
+          <label class="mini mudo hidden" id="nl-avisar-campo" style="display:flex;gap:.35rem;align-items:center"><input type="checkbox" id="nl-avisar"> avisar no WhatsApp na hora do prazo</label>
         </div>
-        <div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary btn--sm" type="submit">Criar lembrete</button>
-          <span class="mudo mini">Chega no seu WhatsApp pelo 1575 na hora marcada.</span></div>
+        <div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary btn--sm" type="submit" id="nl-criar">Criar lembrete</button>
+          <span class="mudo mini" id="nl-dica">Chega no seu WhatsApp pelo 1575 na hora marcada.</span></div>
       </form>
-      <div class="filtros"><label class="mini mudo"><input type="checkbox" id="f-concluidos"> mostrar feitos e apagados</label></div>
+      <div class="filtros"><select class="sel" id="f-tipo" aria-label="Mostrar"><option value="">Lembretes e tarefas</option><option value="lembrete">Só lembretes</option><option value="tarefa">Só tarefas</option><option value="repete">Só os que se repetem</option></select>
+        <label class="mini mudo"><input type="checkbox" id="f-concluidos"> mostrar feitos e apagados</label></div>
       <div class="lista" id="lista-lembretes"></div>
     </section>
 
@@ -314,6 +318,26 @@ function fazer(acao, dados, msg){
 function reunioesDe(id){ return D.reunioes.filter(function(r){ return r.lead_id === id; }).sort(function(a,b){ return String(b.data + b.hora).localeCompare(String(a.data + a.hora)); }); }
 function lembretesDe(id){ return D.lembretes.filter(function(l){ return l.lead_id === id && (l.status === "pendente" || l.status === "enviado"); }); }
 function aberto(l){ return l.status === "pendente" || l.status === "enviado"; }
+function porQuando(a, b){ return String(a.quando || "9999").localeCompare(String(b.quando || "9999")); }
+var NOMES_DIA = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+// mesma descrição de supabase/functions/_shared/repeticao.mjs
+function descreverRep(r){
+  if(!r) return "";
+  if(r.tipo === "diario") return "todo dia " + r.hora;
+  if(r.tipo === "uteis") return "dias úteis " + r.hora;
+  if(r.tipo === "mensal") return "todo dia " + r.dia + " do mês " + r.hora;
+  var d = (r.dias || []).map(function(x){ return NOMES_DIA[x]; });
+  if(d.length === 1) return (r.dias[0] === 0 || r.dias[0] === 6 ? "todo " : "toda ") + d[0] + " " + r.hora;
+  return d.slice(0, -1).join(", ") + " e " + d[d.length - 1] + " " + r.hora;
+}
+function prazo(l){
+  if(!l.quando) return "sem prazo";
+  if(l.avisar !== false) return quandoCurto(l.quando);
+  var hoje = chaveDia(new Date()), d = chaveDia(l.quando);
+  if(d === hoje) return "hoje";
+  if(d === chaveDia(Date.now() + 864e5)) return "amanhã";
+  var p = partes(l.quando); return p.weekday.replace(".", "") + " " + p.day + "/" + p.month;
+}
 function agendadasDe(id){ return AG.filter(function(a){ return a.lead_id === id; }).sort(function(a,b){ return a.scheduled_at.localeCompare(b.scheduled_at); }); }
 function pendente(a){ return a.status === "pending" || a.status === "processing"; }
 var STATUS_AG = {pending:"agendada", processing:"saindo agora", sent:"enviada", cancelled:"cancelada", failed:"não saiu"};
@@ -324,7 +348,7 @@ function render(){
   var hoje = chaveDia(new Date()), semana = chaveDia(Date.now() - 7 * 864e5);
   $("#st-abertos").textContent = D.leads.filter(function(l){ return l.situacao === "aberto"; }).length;
   $("#st-quentes").textContent = D.leads.filter(function(l){ return l.situacao === "aberto" && l.temperatura === "quente"; }).length;
-  $("#st-hoje").textContent = D.lembretes.filter(function(l){ return aberto(l) && chaveDia(l.quando) <= hoje; }).length;
+  $("#st-hoje").textContent = D.lembretes.filter(function(l){ return aberto(l) && l.quando && chaveDia(l.quando) <= hoje; }).length;
   $("#st-semana").textContent = D.reunioes.filter(function(r){ return r.data >= semana; }).length;
   $("#n-leads").textContent = D.leads.length;
   $("#n-lembretes").textContent = D.lembretes.filter(aberto).length;
@@ -350,12 +374,12 @@ function renderLeads(){
   el.innerHTML = lista.map(cardLead).join("");
 }
 function cardLead(l){
-  var rs = reunioesDe(l.id), lb = lembretesDe(l.id).sort(function(a,b){ return a.quando.localeCompare(b.quando); })[0];
+  var rs = reunioesDe(l.id), lb = lembretesDe(l.id).sort(porQuando)[0];
   var ult = rs.filter(function(r){ return !futura(r); })[0];
   var proxR = rs.filter(function(r){ return futura(r) && r.status === "agendada"; }).sort(function(a,b){ return momento(a) - momento(b); })[0];
   var meta = [PRODUTO[l.produto] || "", l.cidade || "", ult ? "última reunião " + dataCurta(ult.data) + " " + (ult.hora || "") : "",
     proxR ? "🗓️ próxima " + quandoCurto(momento(proxR).toISOString()) : ""].filter(Boolean).join(" · ");
-  var prox = lb ? "⏰ " + (lb.status === "enviado" ? "enviado, sem resposta" : quandoCurto(lb.quando)) + ": " + esc(lb.texto) : "";
+  var prox = lb ? (lb.tipo === "tarefa" ? "📋 " + prazo(lb) : "⏰ " + (lb.status === "enviado" ? "enviado, sem resposta" : quandoCurto(lb.quando))) + ": " + esc(lb.texto) : "";
   var h = '<article class="card' + (abertos[l.id] ? " aberto" : "") + '" data-lead="' + l.id + '">';
   h += '<div class="card__cab" data-acao="abrir"><div class="card__qm"><div class="card__nome"><span class="seta">▸</span>' + esc(l.nome);
   if(l.temperatura) h += ' <span class="pill pill--' + l.temperatura + '">' + TEMP[l.temperatura] + "</span>";
@@ -453,7 +477,7 @@ function corpoLead(l, rs){
   rs.forEach(function(r){ h += blocoReuniao(r, false); });
   h += "</div>";
   // lembretes do lead
-  var lbs = lembretesDe(l.id).sort(function(a,b){ return a.quando.localeCompare(b.quando); });
+  var lbs = lembretesDe(l.id).sort(porQuando);
   h += '<div class="bloco"><h3>Lembretes</h3>' + (lbs.length ? "" : '<p class="mudo mini" style="margin-bottom:.4rem">Nenhum em aberto.</p>');
   lbs.forEach(function(x){ h += linhaLembrete(x, true); });
   h += '<button class="btn btn--sm" data-acao="novo-lembrete" style="margin-top:.4rem">+ Lembrete para este lead</button></div>';
@@ -490,31 +514,49 @@ function blocoReuniao(r, comLead){
 
 /* ---------- aba Lembretes ---------- */
 function linhaLembrete(l, dentroDoLead){
-  var atras = aberto(l) && new Date(l.quando) < new Date();
-  var q = l.status === "enviado" ? "enviado" : l.status === "feito" ? "feito" : l.status === "apagado" ? "apagado" : quandoCurto(l.quando);
+  var tarefa = l.tipo === "tarefa";
+  var atras = aberto(l) && l.quando && new Date(l.quando) < new Date() && !l.repetir;
+  var q = l.status === "enviado" ? "enviado" : l.status === "feito" ? (tarefa ? "feita" : "feito") : l.status === "apagado" ? (l.repetir ? "parado" : "apagado") : tarefa ? prazo(l) : quandoCurto(l.quando);
   var h = '<div class="lemb' + (aberto(l) ? "" : " feito") + '" data-lembrete="' + l.id + '"><div class="lemb__q' + (atras && l.status === "pendente" ? " atrasado" : "") + '">#' + l.id + " " + q + "</div>";
-  h += '<div class="lemb__t">' + esc(l.texto) + (!dentroDoLead && (l.lead_id || l.lead) ? "<small>" + esc(nomeLead(l.lead_id) || l.lead) + "</small>" : "");
+  h += '<div class="lemb__t">' + (tarefa ? '<span class="pill" style="margin-right:.35rem">📋 tarefa</span>' : "") + esc(l.texto) + (!dentroDoLead && (l.lead_id || l.lead) ? "<small>" + esc(nomeLead(l.lead_id) || l.lead) + "</small>" : "");
+  if(l.repetir) h += '<small style="color:#9FD3FF">🔁 ' + esc(descreverRep(l.repetir)) + (aberto(l) ? " · próxima " + quandoCurto(l.quando) : "") + "</small>";
+  if(tarefa && l.quando && l.avisar === false && aberto(l)) h += "<small>aparece na agenda das 06:30; não avisa na hora</small>";
   if(l.status === "enviado") h += "<small>chegou no WhatsApp " + quandoCurto(l.enviado_em) + ", sem resposta</small>";
   h += '<form class="hidden" data-form="editar-lembrete" style="margin-top:.5rem"><input class="inp" name="texto" value="' + esc(l.texto) + '" style="width:100%;margin-bottom:.4rem" required>';
-  h += '<input class="inp" name="quando" type="datetime-local" value="' + paraLocal(l.quando) + '"> <button class="btn btn--primary btn--sm" type="submit">Salvar</button></form></div>';
+  h += '<input class="inp" name="quando" type="datetime-local" value="' + (l.quando ? paraLocal(l.quando) : "") + '"' + (tarefa ? "" : " required") + '>';
+  if(!tarefa) h += ' <select class="sel" name="repetir" aria-label="Repetir">' + ['', 'diario', 'uteis', 'semanal', 'mensal'].map(function(v){
+    return '<option value="' + v + '"' + ((l.repetir ? l.repetir.tipo : "") === v ? " selected" : "") + ">" + ({"":"Não repete", diario:"Todo dia", uteis:"Dias úteis", semanal:"Toda semana", mensal:"Todo mês"})[v] + "</option>"; }).join("") + "</select>";
+  if(tarefa) h += ' <label class="mini mudo"><input type="checkbox" name="avisar"' + (l.avisar !== false && l.quando ? " checked" : "") + "> avisar na hora</label>";
+  h += ' <button class="btn btn--primary btn--sm" type="submit">Salvar</button>' + (tarefa ? '<p class="mini mudo" style="margin-top:.3rem">Deixe a data em branco para tarefa sem prazo.</p>' : "") + "</form></div>";
   h += '<div class="lemb__a">';
   if(aberto(l)){
-    h += '<button class="btn btn--sm" data-acao="feito">Feito</button>';
-    h += '<button class="btn btn--sm" data-acao="adiar-1h">+1 h</button><button class="btn btn--sm" data-acao="adiar-amanha">Amanhã 9h</button>';
+    if(l.repetir){
+      h += '<button class="btn btn--sm" data-acao="pular" title="Pula só a próxima vez">⏭️ Pular a próxima</button>';
+    } else {
+      h += '<button class="btn btn--sm" data-acao="feito">' + (tarefa ? "Feita" : "Feito") + "</button>";
+      if(tarefa) h += '<button class="btn btn--sm" data-acao="adiar-amanha">Prazo amanhã</button>';
+      else h += '<button class="btn btn--sm" data-acao="adiar-1h">+1 h</button><button class="btn btn--sm" data-acao="adiar-amanha">Amanhã 9h</button>';
+    }
     if(l.lead_id) h += '<button class="btn btn--sm" data-acao="agendar-do-lembrete" data-lead-id="' + esc(l.lead_id) + '" title="Agendar a mensagem para o lead no Turbo">✉️ Agendar msg</button>';
-    h += '<button class="btn btn--sm" data-acao="editar-lembrete">Editar</button><button class="btn btn--sm btn--perigo" data-acao="apagar-lembrete">Apagar</button>';
+    h += '<button class="btn btn--sm" data-acao="editar-lembrete">Editar</button><button class="btn btn--sm btn--perigo" data-acao="apagar-lembrete">' + (l.repetir ? "Parar" : "Apagar") + "</button>";
   } else {
     h += '<button class="btn btn--sm" data-acao="reabrir">Reabrir</button>';
   }
   return h + "</div></div>";
 }
 function renderLembretes(){
-  var todos = $("#f-concluidos").checked;
-  var lista = D.lembretes.filter(function(l){ return todos || aberto(l); }).sort(function(a,b){
+  var todos = $("#f-concluidos").checked, so = $("#f-tipo").value;
+  var lista = D.lembretes.filter(function(l){
+    if(!todos && !aberto(l)) return false;
+    if(so === "tarefa") return l.tipo === "tarefa";
+    if(so === "lembrete") return l.tipo !== "tarefa";
+    if(so === "repete") return Boolean(l.repetir);
+    return true;
+  }).sort(function(a,b){
     var x = aberto(a) - aberto(b); if(x) return -x;
-    return aberto(a) ? a.quando.localeCompare(b.quando) : String(b.atualizado_em).localeCompare(String(a.atualizado_em));
+    return aberto(a) ? porQuando(a, b) : String(b.atualizado_em).localeCompare(String(a.atualizado_em));
   });
-  $("#lista-lembretes").innerHTML = lista.length ? lista.map(function(l){ return linhaLembrete(l, false); }).join("") : '<div class="vazio">Nenhum lembrete em aberto.</div>';
+  $("#lista-lembretes").innerHTML = lista.length ? lista.map(function(l){ return linhaLembrete(l, false); }).join("") : '<div class="vazio">Nada em aberto aqui.</div>';
 }
 
 /* ---------- aba Reuniões ---------- */
@@ -597,7 +639,12 @@ document.addEventListener("click", function(e){
   }
   if(acao === "feito") return fazer("lembrete_salvar", {id:lid, status:"feito"}, "Feito ✅");
   if(acao === "reabrir") return fazer("lembrete_salvar", {id:lid, status:"pendente"}, "Lembrete reaberto.");
-  if(acao === "apagar-lembrete"){ if(confirm("Apagar este lembrete?")) fazer("lembrete_salvar", {id:lid, status:"apagado"}, "Lembrete apagado."); return; }
+  if(acao === "apagar-lembrete"){
+    var lA = D.lembretes.find(function(x){ return x.id === lid; }) || {};
+    if(confirm(lA.repetir ? "Parar este lembrete? Ele não repete mais." : lA.tipo === "tarefa" ? "Apagar esta tarefa?" : "Apagar este lembrete?")) fazer("lembrete_salvar", {id:lid, status:"apagado"}, lA.repetir ? "Parado." : "Apagado.");
+    return;
+  }
+  if(acao === "pular") return fazer("lembrete_salvar", {id:lid, pular:true}, "Pulei a próxima vez.");
   if(acao === "adiar-1h") return fazer("lembrete_salvar", {id:lid, quando:new Date(Date.now() + 36e5).toISOString()}, "Adiado 1 hora.");
   if(acao === "adiar-amanha") return fazer("lembrete_salvar", {id:lid, quando:amanhaAs(9).toISOString()}, "Adiado para amanhã 9h.");
   if(acao === "editar-lembrete"){ $('[data-form="editar-lembrete"]', b.closest("[data-lembrete]")).classList.toggle("hidden"); return; }
@@ -657,15 +704,38 @@ document.addEventListener("submit", function(e){
       return carregar();
     }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "editar-lembrete"){
-    trava(fazer("lembrete_salvar", {id:lembreteDoEl(f), texto:f.texto.value, quando:deLocal(f.quando.value)}, "Lembrete salvo.")).catch(function(){});
+    var dadosE = {id:lembreteDoEl(f), texto:f.texto.value, quando:f.quando.value ? deLocal(f.quando.value) : null};
+    if(f.repetir) dadosE.repetir = f.repetir.value ? {tipo:f.repetir.value} : null;
+    if(f.avisar) dadosE.avisar = f.avisar.checked && Boolean(f.quando.value);
+    trava(fazer("lembrete_salvar", dadosE, "Salvo.")).catch(function(){});
   }
 });
 
+// o formulário muda com o tipo: tarefa não repete, o prazo é opcional e só avisa se pedir
+function tipoNovo(){
+  var tarefa = $("#nl-tipo").value === "tarefa";
+  $("#nl-rotulo").textContent = tarefa ? "Nova tarefa" : "Novo lembrete";
+  $("#nl-texto").placeholder = tarefa ? "Ex.: renovar o seguro do carro" : "Ex.: ligar para o Pablo sobre a vistoria";
+  $("#nl-quando-rotulo").textContent = tarefa ? "Prazo (opcional)" : "Quando";
+  $("#nl-quando").required = !tarefa;
+  if(tarefa && $("#nl-quando").value === paraLocal(amanhaAs(9))) $("#nl-quando").value = "";
+  if(!tarefa && !$("#nl-quando").value) $("#nl-quando").value = paraLocal(amanhaAs(9));
+  $("#nl-repetir-campo").classList.toggle("hidden", tarefa);
+  $("#nl-avisar-campo").classList.toggle("hidden", !tarefa);
+  $("#nl-criar").textContent = tarefa ? "Criar tarefa" : "Criar lembrete";
+  $("#nl-dica").textContent = tarefa ? "Entra na lista de tarefas e na agenda das 06:30 no WhatsApp." : "Chega no seu WhatsApp pelo 1575 na hora marcada.";
+}
+$("#nl-tipo").addEventListener("change", tipoNovo);
+$("#f-tipo").addEventListener("change", renderLembretes);
 $("#form-lembrete").addEventListener("submit", function(e){
   e.preventDefault();
   var b = this.querySelector('[type="submit"]'); b.disabled = true;
-  fazer("lembrete_criar", {texto:$("#nl-texto").value, quando:deLocal($("#nl-quando").value), lead_id:$("#nl-lead").value || null}, "Lembrete criado.")
-    .then(function(){ $("#nl-texto").value = ""; $("#nl-quando").value = paraLocal(amanhaAs(9)); })
+  var tarefaN = $("#nl-tipo").value === "tarefa", qN = $("#nl-quando").value;
+  var dadosN = {tipo:$("#nl-tipo").value, texto:$("#nl-texto").value, quando:qN ? deLocal(qN) : null, lead_id:$("#nl-lead").value || null};
+  if(!tarefaN && $("#nl-repetir").value) dadosN.repetir = {tipo:$("#nl-repetir").value};
+  if(tarefaN) dadosN.avisar = $("#nl-avisar").checked && Boolean(qN);
+  fazer("lembrete_criar", dadosN, tarefaN ? "Tarefa criada." : dadosN.repetir ? "Lembrete criado: repete " + descreverRep(Object.assign({hora:qN.slice(11, 16), dias:[new Date(deLocal(qN)).getDay()], dia:Number(qN.slice(8, 10))}, dadosN.repetir)) + "." : "Lembrete criado.")
+    .then(function(){ $("#nl-texto").value = ""; $("#nl-repetir").value = ""; $("#nl-quando").value = tarefaN ? "" : paraLocal(amanhaAs(9)); })
     .catch(function(){}).finally(function(){ b.disabled = false; });
 });
 
@@ -730,8 +800,20 @@ function demoChamar(acao, d){
   if(acao === "lead_remover") D.leads = D.leads.filter(function(x){ return x.id !== d.id; });
   if(acao === "reuniao_salvar"){ var r = D.reunioes.find(function(x){ return x.chave === d.chave; }); r.status = d.status; }
   if(acao === "reuniao_remover") D.reunioes = D.reunioes.filter(function(x){ return x.chave !== d.chave; });
-  if(acao === "lembrete_salvar"){ var x = L(d.id); if(d.status) x.status = d.status; if(d.quando){ x.quando = d.quando; x.status = "pendente"; } if(d.texto) x.texto = d.texto; x.atualizado_em = agora; }
-  if(acao === "lembrete_criar") D.lembretes.push({id: D.lembretes.length + 1, texto:d.texto, quando:d.quando, lead_id:d.lead_id, status:"pendente", atualizado_em:agora});
+  if(acao === "lembrete_salvar"){
+    var x = L(d.id);
+    if(d.pular){ var px = new Date(x.quando); px.setDate(px.getDate() + (x.repetir.tipo === "mensal" ? 30 : x.repetir.tipo === "semanal" ? 7 : 1)); x.quando = px.toISOString(); }
+    if(d.status) x.status = d.status;
+    if(d.quando !== undefined){ x.quando = d.quando; x.status = "pendente"; }
+    if(d.repetir !== undefined) x.repetir = d.repetir ? Object.assign({hora:hhmm(x.quando), dias:[new Date(x.quando).getDay()], dia:Number(partes(x.quando).day)}, d.repetir) : null;
+    if(d.avisar !== undefined) x.avisar = d.avisar;
+    if(d.texto) x.texto = d.texto; x.atualizado_em = agora;
+  }
+  if(acao === "lembrete_criar"){
+    if(d.tipo !== "tarefa" && !d.quando) return Promise.reject(new Error("Diga quando lembrar."));
+    D.lembretes.push({id: D.lembretes.length + 1, tipo:d.tipo || "lembrete", texto:d.texto, quando:d.quando, lead_id:d.lead_id, status:"pendente", avisar:d.tipo === "tarefa" ? Boolean(d.avisar) : true,
+      repetir:d.repetir ? Object.assign({hora:hhmm(d.quando), dias:[new Date(d.quando).getDay()], dia:Number(partes(d.quando).day)}, d.repetir) : null, atualizado_em:agora});
+  }
   if(acao === "comentar") D.comentarios.unshift({id: Date.now(), lead_id:d.lead_id, texto:d.texto, criado_em:agora});
   if(acao === "comentario_remover") D.comentarios = D.comentarios.filter(function(c){ return c.id !== d.id; });
   if(acao === "agendados") return Promise.resolve({items: AG});
@@ -773,7 +855,10 @@ function demoDados(){
   D.lembretes = [
     {id:1, texto:"Conferir se a Carla pagou o sinal do Mob Fast", quando:h(1,"09:00"), lead_id:"a1", status:"pendente", atualizado_em:h(0,"10:40")},
     {id:2, texto:"Cobrar retorno do Rogério: ia falar com o sócio", quando:h(-1,"10:00"), lead_id:"a2", status:"enviado", enviado_em:h(-1,"10:00"), atualizado_em:h(-1,"10:00")},
-    {id:3, texto:"Revisar a apresentação do Mob", quando:h(0,"18:00"), lead_id:null, status:"pendente", atualizado_em:h(0,"09:00")}
+    {id:3, texto:"Revisar a apresentação do Mob", quando:h(0,"18:00"), lead_id:null, status:"pendente", atualizado_em:h(0,"09:00")},
+    {id:4, texto:"Postar no Instagram", quando:h(1,"10:00"), lead_id:null, status:"pendente", repetir:{tipo:"semanal", dias:[1,4], hora:"10:00"}, atualizado_em:h(0,"09:00")},
+    {id:5, tipo:"tarefa", texto:"Renovar o seguro do carro", quando:h(2,"09:00"), avisar:false, lead_id:null, status:"pendente", atualizado_em:h(0,"09:00")},
+    {id:6, tipo:"tarefa", texto:"Ligar pro contador", quando:null, avisar:false, lead_id:null, status:"pendente", atualizado_em:h(0,"09:00")}
   ];
   D.comentarios = [{id:1, lead_id:"a1", texto:"Indicação do Mario. Prefere falar à tarde.", criado_em:h(0,"10:45")}];
   D.envios = [];

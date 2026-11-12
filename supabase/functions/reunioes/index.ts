@@ -9,6 +9,7 @@
 // A chave da Evolution vive nos Secrets (EVOLUTION_URL, EVOLUTION_APIKEY).
 
 import { normalizarNumero } from "../_shared/mensagem.mjs";
+import { normalizarRepeticao, proximaOcorrencia } from "../_shared/repeticao.mjs";
 
 const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
 const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
@@ -267,10 +268,28 @@ async function leadDaReuniao(chave: string | null): Promise<string | null> {
   return r?.lead_id ?? null;
 }
 
+// Lembrete (sempre com hora, pode se repetir) ou tarefa (lista do que fazer; prazo opcional).
+// Repetido sem "quando": a primeira vez sai da regra. Tarefa só avisa na hora se pedir (avisar).
+function regraOuRecusa(regra: unknown, base: unknown) {
+  try {
+    return normalizarRepeticao(regra, base ?? undefined);
+  } catch (e) {
+    throw new Recusa(e instanceof Error ? e.message : "Repetição inválida.");
+  }
+}
 async function criarLembrete(l: any) {
+  const tipo = l?.tipo === "tarefa" ? "tarefa" : "lembrete";
+  const regra = tipo === "lembrete" && l?.repetir ? regraOuRecusa(l.repetir, l?.quando) : null;
+  let quando: string | null = null;
+  if (l?.quando) quando = quandoValido(l.quando);
+  else if (regra) quando = proximaOcorrencia(regra, new Date()).toISOString();
+  else if (tipo === "lembrete") throw new Recusa("Diga quando lembrar.");
   const linha = {
+    tipo,
+    repetir: regra,
+    avisar: tipo === "lembrete" ? true : Boolean(l?.avisar === true && quando),
     texto: texto(l?.texto, 1000),
-    quando: quandoValido(l?.quando),
+    quando,
     reuniao: l?.reuniao ? String(l.reuniao) : null,
     lead_id: l?.lead_id && UUID.test(String(l.lead_id)) ? l.lead_id : await leadDaReuniao(l?.reuniao ?? null),
     lead: texto(l?.lead, 200),
@@ -301,17 +320,43 @@ async function gravarLembretes(lista: any[]) {
 }
 
 // alterações pontuais do ciclo (status, envio, adiamento, pergunta respondida)
-const PATCH_LEMBRETE = ["texto", "quando", "status", "enviado_em", "feito_em", "apagado_em", "adiamentos"];
+const PATCH_LEMBRETE = ["texto", "quando", "status", "enviado_em", "feito_em", "apagado_em", "adiamentos", "tipo", "avisar", "repetir"];
 const PATCH_REUNIAO = ["status", "status_por", "status_em", "perguntado_em", "remarcada_para", "temperatura", "resumo"];
 async function patchLembrete(id: number, campos: any) {
   const c = soCampos(campos, PATCH_LEMBRETE);
   if (c.status !== undefined && !STATUS_LEMBRETE.includes(String(c.status))) throw new Recusa("Status de lembrete inválido.");
-  if (c.quando !== undefined) c.quando = quandoValido(c.quando);
+  if (c.quando !== undefined && c.quando !== null) c.quando = quandoValido(c.quando);
+  if (c.tipo !== undefined && !["lembrete", "tarefa"].includes(String(c.tipo))) throw new Recusa("Tipo inválido.");
+  if (c.repetir !== undefined && c.repetir !== null) c.repetir = regraOuRecusa(c.repetir, c.quando);
+  if (c.avisar !== undefined) c.avisar = c.avisar === true;
   const [l] = await rest(`reunioes_lembretes?id=eq.${id}`, {
     method: "PATCH", body: JSON.stringify({ ...c, atualizado_em: new Date().toISOString() }),
   });
   if (!l) throw new Recusa("Lembrete não encontrado.", 404);
   return l;
+}
+async function lerLembrete(id: number) {
+  const [l] = await rest(`reunioes_lembretes?id=eq.${id}&select=*`);
+  if (!l) throw new Recusa("Lembrete não encontrado.", 404);
+  return l;
+}
+// Mandou no WhatsApp: o que se repete vai para a próxima vez e continua pendente; o resto fica "enviado".
+async function lembreteEnviado(id: number) {
+  const l = await lerLembrete(id);
+  const agora = new Date();
+  if (l.repetir) {
+    const base = l.quando && Date.parse(l.quando) > agora.getTime() ? new Date(l.quando) : agora;
+    return patchLembrete(id, { quando: proximaOcorrencia(l.repetir, base).toISOString(), enviado_em: agora.toISOString(), status: "pendente" });
+  }
+  return patchLembrete(id, { status: "enviado", enviado_em: agora.toISOString() });
+}
+// Pula a próxima vez de um lembrete que se repete (o painel e o "pular" do WhatsApp).
+async function lembretePular(id: number) {
+  const l = await lerLembrete(id);
+  if (!l.repetir) throw new Recusa("Esse lembrete não se repete.");
+  const agora = new Date();
+  const base = l.quando && Date.parse(l.quando) > agora.getTime() ? new Date(l.quando) : agora;
+  return patchLembrete(id, { quando: proximaOcorrencia(l.repetir, base).toISOString(), status: "pendente", enviado_em: null });
 }
 async function patchReuniao(chave: string, campos: any) {
   const c = soCampos(campos, PATCH_REUNIAO);
@@ -671,6 +716,8 @@ Deno.serve(async (req) => {
       }
       if (acao === "lembrete_criar") return json({ lembrete: await criarLembrete(b.lembrete) });
       if (acao === "lembrete_patch") return json({ lembrete: await patchLembrete(idLembrete(b.id), b.campos ?? {}) });
+      if (acao === "lembrete_enviado") return json({ lembrete: await lembreteEnviado(idLembrete(b.id)) });
+      if (acao === "lembrete_pular") return json({ lembrete: await lembretePular(idLembrete(b.id)) });
       if (acao === "reuniao_patch") return json({ reuniao: await patchReuniao(String(b.chave ?? ""), b.campos ?? {}) });
       // só leitura: o Mac vê os follow-ups agendados no Turbo, mas não agenda nem cancela
       if (acao === "agendados") return json(await agendados());
@@ -702,15 +749,30 @@ Deno.serve(async (req) => {
       const id = idLembrete(b.id);
       const campos: any = {};
       const agora = new Date().toISOString();
+      if (b.pular === true) return json({ lembrete: await lembretePular(id) });
       if (b.texto !== undefined) campos.texto = texto(b.texto, 1000);
+      if (b.tipo !== undefined) campos.tipo = b.tipo === "tarefa" ? "tarefa" : "lembrete";
+      if (b.avisar !== undefined) campos.avisar = b.avisar === true;
       if (b.quando !== undefined) {
-        const [l] = await rest(`reunioes_lembretes?id=eq.${id}&select=quando,adiamentos`);
-        if (!l) throw new Recusa("Lembrete não encontrado.", 404);
-        campos.quando = quandoValido(b.quando);
+        const l = await lerLembrete(id);
+        const tipoFinal = campos.tipo ?? l.tipo;
+        if (b.quando === null || b.quando === "") {
+          if (tipoFinal !== "tarefa") throw new Recusa("Lembrete precisa de data e hora.");
+          campos.quando = null;
+          campos.avisar = false;
+        } else campos.quando = quandoValido(b.quando);
         campos.status = "pendente";
         campos.enviado_em = null;
         campos.adiamentos = [...(l.adiamentos ?? []), { de: l.quando, em: agora, por: "painel" }];
       }
+      if (b.repetir !== undefined) {
+        if (b.repetir === null) campos.repetir = null;
+        else {
+          const base = campos.quando ?? (await lerLembrete(id)).quando;
+          campos.repetir = regraOuRecusa(b.repetir, base);
+        }
+      }
+      if (campos.tipo === "tarefa") campos.repetir = null;
       if (b.status === "feito") Object.assign(campos, { status: "feito", feito_em: agora });
       if (b.status === "apagado") Object.assign(campos, { status: "apagado", apagado_em: agora });
       if (b.status === "pendente") Object.assign(campos, { status: "pendente", feito_em: null, apagado_em: null });
