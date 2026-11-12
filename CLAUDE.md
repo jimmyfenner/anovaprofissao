@@ -1382,6 +1382,47 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   próxima. No painel: aba **Lembretes e tarefas**, tipo e repetição na criação, prazo opcional,
   filtro, **Pular a próxima** e **Parar** no repetido. Os comandos de WhatsApp ficam no assistente
   do Mac (*tarefa …*, *lembrar todo dia 9h …*, *pular*, *parar*, *tarefas*, *lembretes*).
+- **Trechos para short e autorização** (12/11/2026, migração 28): a rotina do diário marca em cada
+  reunião com lead os trechos bons para short em `reunioes.momentos` (null = ainda não olhou,
+  `[]` = nada; até 8 itens `{ini, fim, quem, tipo, fala, porque, cuidado, forca, fonte, usado}`,
+  regras em `supabase/functions/_shared/momentos.mjs`, testes em `tests/momentos.test.mjs`) e o
+  vídeo da gravação em `gravacao_id`. O `gravar` só preenche quando ainda é null (não desfaz o que o
+  Jimmy ou a sessão dos shorts mexeram) e devolve `momentos_descartados`; o `reuniao_patch` e o
+  `reuniao_salvar` aceitam a lista inteira e recusam item inválido. Lead: `short_ok`
+  (null/pedido/sim/nao) e `short_ok_em`. Painel: bloco **🎬 Trechos para short** na reunião
+  (Usado/Desmarcar/Tirar, link da gravação), pílula 🎬 no cartão, seletor de autorização,
+  **Pedir autorização** (abre a mensagem pronta; depois de mandar, marca "pedido") e o filtro
+  Short na aba Leads. O Mac gera `Reunioes/Momentos para shorts.md` (separado por autorização) e
+  `dados/momentos-para-shorts.json`; é daí que a sessão dos shorts parte.
+- **Gerar short pelo painel** (12/11/2026, migração 29): aba **🎬 Shorts** do /reunioes. O Jimmy
+  escolhe trechos (**＋ Short** na aba ou no bloco de trechos da reunião; a escolha fica no
+  `localStorage`, com ordem, título de abertura e recado) e aperta **Gerar short** → `short_criar`
+  grava em `reunioes_shorts` uma CÓPIA dos trechos (regras em `supabase/functions/_shared/shorts.mjs`,
+  testes em `tests/shorts.test.mjs`; trecho sem `gravacao_id` não entra). Status: fila → montando →
+  pronto → aprovado → publicando → publicado; pronto → ajustar → montando; montando/publicando →
+  erro (**Tentar de novo** volta para aprovado/ajustar/fila); descartado apaga a prévia. Quem monta
+  e publica é a rotina **shorts-do-painel** do Mac (`studio/tools/shorts-painel`, LEIA-ME lá), com
+  o token do assistente: `shorts_fila`, `short_upload` (link assinado para subir a prévia no bucket
+  privado `reunioes-shorts`, `<id>/v<N>.mp4`, até 50 MB), `short_marcar` (passos permitidos em
+  `macPode`; "pronto" exige o arquivo no bucket; "publicando" confere de novo `short_ok = sim` de
+  todos os leads dos trechos; "publicado" marca os trechos como `usado: "painel dd/mm"` na reunião)
+  e `short_avisado`. No painel, o pronto mostra a prévia (link assinado de 2 h no `estado`), quem
+  aparece com a autorização, destinos (YouTube Shorts @jimmyfenner; Reels @minerandoosol com o
+  @querocarregador) e o texto proposto pelo Mac (`short_salvar`); **Aprovar e publicar**
+  (`short_aprovar`) só libera com o ok de todos. Aviso no WhatsApp (pronto, erro, publicado): ciclo do
+  assistente do Mac (`lib/shorts.mjs`), uma vez por mudança (`avisado`). Link direto:
+  `/reunioes?aba=shorts`.
+- **Lembrete encaminhado** (12/11/2026, migração 30, "agendei mensagem para o Danilo e ele continua no
+  topo dos lembretes"): `reunioes_lembretes.encaminhado` = `{como: agendada|enviada|manual, em, para,
+  agendada_id, texto}`. O `agendar` (Turbo) e o `enviar` do painel marcam sozinhos os lembretes abertos
+  do lead que vencem até o fim do dia da mensagem, mais o lembrete de onde partiu o **✉️ Agendar msg**
+  (`lembrete_id`); nunca os repetidos nem tarefa sem prazo (regra em `_shared/encaminhar.mjs`, testes em
+  `tests/encaminhar.test.mjs`); o pedido de autorização de short vai com `encaminhar: false`. Botões
+  **✓ Já encaminhei** e **↩︎ Voltar para a fila** (`lembrete_salvar` com `encaminhado`). Volta para a
+  fila sozinho ao adiar, reabrir ou cancelar a mensagem agendada (`agendado_cancelar` limpa pelo
+  `agendada_id`). No painel ficam numa seção "✉️ Encaminhados · esperando resposta", fora dos números
+  de "Lembretes hoje" e da aba. No Mac: não saem no WhatsApp na hora, não entram na agenda das 06:30
+  (só a contagem), vão para uma lista à parte no *pendentes* e no Diário.
 
 ## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
 

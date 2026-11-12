@@ -10,6 +10,12 @@
 
 import { normalizarNumero } from "../_shared/mensagem.mjs";
 import { normalizarRepeticao, proximaOcorrencia } from "../_shared/repeticao.mjs";
+import { idDrive, normalizarMomentos } from "../_shared/momentos.mjs";
+import { cobertosPelaMensagem, normalizarEncaminhado } from "../_shared/encaminhar.mjs";
+import {
+  faltaAutorizar, faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
+  normalizarPublicacao, normalizarTitulo, rotuloUsado,
+} from "../_shared/shorts.mjs";
 
 const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
 const EVO_KEY = Deno.env.get("EVOLUTION_APIKEY") ?? "";
@@ -36,6 +42,7 @@ const SITUACOES = ["aberto", "ganho", "perdido", "pausado"];
 const TEMPERATURAS = ["quente", "morno", "frio"];
 const STATUS_REUNIAO = ["realizada", "curta", "sem_gravacao", "nao_compareceu", "remarcada", "agendada"];
 const STATUS_LEMBRETE = ["pendente", "enviado", "feito", "apagado"];
+const SHORT_OK = ["pedido", "sim", "nao"];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ── banco (service role) ─────────────────────────────────────
@@ -148,21 +155,163 @@ function idLead(v: unknown): string {
 }
 
 // ── leitura ──────────────────────────────────────────────────
-async function estado() {
-  const [leads, reunioes, lembretes, comentarios, envios] = await Promise.all([
+async function estado(comLinks = false) {
+  const [leads, reunioes, lembretes, comentarios, envios, shorts] = await Promise.all([
     rest("reunioes_leads?select=*&order=atualizado_em.desc"),
     rest("reunioes?select=*&order=data.desc,hora.desc"),
     rest("reunioes_lembretes?select=*&order=quando.asc&limit=2000"),
     rest("reunioes_comentarios?select=*&order=criado_em.desc&limit=2000"),
     rest("reunioes_envios?select=*&order=criado_em.desc&limit=500"),
+    rest("reunioes_shorts?select=*&order=criado_em.desc&limit=60"),
   ]);
   const porId = new Map(leads.map((l: any) => [l.id, l]));
   // o assistente do Mac usa `lead` dentro da reunião (nome, telefone…)
   for (const r of reunioes) {
     const l: any = porId.get(r.lead_id);
-    r.lead = l ? { id: l.id, nome: l.nome, telefone: l.telefone, turbo_url: l.turbo_url ?? null, cidade: l.cidade, empresa: l.empresa, situacao: l.situacao } : null;
+    r.lead = l ? { id: l.id, nome: l.nome, telefone: l.telefone, turbo_url: l.turbo_url ?? null, cidade: l.cidade, empresa: l.empresa, situacao: l.situacao, short_ok: l.short_ok ?? null } : null;
   }
-  return { leads, reunioes, lembretes, comentarios, envios };
+  // prévia dos shorts: link assinado de 2 h só para o painel (o bucket é privado)
+  if (comLinks) {
+    await Promise.all(shorts.filter((s: any) => s.video && s.status !== "descartado").slice(0, 12).map(async (s: any) => {
+      s.video_url = await linkVideo(s.video).catch(() => null);
+    }));
+  }
+  return { leads, reunioes, lembretes, comentarios, envios, shorts };
+}
+
+// ── shorts pedidos no painel (migração 29, regras em _shared/shorts.mjs) ──
+const BUCKET_SHORTS = "reunioes-shorts";
+async function storage(path: string, init: RequestInit = {}) {
+  const r = await fetch(`${SB_URL}/storage/v1/${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, ...((init.headers as Record<string, string>) ?? {}) },
+  });
+  const txt = await r.text();
+  let body: any = txt;
+  try { body = JSON.parse(txt); } catch { /* texto */ }
+  return { ok: r.ok, status: r.status, body };
+}
+async function linkVideo(path: string): Promise<string | null> {
+  const r = await storage(`object/sign/${BUCKET_SHORTS}/${path}`, { method: "POST", body: JSON.stringify({ expiresIn: 7200 }) });
+  return r.ok && r.body?.signedURL ? `${SB_URL}/storage/v1${r.body.signedURL}` : null;
+}
+async function videosDo(id: string): Promise<string[]> {
+  const r = await storage(`object/list/${BUCKET_SHORTS}`, { method: "POST", body: JSON.stringify({ prefix: id, limit: 100, offset: 0 }) });
+  return Array.isArray(r.body) ? r.body.map((o: any) => `${id}/${o?.name}`).filter((p: string) => /\/v\d{1,3}\.mp4$/.test(p)) : [];
+}
+async function videoNoAr(path: string): Promise<boolean> {
+  return (await videosDo(path.split("/")[0])).includes(path);
+}
+// as regras puras erram com Error comum; aqui viram recusa com a mensagem para o painel
+function pura<T>(fn: () => T): T {
+  try {
+    return fn();
+  } catch (e) {
+    throw new Recusa(e instanceof Error ? e.message : "Dados inválidos.");
+  }
+}
+function idShort(v: unknown): string {
+  const s = String(v ?? "");
+  if (!UUID.test(s)) throw new Recusa("Short inválido.");
+  return s;
+}
+async function lerShort(id: string) {
+  const [s] = await rest(`reunioes_shorts?id=eq.${id}&select=*`);
+  if (!s) throw new Recusa("Short não encontrado.", 404);
+  return s;
+}
+// muda só se o status ainda for um dos esperados (o Mac e o painel podem mexer ao mesmo tempo)
+async function patchShort(id: string, campos: Record<string, unknown>, deStatus: string[]) {
+  const agora = new Date().toISOString();
+  if (campos.status) campos.status_em = agora;
+  const [s] = await rest(`reunioes_shorts?id=eq.${id}&status=in.(${deStatus.join(",")})`, {
+    method: "PATCH", body: JSON.stringify({ ...campos, atualizado_em: agora }),
+  });
+  if (!s) throw new Recusa("Este short mudou enquanto isso. Atualize a página.", 409);
+  return s;
+}
+const leadsCurtos = () => rest("reunioes_leads?select=id,nome,short_ok");
+
+async function criarShort(b: any) {
+  const [reunioes, leads] = await Promise.all([
+    rest("reunioes?momentos=not.is.null&select=chave,lead_id,data,hora,titulo,gravacao_id,doc_id,momentos"),
+    leadsCurtos(),
+  ]);
+  const trechos = pura(() => montarTrechos(b.itens, reunioes, leads));
+  const titulo = pura(() => normalizarTitulo(b.titulo));
+  const [s] = await rest("reunioes_shorts", {
+    method: "POST",
+    body: JSON.stringify({ trechos, titulo, pedido: texto(b.pedido, 1000), destinos: { youtube: true, instagram: true } }),
+  });
+  return s;
+}
+async function aprovarShort(b: any) {
+  const id = idShort(b.id);
+  const [s, leads] = await Promise.all([lerShort(id), leadsCurtos()]);
+  const publicacao = pura(() => normalizarPublicacao(b.publicacao ?? s.publicacao));
+  const destinos = normalizarDestinos(b.destinos ?? s.destinos);
+  const falta = faltaParaAprovar({ ...s, publicacao, destinos }, leads);
+  if (falta.length) throw new Recusa(falta.join(" "));
+  return patchShort(id, { status: "aprovado", publicacao, destinos, aprovado_em: new Date().toISOString(), erro: null }, ["pronto"]);
+}
+async function apagarVideos(id: string) {
+  const nomes = await videosDo(id);
+  if (nomes.length) await storage(`object/${BUCKET_SHORTS}`, { method: "DELETE", body: JSON.stringify({ prefixes: nomes }) });
+}
+
+// passos do Mac: montando → pronto (com a prévia no bucket) · aprovado → publicando → publicado · erro
+async function marcarShort(b: any) {
+  const id = idShort(b.id);
+  const s = await lerShort(id);
+  const para = String(b.status ?? "");
+  if (!macPode(s.status, para)) throw new Recusa(`Passo inválido: ${s.status} → ${para}.`, 409);
+  const c: Record<string, unknown> = { status: para };
+  if (para === "montando") c.erro = null;
+  if (para === "pronto") {
+    const v = String(b.video ?? "");
+    const m = new RegExp(`^${id}/v(\\d{1,3})\\.mp4$`).exec(v);
+    if (!m || !(await videoNoAr(v))) throw new Recusa("A prévia não está no bucket: suba antes de marcar pronto.");
+    c.video = v;
+    c.versao = Number(m[1]);
+    const d = Number(b.duracao);
+    c.duracao = Number.isFinite(d) && d > 0 && d < 600 ? Math.round(d * 10) / 10 : null;
+    if (Array.isArray(b.roteiro)) c.roteiro = b.roteiro.slice(0, 30);
+    if (b.publicacao !== undefined) c.publicacao = pura(() => normalizarPublicacao(b.publicacao));
+  }
+  if (para === "publicando") {
+    // confere de novo na hora de publicar: alguém pode ter mudado a autorização depois da aprovação
+    const falta = faltaAutorizar(s.trechos, await leadsCurtos());
+    if (falta.length) throw new Recusa(`Falta o ok para aparecer: ${falta.join(", ")}.`, 409);
+    if (!s.aprovado_em) throw new Recusa("O short não foi aprovado no painel.", 409);
+  }
+  if (para === "publicado") {
+    const link = (v: unknown) => /^https:\/\/(www\.)?(youtube\.com|youtu\.be|instagram\.com)\/\S{3,300}$/.test(String(v ?? "")) ? String(v) : null;
+    c.publicado = { youtube: link(b.publicado?.youtube), instagram: link(b.publicado?.instagram) };
+    c.erro = null;
+  }
+  if (para === "erro") c.erro = texto(b.erro, 1000) ?? "Falhou sem detalhe.";
+  const novo = await patchShort(id, c, [s.status]);
+  if (para === "publicado") await marcarTrechosUsados(novo);
+  return novo;
+}
+async function marcarTrechosUsados(s: any) {
+  const rotulo = rotuloUsado(s);
+  const porReuniao = new Map<string, any[]>();
+  for (const t of s.trechos ?? []) porReuniao.set(t.chave, [...(porReuniao.get(t.chave) ?? []), t]);
+  for (const [chave, ts] of porReuniao) {
+    const [r] = await rest(`reunioes?chave=eq.${enc(chave)}&select=momentos`);
+    if (!r?.momentos) continue;
+    const m = marcarUsados(r.momentos, ts, rotulo);
+    if (m.marcados) await patchReuniao(chave, { momentos: m.momentos });
+  }
+}
+async function linkDeUpload(id: string) {
+  const s = await lerShort(id);
+  if (s.status !== "montando") throw new Recusa("A prévia só sobe durante a montagem.", 409);
+  const path = `${id}/v${Number(s.versao ?? 0) + 1}.mp4`;
+  const r = await storage(`object/upload/sign/${BUCKET_SHORTS}/${path}`, { method: "POST", body: "{}", headers: { "x-upsert": "true" } });
+  if (!r.ok || !r.body?.url) throw new Recusa(`Não consegui preparar o envio da prévia (${r.status}).`, 502);
+  return { path, upload: `${SB_URL}/storage/v1${r.body.url}` };
 }
 
 // ── leads: achar ou criar pelo telefone, senão pelo nome ─────
@@ -220,7 +369,7 @@ async function atualizarTemperaturaDoLead(leadId: string) {
 const CAMPOS_REUNIAO = [
   "doc_id", "event_id", "data", "hora", "inicio", "fim", "duracao_min", "titulo", "tipo", "produto", "status",
   "status_por", "status_em", "temperatura", "temperatura_porque", "resumo", "objecoes", "proximos_passos", "nota",
-  "perguntado_em", "remarcada_para",
+  "perguntado_em", "remarcada_para", "gravacao_id",
 ];
 function soCampos(obj: any, campos: string[]) {
   const o: Record<string, unknown> = {};
@@ -228,8 +377,19 @@ function soCampos(obj: any, campos: string[]) {
   return o;
 }
 
+// Momentos para short: a rotina só preenche reunião que ainda não tem (null). Depois disso quem mexe é
+// o Jimmy (painel) ou a sessão dos shorts (marca "usado"), e uma nova leitura não apaga o que fizeram.
+function momentosOuRecusa(v: unknown) {
+  try {
+    return normalizarMomentos(v);
+  } catch (e) {
+    throw new Recusa(e instanceof Error ? e.message : "Momentos inválidos.");
+  }
+}
+
 async function gravarReunioes(lista: any[]) {
   let n = 0;
+  let descartados = 0;
   for (const r of lista ?? []) {
     const chave = String(r?.chave ?? (r?.doc_id ? `doc:${r.doc_id}` : r?.event_id ? `evt:${r.event_id}` : ""));
     if (!/^(doc|evt):[A-Za-z0-9_-]{6,200}$/.test(chave)) throw new Recusa(`Reunião sem chave válida: ${r?.titulo ?? ""}`);
@@ -249,6 +409,13 @@ async function gravarReunioes(lista: any[]) {
       campos.status_em = antes.status_em;
     }
     if (antes?.perguntado_em) campos.perguntado_em = antes.perguntado_em;
+    if (r.gravacao_id !== undefined) campos.gravacao_id = idDrive(r.gravacao_id) ?? antes?.gravacao_id ?? null;
+    if (antes?.momentos != null) campos.momentos = antes.momentos;
+    else if (r.momentos !== undefined) {
+      const m = momentosOuRecusa(r.momentos);
+      campos.momentos = m.momentos;
+      descartados += m.descartados;
+    }
     const leadId = r.lead ? await acharOuCriarLead(r.lead, r.produto ?? null) : antes?.lead_id ?? null;
     const linha = { chave, lead_id: leadId, ...campos, atualizado_em: new Date().toISOString() };
     await rest("reunioes?on_conflict=chave", {
@@ -259,7 +426,7 @@ async function gravarReunioes(lista: any[]) {
     if (leadId) await atualizarTemperaturaDoLead(leadId);
     n++;
   }
-  return n;
+  return { n, descartados };
 }
 
 async function leadDaReuniao(chave: string | null): Promise<string | null> {
@@ -320,8 +487,8 @@ async function gravarLembretes(lista: any[]) {
 }
 
 // alterações pontuais do ciclo (status, envio, adiamento, pergunta respondida)
-const PATCH_LEMBRETE = ["texto", "quando", "status", "enviado_em", "feito_em", "apagado_em", "adiamentos", "tipo", "avisar", "repetir"];
-const PATCH_REUNIAO = ["status", "status_por", "status_em", "perguntado_em", "remarcada_para", "temperatura", "resumo"];
+const PATCH_LEMBRETE = ["texto", "quando", "status", "enviado_em", "feito_em", "apagado_em", "adiamentos", "tipo", "avisar", "repetir", "encaminhado"];
+const PATCH_REUNIAO = ["status", "status_por", "status_em", "perguntado_em", "remarcada_para", "temperatura", "resumo", "momentos", "gravacao_id"];
 async function patchLembrete(id: number, campos: any) {
   const c = soCampos(campos, PATCH_LEMBRETE);
   if (c.status !== undefined && !STATUS_LEMBRETE.includes(String(c.status))) throw new Recusa("Status de lembrete inválido.");
@@ -329,6 +496,9 @@ async function patchLembrete(id: number, campos: any) {
   if (c.tipo !== undefined && !["lembrete", "tarefa"].includes(String(c.tipo))) throw new Recusa("Tipo inválido.");
   if (c.repetir !== undefined && c.repetir !== null) c.repetir = regraOuRecusa(c.repetir, c.quando);
   if (c.avisar !== undefined) c.avisar = c.avisar === true;
+  if (c.encaminhado !== undefined) c.encaminhado = pura(() => normalizarEncaminhado(c.encaminhado));
+  // voltou a pendente (adiado, reaberto, repetido que passou para a próxima vez): volta para a fila do que fazer
+  else if (c.status === "pendente") c.encaminhado = null;
   const [l] = await rest(`reunioes_lembretes?id=eq.${id}`, {
     method: "PATCH", body: JSON.stringify({ ...c, atualizado_em: new Date().toISOString() }),
   });
@@ -362,6 +532,16 @@ async function patchReuniao(chave: string, campos: any) {
   const c = soCampos(campos, PATCH_REUNIAO);
   if (c.status !== undefined && !STATUS_REUNIAO.includes(String(c.status))) throw new Recusa("Status de reunião inválido.");
   if (c.temperatura !== undefined && c.temperatura !== null && !TEMPERATURAS.includes(String(c.temperatura))) throw new Recusa("Temperatura inválida.");
+  if (c.momentos !== undefined) {
+    // edição à mão (painel, sessão dos shorts): nada some calado
+    const m = momentosOuRecusa(c.momentos);
+    if (m.descartados) throw new Recusa("Algum momento ficou sem tempo, tipo ou texto válido.");
+    c.momentos = m.momentos;
+  }
+  if (c.gravacao_id !== undefined) {
+    if (c.gravacao_id !== null && c.gravacao_id !== "" && !idDrive(c.gravacao_id)) throw new Recusa("Link da gravação inválido.");
+    c.gravacao_id = idDrive(c.gravacao_id);
+  }
   const [r] = await rest(`reunioes?chave=eq.${enc(chave)}`, {
     method: "PATCH", body: JSON.stringify({ ...c, atualizado_em: new Date().toISOString() }),
   });
@@ -400,6 +580,12 @@ async function salvarLead(b: any) {
     if (b.temperatura !== null && !TEMPERATURAS.includes(String(b.temperatura))) throw new Recusa("Temperatura inválida.");
     c.temperatura = b.temperatura;
     c.temperatura_por = "jimmy";
+  }
+  if (b.short_ok !== undefined) {
+    const v = b.short_ok === "" ? null : b.short_ok;
+    if (v !== null && !SHORT_OK.includes(String(v))) throw new Recusa("Autorização inválida.");
+    c.short_ok = v;
+    c.short_ok_em = v ? new Date().toISOString() : null;
   }
   c.atualizado_em = new Date().toISOString();
   const [l] = await rest(`reunioes_leads?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(c) });
@@ -460,7 +646,24 @@ async function agendar(b: any) {
       body: JSON.stringify({ turbo_url: `${TURBO}/app/inbox?contact=${j.item.contact_id}`, atualizado_em: new Date().toISOString() }),
     });
   }
-  return { item: { ...j.item, lead_id: id } };
+  const encaminhados = await encaminhar(id, {
+    como: "agendada", para: j.item?.scheduled_at ?? b.quando, agendada_id: j.item?.id ?? null, texto: msg, lembrete_id: b.lembrete_id,
+  }).catch((e) => { console.error("reunioes encaminhar", e instanceof Error ? e.message : e); return []; });
+  return { item: { ...j.item, lead_id: id }, encaminhados };
+}
+
+// O Jimmy agiu sobre o lead (agendou ou mandou mensagem): os lembretes abertos dele que a mensagem cobre
+// saem da fila do que fazer (regra em _shared/encaminhar.mjs). Devolve os ids marcados.
+async function encaminhar(leadId: string, info: { como: string; para?: unknown; agendada_id?: unknown; texto?: string | null; lembrete_id?: unknown }) {
+  const lista = await rest(`reunioes_lembretes?lead_id=eq.${leadId}&status=in.(pendente,enviado)&select=id,status,quando,repetir,encaminhado`);
+  const lid = Number(info.lembrete_id);
+  const ids = cobertosPelaMensagem(lista, { para: info.para ? String(info.para) : null, lembreteId: Number.isInteger(lid) && lid > 0 ? lid : null });
+  if (!ids.length) return [];
+  const encaminhado = normalizarEncaminhado({ como: info.como, para: info.para, agendada_id: info.agendada_id, texto: info.texto, em: new Date().toISOString() });
+  await rest(`reunioes_lembretes?id=in.(${ids.join(",")})`, {
+    method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ encaminhado, atualizado_em: new Date().toISOString() }),
+  });
+  return ids;
 }
 
 // as agendadas de todos os leads com link do Turbo, numa chamada só
@@ -683,13 +886,19 @@ async function enviar(b: any) {
     headers: { Prefer: "return=minimal" },
     body: JSON.stringify({ lead_id: leadId, telefone: t.numero, instancia: inst, texto: msg, status, erro }),
   });
+  let encaminhados: number[] = [];
   if (status === "ok") {
     await rest(`reunioes_leads?id=eq.${leadId}`, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ instancia: inst, atualizado_em: new Date().toISOString() }),
     });
+    // o pedido de autorização para short (e outras mensagens à parte) vem com encaminhar: false
+    if (b.encaminhar !== false) {
+      encaminhados = await encaminhar(leadId, { como: "enviada", texto: msg, lembrete_id: b.lembrete_id })
+        .catch((e) => { console.error("reunioes encaminhar", e instanceof Error ? e.message : e); return []; });
+    }
   }
-  return { status, erro };
+  return { status, erro, encaminhados };
 }
 
 // ── roteamento ───────────────────────────────────────────────
@@ -705,14 +914,30 @@ Deno.serve(async (req) => {
     const uid = maquina ? null : await usuario(req);
     if (!maquina && !uid) return json({ error: "Sua sessão expirou. Entre de novo no painel." }, 401);
 
-    if (acao === "estado") return json(await estado());
+    if (acao === "estado") return json(await estado(!maquina));
 
     // assistente do Mac (transcrições e ciclo do WhatsApp)
     if (maquina) {
+      // shorts pedidos no painel: a rotina shorts-do-painel pega a fila, sobe a prévia e anda com o status
+      if (acao === "shorts_fila") {
+        const [lista, leads] = await Promise.all([
+          rest("reunioes_shorts?status=in.(fila,ajustar,aprovado,montando,publicando)&select=*&order=criado_em.asc"),
+          leadsCurtos(),
+        ]);
+        return json({ shorts: lista.map((s: any) => ({ ...s, falta_autorizar: faltaAutorizar(s.trechos, leads) })) });
+      }
+      if (acao === "short_upload") return json(await linkDeUpload(idShort(b.id)));
+      if (acao === "short_marcar") return json({ short: await marcarShort(b) });
+      if (acao === "short_avisado") {
+        const id = idShort(b.id);
+        const [s] = await rest(`reunioes_shorts?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ avisado: texto(b.avisado, 40) }) });
+        if (!s) throw new Recusa("Short não encontrado.", 404);
+        return json({ ok: true });
+      }
       if (acao === "gravar") {
-        const reunioes = await gravarReunioes(b.reunioes ?? []);
+        const g = await gravarReunioes(b.reunioes ?? []);
         const lembretes = await gravarLembretes(b.lembretes ?? []);
-        return json({ reunioes, lembretes });
+        return json({ reunioes: g.n, lembretes, momentos_descartados: g.descartados });
       }
       if (acao === "lembrete_criar") return json({ lembrete: await criarLembrete(b.lembrete) });
       if (acao === "lembrete_patch") return json({ lembrete: await patchLembrete(idLembrete(b.id), b.campos ?? {}) });
@@ -737,6 +962,8 @@ Deno.serve(async (req) => {
       if (b.status !== undefined) Object.assign(campos, { status: b.status, status_por: "jimmy", status_em: new Date().toISOString() });
       if (b.temperatura !== undefined) campos.temperatura = b.temperatura;
       if (b.resumo !== undefined) campos.resumo = texto(b.resumo, 4000);
+      if (b.momentos !== undefined) campos.momentos = b.momentos;
+      if (b.gravacao_id !== undefined) campos.gravacao_id = b.gravacao_id;
       return json({ reuniao: await patchReuniao(String(b.chave ?? ""), campos) });
     }
     if (acao === "reuniao_remover") {
@@ -751,6 +978,8 @@ Deno.serve(async (req) => {
       const agora = new Date().toISOString();
       if (b.pular === true) return json({ lembrete: await lembretePular(id) });
       if (b.texto !== undefined) campos.texto = texto(b.texto, 1000);
+      // "Já encaminhei" (marca à mão) e "Voltar para a fila"
+      if (b.encaminhado !== undefined) campos.encaminhado = b.encaminhado ? { como: "manual", em: agora } : null;
       if (b.tipo !== undefined) campos.tipo = b.tipo === "tarefa" ? "tarefa" : "lembrete";
       if (b.avisar !== undefined) campos.avisar = b.avisar === true;
       if (b.quando !== undefined) {
@@ -792,9 +1021,44 @@ Deno.serve(async (req) => {
     if (acao === "agendar") return json(await agendar(b));
     if (acao === "reuniao_marcar") return json(await marcarReuniao(b));
     if (acao === "agendados") return json(await agendados());
-    if (acao === "agendado_cancelar") return json(await turbo("/api/public/extension/schedule", { action: "cancel", id: String(b.id ?? "") }));
+    if (acao === "agendado_cancelar") {
+      const idAg = String(b.id ?? "");
+      const r = await turbo("/api/public/extension/schedule", { action: "cancel", id: idAg });
+      // a mensagem não sai mais: o que ela cobria volta para a fila do que fazer
+      const voltaram = /^[A-Za-z0-9_-]{1,80}$/.test(idAg)
+        ? await rest(`reunioes_lembretes?encaminhado->>agendada_id=eq.${enc(idAg)}&status=in.(pendente,enviado)`, {
+          method: "PATCH", body: JSON.stringify({ encaminhado: null, atualizado_em: new Date().toISOString() }),
+        }).catch(() => [])
+        : [];
+      return json({ ...r, voltaram: voltaram.length });
+    }
     if (acao === "instancias") return json({ instancias: await instancias() });
     if (acao === "enviar") return json(await enviar(b));
+    // shorts (aba Shorts do painel)
+    if (acao === "short_criar") return json({ short: await criarShort(b) });
+    if (acao === "short_salvar") {
+      const c: Record<string, unknown> = {};
+      if (b.publicacao !== undefined) c.publicacao = pura(() => normalizarPublicacao(b.publicacao));
+      if (b.destinos !== undefined) c.destinos = normalizarDestinos(b.destinos);
+      return json({ short: await patchShort(idShort(b.id), c, ["pronto"]) });
+    }
+    if (acao === "short_aprovar") return json({ short: await aprovarShort(b) });
+    if (acao === "short_ajustar") {
+      const ajuste = texto(b.ajuste, 1000);
+      if (!ajuste) throw new Recusa("Diga o que mudar no vídeo.");
+      return json({ short: await patchShort(idShort(b.id), { status: "ajustar", ajuste, aprovado_em: null, erro: null }, ["pronto", "erro"]) });
+    }
+    if (acao === "short_tentar") {
+      const s = await lerShort(idShort(b.id));
+      const volta = s.aprovado_em ? "aprovado" : s.ajuste ? "ajustar" : "fila";
+      return json({ short: await patchShort(s.id, { status: volta, erro: null }, ["erro"]) });
+    }
+    if (acao === "short_descartar") {
+      const id = idShort(b.id);
+      const s = await patchShort(id, { status: "descartado", video: null }, ["fila", "montando", "pronto", "ajustar", "aprovado", "erro"]);
+      await apagarVideos(id).catch(() => {});
+      return json({ short: s });
+    }
     return json({ error: "Ação inválida." }, 400);
   } catch (e) {
     if (e instanceof Recusa) return json({ error: e.message }, e.status);

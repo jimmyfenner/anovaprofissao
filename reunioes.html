@@ -15,7 +15,7 @@
   --ink:#0A0D0C; --surface:#111614; --surface-2:#171E1B; --line:#232E29; --line-soft:#1A211E;
   --text:#EAF2ED; --muted:#8FA39A; --muted-dim:#61736B;
   --credit:#34DB8B; --credit-dim:#1F7D52;
-  --quente:#F07B4F; --morno:#E0A83C; --frio:#6BA8D8; --perigo:#C4785A;
+  --quente:#F07B4F; --morno:#E0A83C; --frio:#6BA8D8; --perigo:#C4785A; --short:#C3A6F5;
   --display:"Archivo","Helvetica Neue",Arial,sans-serif;
   --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -118,6 +118,52 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
 .reuniao p{font-size:.88rem;margin-top:.3rem}
 .reuniao ul{margin:.35rem 0 0;padding-left:1.1rem;font-size:.85rem;color:var(--muted)}
 .reuniao ul li{margin-bottom:.15rem}
+.pill--short{color:var(--short);border-color:rgba(195,166,245,.42)}
+.pill--short.ok{color:var(--credit);border-color:var(--credit-dim)}
+.pill--short.nao{color:var(--muted-dim)}
+.moms{margin-top:.55rem;padding:.5rem .7rem;background:var(--surface-2);border:1px solid var(--line);border-radius:8px}
+.moms__cab{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim);margin-bottom:.2rem}
+.mom{display:flex;gap:.6rem;align-items:flex-start;font-size:.85rem;padding:.45rem 0;border-top:1px solid var(--line-soft)}
+.moms__cab + .mom{border-top:0}
+.mom__t{font-family:var(--mono);font-size:.72rem;color:var(--short);white-space:nowrap;padding-top:.15rem;min-width:5.6rem}
+.mom__c{flex:1;min-width:0;overflow-wrap:anywhere}
+.mom__c small{display:block;color:var(--muted);font-size:.76rem;margin-top:.1rem}
+.mom__c .cuid{color:var(--morno)}
+.mom__a{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
+.mom.usado .mom__t,.mom.usado .mom__c{opacity:.5}
+@media(max-width:560px){.mom{flex-wrap:wrap}.mom__a{width:100%;justify-content:flex-start}}
+.mom__meta{font-family:var(--mono);font-size:.68rem;color:var(--muted-dim);margin-bottom:.1rem}
+.btn--cesta.dentro{border-color:var(--short);color:var(--short)}
+
+/* aba Shorts: escolher trechos → Gerar short → o Mac monta → revisar e aprovar aqui */
+.secao{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim);margin:1.4rem 0 .5rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.secao:first-child{margin-top:0}
+.cesta{padding:1rem;border-color:rgba(195,166,245,.35)}
+.cesta h3{font-family:var(--display);font-size:1.02rem;margin-bottom:.2rem}
+.cesta__item{display:flex;gap:.55rem;align-items:center;font-size:.85rem;padding:.4rem 0;border-top:1px solid var(--line-soft)}
+.cesta__item:first-of-type{border-top:0}
+.cesta__n{font-family:var(--mono);font-size:.72rem;color:var(--short);min-width:1.4rem}
+.cesta__t{flex:1;min-width:0;overflow-wrap:anywhere}
+.cesta__t small{display:block;color:var(--muted);font-size:.74rem}
+.cesta__a{display:flex;gap:.25rem}
+.aviso{font-size:.82rem;color:var(--morno);background:rgba(224,168,60,.08);border:1px solid rgba(224,168,60,.25);border-radius:6px;padding:.5rem .7rem}
+.short{padding:.9rem 1rem}
+.short__cab{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;font-size:.86rem}
+.short__grade{display:grid;gap:1rem;margin-top:.8rem}
+@media(min-width:720px){.short__grade{grid-template-columns:280px 1fr}}
+.short__video{display:block;width:100%;max-width:280px;aspect-ratio:9/16;background:#000;border-radius:10px;border:1px solid var(--line)}
+.short__sem{display:grid;place-items:center;text-align:center;padding:1rem;color:var(--muted);font-size:.82rem}
+.short ol{margin:.4rem 0 0;padding-left:1.2rem;font-size:.84rem;color:var(--muted)}
+.short ol li{margin-bottom:.2rem}
+.short ol li b{color:var(--text);font-weight:500}
+.st-fila,.st-montando,.st-ajustar,.st-aprovado,.st-publicando{color:#9FD3FF;border-color:rgba(107,168,216,.45)}
+.st-pronto{color:var(--short);border-color:rgba(195,166,245,.5)}
+.st-publicado{color:var(--credit);border-color:var(--credit-dim)}
+.st-erro{color:#E3A58C;border-color:rgba(196,120,90,.5)}
+.st-descartado{color:var(--muted-dim)}
+.checks{display:flex;gap:1rem;flex-wrap:wrap;font-size:.84rem}
+.checks label{display:inline-flex;gap:.35rem;align-items:center;cursor:pointer}
+details.hist summary{cursor:pointer;color:var(--muted);font-size:.84rem;margin:.3rem 0 .6rem}
 
 .lemb{display:flex;gap:.6rem;align-items:flex-start;padding:.7rem .85rem;background:var(--surface);border:1px solid var(--line);border-radius:8px}
 .bloco .lemb{background:var(--surface-2)}
@@ -127,6 +173,9 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
 .lemb__t small{display:block;color:var(--muted);font-size:.78rem}
 .lemb__a{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
 .lemb.feito .lemb__t{color:var(--muted-dim);text-decoration:line-through}
+.lemb.encam{border-style:dashed}
+.lemb.encam .lemb__q{color:#9FD3FF}
+.lemb__t small.encam{color:#9FD3FF}
 @media(max-width:560px){.lemb{flex-wrap:wrap}.lemb__a{width:100%;justify-content:flex-start}}
 
 .coment{font-size:.88rem;padding:.55rem .75rem;background:var(--surface-2);border-radius:6px;margin-bottom:.4rem;display:flex;gap:.5rem}
@@ -184,6 +233,7 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
       <button class="aba" role="tab" data-aba="leads" aria-selected="true">Leads<span class="n" id="n-leads"></span></button>
       <button class="aba" role="tab" data-aba="lembretes" aria-selected="false">Lembretes e tarefas<span class="n" id="n-lembretes"></span></button>
       <button class="aba" role="tab" data-aba="reunioes" aria-selected="false">Reuniões<span class="n" id="n-reunioes"></span></button>
+      <button class="aba" role="tab" data-aba="shorts" aria-selected="false">🎬 Shorts<span class="n" id="n-shorts"></span></button>
     </nav>
 
     <section id="aba-leads">
@@ -195,6 +245,12 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
           <option value="ganho">Ganhos</option>
           <option value="perdido">Perdidos</option>
           <option value="pausado">Pausados</option>
+        </select>
+        <select class="sel" id="f-short" aria-label="Trechos para short">
+          <option value="">Short: todos</option>
+          <option value="com">Com trechos para short</option>
+          <option value="pedir">Falta pedir autorização</option>
+          <option value="sim">Autorizaram</option>
         </select>
       </div>
       <div class="lista" id="lista-leads"></div>
@@ -221,6 +277,21 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
     <section id="aba-reunioes" class="hidden">
       <div class="lista" id="lista-reunioes"></div>
     </section>
+
+    <section id="aba-shorts" class="hidden">
+      <div id="shorts-ativos"></div>
+      <div class="secao">Novo short</div>
+      <div id="cesta"></div>
+      <div class="secao">Trechos para escolher
+        <select class="sel btn--sm" id="f-trechos" aria-label="Quais trechos">
+          <option value="livres">Ainda não usados</option>
+          <option value="ok">Só de quem autorizou</option>
+          <option value="todos">Todos, inclusive usados</option>
+        </select>
+      </div>
+      <div class="lista" id="lista-trechos"></div>
+      <div id="shorts-hist"></div>
+    </section>
   </div>
 </main>
 
@@ -234,7 +305,7 @@ var CFG = {
 var DEMO = /[?&]demo\b/.test(location.search) || !CFG.url;
 var TZ = "America/Sao_Paulo";
 var sb = null;
-var D = { leads: [], reunioes: [], lembretes: [], comentarios: [], envios: [] };
+var D = { leads: [], reunioes: [], lembretes: [], comentarios: [], envios: [], shorts: [] };
 var abertos = {};          // leads expandidos
 var AG = [];               // mensagens agendadas no Turbo (de todos os leads com link)
 var AG_AVISO = "";
@@ -270,6 +341,19 @@ var STATUS = {realizada:"✅ realizada", curta:"⚪ curta", sem_gravacao:"❔ se
 var SITUACAO = {aberto:"em aberto", ganho:"ganho", perdido:"perdido", pausado:"pausado"};
 var TEMP = {quente:"🔥 quente", morno:"🟡 morno", frio:"🧊 frio"};
 var PRODUTO = {"licenca-igreen":"Licença iGreen", mob:"Mob", telecom:"Telecom", outro:"Outro"};
+// trechos para short marcados pela rotina do diário (tipos iguais aos de supabase/functions/_shared/momentos.mjs)
+var TIPO_MOM = {reacao:"reação", pergunta:"pergunta e resposta", objecao:"objeção respondida", depoimento:"depoimento", explicacao:"explicação curta", humor:"descontração"};
+var SHORT_OK = {pedido:"🎬 short: pedido, sem resposta", sim:"🎬 short: autorizou", nao:"🎬 short: recusou"};
+var PEDIDO_SHORT = "Oi, {nome}! Tudo bem? Estou montando um vídeo curto com trechos de reuniões reais, e um momento da nossa conversa ficou muito bom. Aparecem a imagem e a voz, sem o seu nome. Posso usar? Se preferir que não, fica tudo certo.";
+// pedidos de short (tabela reunioes_shorts; regras em supabase/functions/_shared/shorts.mjs)
+var STATUS_SHORT = {fila:"⏳ na fila", montando:"🛠️ montando", pronto:"👀 pronto para revisar", ajustar:"✏️ ajuste pedido", aprovado:"✅ aprovado", publicando:"📤 publicando", publicado:"🚀 publicado", erro:"⚠️ deu erro", descartado:"descartado"};
+var ATIVOS = ["fila","montando","pronto","ajustar","aprovado","publicando","erro"];
+var TITULO_PADRAO = "Reuniões reais / com quem quer / ter um eletroposto";
+var CESTA_KEY = "reunioes-cesta-short";
+var CESTA = lerCesta();            // trechos escolhidos para o próximo short, na ordem do vídeo
+var RASCUNHO = {titulo:"", pedido:""};
+function lerCesta(){ try { var c = JSON.parse(localStorage.getItem(CESTA_KEY) || "[]"); return Array.isArray(c) ? c : []; } catch(e){ return []; } }
+function salvarCesta(){ try { localStorage.setItem(CESTA_KEY, JSON.stringify(CESTA)); } catch(e){} }
 function opcoes(mapa, atual, vazio){
   var h = vazio ? '<option value="">' + esc(vazio) + '</option>' : "";
   Object.keys(mapa).forEach(function(k){ h += '<option value="' + k + '"' + (k === atual ? " selected" : "") + ">" + esc(mapa[k]) + "</option>"; });
@@ -316,8 +400,28 @@ function fazer(acao, dados, msg){
 
 /* ---------- derivados ---------- */
 function reunioesDe(id){ return D.reunioes.filter(function(r){ return r.lead_id === id; }).sort(function(a,b){ return String(b.data + b.hora).localeCompare(String(a.data + a.hora)); }); }
+function trechosDe(id){ return reunioesDe(id).reduce(function(n, r){ return n + (r.momentos || []).filter(function(m){ return !m.usado; }).length; }, 0); }
+function temTrechos(id){ return reunioesDe(id).some(function(r){ return (r.momentos || []).length; }); }
+function tcurto(t){ return String(t || "").indexOf("00:") === 0 ? String(t).slice(3) : String(t || ""); }
+// reunião recente com lead que a rotina ainda vai olhar (mesma regra do Mac: até 14 dias)
+function trechosAMarcar(r){ return r.momentos == null && r.doc_id && r.status === "realizada" && (!r.tipo || r.tipo === "lead" || r.tipo === "parceiro") && r.data >= chaveDia(Date.now() - 14 * 864e5); }
 function lembretesDe(id){ return D.lembretes.filter(function(l){ return l.lead_id === id && (l.status === "pendente" || l.status === "enviado"); }); }
 function aberto(l){ return l.status === "pendente" || l.status === "enviado"; }
+// encaminhado (migração 30): o Jimmy já agiu (mensagem agendada ou mandada pelo painel, ou "Já encaminhei").
+// Sai da fila do que fazer e vai para a seção Encaminhados; quem marca é a função (regra em _shared/encaminhar.mjs)
+function encaminhadoDe(l){ return aberto(l) && l.encaminhado ? l.encaminhado : null; }
+function aFazer(l){ return aberto(l) && !l.encaminhado; }
+function textoEncaminhado(e){
+  if(e.como === "agendada"){
+    var a = e.agendada_id && AG.find(function(x){ return x.id === e.agendada_id; });
+    if(a && a.status === "sent") return "✉️ mensagem saiu " + quandoCurto(a.scheduled_at) + ", esperando resposta";
+    if(a && a.status === "failed") return "✉️ a mensagem agendada não saiu: volte para a fila";
+    return "✉️ mensagem agendada para " + quandoCurto(e.para || e.em);
+  }
+  if(e.como === "enviada") return "✉️ mensagem enviada " + quandoCurto(e.em) + ", esperando resposta";
+  return "✉️ encaminhado " + quandoCurto(e.em);
+}
+function avisoEncaminhados(j){ var n = (j && j.encaminhados || []).length; return n ? " · " + n + (n > 1 ? " lembretes foram" : " lembrete foi") + " para Encaminhados" : ""; }
 function porQuando(a, b){ return String(a.quando || "9999").localeCompare(String(b.quando || "9999")); }
 var NOMES_DIA = ["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
 // mesma descrição de supabase/functions/_shared/repeticao.mjs
@@ -348,24 +452,30 @@ function render(){
   var hoje = chaveDia(new Date()), semana = chaveDia(Date.now() - 7 * 864e5);
   $("#st-abertos").textContent = D.leads.filter(function(l){ return l.situacao === "aberto"; }).length;
   $("#st-quentes").textContent = D.leads.filter(function(l){ return l.situacao === "aberto" && l.temperatura === "quente"; }).length;
-  $("#st-hoje").textContent = D.lembretes.filter(function(l){ return aberto(l) && l.quando && chaveDia(l.quando) <= hoje; }).length;
+  $("#st-hoje").textContent = D.lembretes.filter(function(l){ return aFazer(l) && l.quando && chaveDia(l.quando) <= hoje; }).length;
   $("#st-semana").textContent = D.reunioes.filter(function(r){ return r.data >= semana; }).length;
   $("#n-leads").textContent = D.leads.length;
-  $("#n-lembretes").textContent = D.lembretes.filter(aberto).length;
+  $("#n-lembretes").textContent = D.lembretes.filter(aFazer).length;
   $("#n-reunioes").textContent = D.reunioes.length;
+  var ativosN = (D.shorts || []).filter(function(s){ return ATIVOS.indexOf(s.status) >= 0; }).length;
+  $("#n-shorts").textContent = ativosN || "";
   var sel = $("#nl-lead"), v = sel.value;
   sel.innerHTML = '<option value="">Nenhum</option>' + D.leads.slice().sort(function(a,b){ return a.nome.localeCompare(b.nome); })
     .map(function(l){ return '<option value="' + l.id + '">' + esc(l.nome) + "</option>"; }).join("");
   sel.value = v;
   if(!$("#nl-quando").value) $("#nl-quando").value = paraLocal(amanhaAs(9));
-  renderLeads(); renderLembretes(); renderReunioes();
+  renderLeads(); renderLembretes(); renderReunioes(); renderShorts();
+  abaAVista();
 }
 
 /* ---------- aba Leads ---------- */
 function renderLeads(){
-  var q = $("#busca").value.trim().toLowerCase(), sit = $("#f-situacao").value;
+  var q = $("#busca").value.trim().toLowerCase(), sit = $("#f-situacao").value, fs = $("#f-short").value;
   var lista = D.leads.filter(function(l){
     if(sit && l.situacao !== sit) return false;
+    if(fs === "com" && !trechosDe(l.id)) return false;
+    if(fs === "pedir" && !(trechosDe(l.id) && !l.short_ok)) return false;
+    if(fs === "sim" && l.short_ok !== "sim") return false;
     if(!q) return true;
     return [l.nome, l.cidade, l.empresa, l.telefone].join(" ").toLowerCase().indexOf(q) >= 0 || (q.replace(/\D/g,"") && digitos(l.telefone).indexOf(q.replace(/\D/g,"")) >= 0);
   }).sort(function(a,b){ return ultimaData(b).localeCompare(ultimaData(a)); });
@@ -374,18 +484,21 @@ function renderLeads(){
   el.innerHTML = lista.map(cardLead).join("");
 }
 function cardLead(l){
-  var rs = reunioesDe(l.id), lb = lembretesDe(l.id).sort(porQuando)[0];
+  var rs = reunioesDe(l.id), lbs0 = lembretesDe(l.id).sort(porQuando), lb = lbs0.filter(aFazer)[0], lbE = lb ? null : lbs0.find(encaminhadoDe);
   var ult = rs.filter(function(r){ return !futura(r); })[0];
   var proxR = rs.filter(function(r){ return futura(r) && r.status === "agendada"; }).sort(function(a,b){ return momento(a) - momento(b); })[0];
   var meta = [PRODUTO[l.produto] || "", l.cidade || "", ult ? "última reunião " + dataCurta(ult.data) + " " + (ult.hora || "") : "",
     proxR ? "🗓️ próxima " + quandoCurto(momento(proxR).toISOString()) : ""].filter(Boolean).join(" · ");
-  var prox = lb ? (lb.tipo === "tarefa" ? "📋 " + prazo(lb) : "⏰ " + (lb.status === "enviado" ? "enviado, sem resposta" : quandoCurto(lb.quando))) + ": " + esc(lb.texto) : "";
+  var prox = lb ? (lb.tipo === "tarefa" ? "📋 " + prazo(lb) : "⏰ " + (lb.status === "enviado" ? "enviado, sem resposta" : quandoCurto(lb.quando))) + ": " + esc(lb.texto)
+    : lbE ? esc(textoEncaminhado(lbE.encaminhado)) + ": " + esc(lbE.texto) : "";
   var h = '<article class="card' + (abertos[l.id] ? " aberto" : "") + '" data-lead="' + l.id + '">';
   h += '<div class="card__cab" data-acao="abrir"><div class="card__qm"><div class="card__nome"><span class="seta">▸</span>' + esc(l.nome);
   if(l.temperatura) h += ' <span class="pill pill--' + l.temperatura + '">' + TEMP[l.temperatura] + "</span>";
   h += ' <span class="pill pill--' + l.situacao + '">' + SITUACAO[l.situacao] + "</span>";
   var ag = agendadasDe(l.id).filter(pendente)[0];
   if(ag) h += ' <span class="pill pill--agenda" title="Mensagem agendada no Turbo">✉️ ' + quandoCurto(ag.scheduled_at) + "</span>";
+  var nt = trechosDe(l.id);
+  if(nt) h += ' <span class="pill pill--short' + (l.short_ok === "sim" ? " ok" : l.short_ok === "nao" ? " nao" : "") + '" title="' + nt + (nt > 1 ? " trechos" : " trecho") + " para short · " + (l.short_ok ? SHORT_OK[l.short_ok].replace("🎬 short: ", "") : "falta pedir autorização") + '">🎬 ' + nt + (l.short_ok === "sim" ? " ✓" : "") + "</span>";
   h += "</div>";
   h += '<div class="card__meta">' + esc(meta) + "</div>" + (prox ? '<div class="card__prox">' + prox + "</div>" : "") + "</div>";
   h += '<div class="card__dir">';
@@ -424,6 +537,10 @@ function corpoLead(l, rs){
   // situação, temperatura e ações
   h += '<div class="linha-acoes"><select class="sel" data-acao="situacao" aria-label="Situação">' + opcoes(SITUACAO, l.situacao) + "</select>";
   h += '<select class="sel" data-acao="temperatura" aria-label="Temperatura">' + opcoes(TEMP, l.temperatura, "sem temperatura") + "</select>";
+  if(temTrechos(l.id) || l.short_ok){
+    h += '<select class="sel" data-acao="short-ok" aria-label="Autorização para short" title="Autorização para aparecer em short">' + opcoes(SHORT_OK, l.short_ok, "🎬 short: não pedido") + "</select>";
+    if(!l.short_ok && temTrechos(l.id)) h += '<button class="btn btn--sm" data-acao="pedir-short" title="Abre a mensagem pronta para pedir a autorização (você revisa antes de mandar)">Pedir autorização</button>';
+  }
   h += '<button class="btn btn--sm" data-acao="editar">Editar</button><button class="btn btn--sm" data-acao="mensagem">Mandar mensagem</button>';
   h += '<button class="btn btn--sm btn--perigo" data-acao="remover">Remover</button></div>';
   // editar
@@ -495,6 +612,7 @@ function blocoReuniao(r, comLead){
   h += '<select class="sel btn--sm" data-acao="status-reuniao" aria-label="Status">' + opcoes(STATUS, r.status) + "</select>";
   if(r.duracao_min) h += '<span class="mudo mini">' + r.duracao_min + " min</span>";
   if(r.doc_id) h += '<a class="mini" href="https://docs.google.com/document/d/' + encodeURIComponent(r.doc_id) + '/edit" target="_blank" rel="noopener">anotações do Gemini</a>';
+  if(r.gravacao_id) h += '<a class="mini" href="https://drive.google.com/file/d/' + encodeURIComponent(r.gravacao_id) + '/view" target="_blank" rel="noopener">gravação</a>';
   h += "</div>";
   if(comLead && r.titulo) h += '<p class="mudo mini">' + esc(r.titulo) + "</p>";
   if(r.resumo) h += "<p>" + esc(r.resumo) + "</p>";
@@ -504,6 +622,7 @@ function blocoReuniao(r, comLead){
     h += "<ul>" + r.proximos_passos.map(function(p){ return "<li>" + esc((p.quem ? p.quem + ": " : "") + p.o_que + (p.quando_dito ? " (" + p.quando_dito + ")" : "")) + (p.minuto ? ' <span class="mono">[' + esc(p.minuto) + "]</span>" : "") + "</li>"; }).join("") + "</ul>";
   }
   if(r.remarcada_para) h += '<p class="mini" style="color:#9FD3FF">🔁 remarcada para ' + quandoCurto(r.remarcada_para) + "</p>";
+  h += blocoTrechos(r);
   if(!comLead){
     h += '<div class="linha-acoes" style="margin-top:.5rem">';
     if(!futura(r)) h += '<button class="btn btn--sm" data-acao="remarcar">🔁 Remarcar</button>';
@@ -512,13 +631,193 @@ function blocoReuniao(r, comLead){
   return h + "</div>";
 }
 
+function blocoTrechos(r){
+  if(Array.isArray(r.momentos) && !r.momentos.length) return '<p class="mudo mini">🎬 Nenhum trecho bom para short nesta reunião.</p>';
+  if(!Array.isArray(r.momentos)) return trechosAMarcar(r) ? '<p class="mudo mini">🎬 Trechos para short: a rotina do diário ainda vai marcar.</p>' : "";
+  var h = '<div class="moms"><div class="moms__cab">🎬 Trechos para short</div>';
+  r.momentos.forEach(function(m, i){
+    h += '<div class="mom' + (m.usado ? " usado" : "") + '" data-mom="' + i + '">' + tempoTrecho(m) + '<div class="mom__c">' + textoTrecho(m, r) + '</div><div class="mom__a">';
+    if(r.gravacao_id && !m.usado) h += botaoCesta(r.chave, i);
+    h += (m.usado ? '<button class="btn btn--sm" data-acao="mom-desmarcar">Desmarcar</button>' : '<button class="btn btn--sm" data-acao="mom-usado" title="Já entrou num short">Usado</button>');
+    h += '<button class="btn btn--sm btn--perigo" data-acao="mom-tirar" title="Tirar este trecho da lista">Tirar</button></div></div>';
+  });
+  return h + "</div>";
+}
+function tempoTrecho(m){
+  return '<div class="mom__t">' + esc(tcurto(m.ini)) + "–" + esc(tcurto(m.fim)) + "<br>" + "★★★".slice(0, m.forca || 2) + '<span style="opacity:.35">' + "★★★".slice(0, 3 - (m.forca || 2)) + "</span></div>";
+}
+function textoTrecho(m, r){
+  var h = "<b>" + esc(TIPO_MOM[m.tipo] || m.tipo) + "</b>" + (m.quem ? " · " + esc(m.quem) : "") + (m.fala ? ": “" + esc(m.fala) + "”" : "");
+  if(m.porque) h += "<small>" + esc(m.porque) + "</small>";
+  if(m.cuidado) h += '<small class="cuid">⚠️ ' + esc(m.cuidado) + "</small>";
+  if(m.fonte === "anotacoes") h += "<small>pelas anotações do Gemini: tempo aproximado</small>";
+  if(m.usado) h += "<small>usado no short " + esc(m.usado) + "</small>";
+  var ped = emPedidoAtivo(r.chave, m.ini);
+  if(ped && !m.usado) h += '<small style="color:#9FD3FF">no pedido de ' + quandoCurto(ped.criado_em) + " (" + esc(STATUS_SHORT[ped.status]) + ")</small>";
+  return h;
+}
+
+/* ---------- aba Shorts ---------- */
+function naCesta(chave, i){ for(var k = 0; k < CESTA.length; k++) if(CESTA[k].chave === chave && CESTA[k].i === i) return k; return -1; }
+function botaoCesta(chave, i){
+  var dentro = naCesta(chave, i) >= 0;
+  return '<button class="btn btn--sm btn--cesta' + (dentro ? " dentro" : "") + '" data-acao="cesta" aria-pressed="' + dentro + '" title="' + (dentro ? "Tirar do próximo short" : "Pôr no próximo short") + '">' + (dentro ? "✓ No short" : "＋ Short") + "</button>";
+}
+function momentoDe(c){ var r = D.reunioes.find(function(x){ return x.chave === c.chave; }); var m = r && r.momentos && r.momentos[c.i]; return m && m.ini === c.ini ? {r:r, m:m} : null; }
+// some da escolha o trecho que a reunião não tem mais (tirado, lista mudada, já usado)
+function limparCesta(){ var antes = CESTA.length; CESTA = CESTA.filter(function(c){ var x = momentoDe(c); return x && !x.m.usado && x.r.gravacao_id; }); if(CESTA.length !== antes) salvarCesta(); }
+function leadDe(id){ return D.leads.find(function(l){ return l.id === id; }); }
+function nomeCurto(n){ return String(n || "").replace("[exemplo] ", ""); }
+function okDe(leadId){ var l = leadId && leadDe(leadId); return l ? (l.short_ok || null) : "sem-lead"; }
+var ROTULO_OK = {sim:"autorizou", pedido:"pedido, sem resposta", nao:"recusou", "sem-lead":"sem lead para autorizar"};
+function rotuloOk(v){ return ROTULO_OK[v] || "falta pedir"; }
+function segs(t){ var m = /^(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)$/.exec(String(t || "")); return m ? (Number(m[1]) || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]) : 0; }
+function emPedidoAtivo(chave, ini){
+  return (D.shorts || []).find(function(s){ return ATIVOS.indexOf(s.status) >= 0 && (s.trechos || []).some(function(t){ return t.chave === chave && t.ini === ini; }); });
+}
+// quem aparece e ainda não autorizou (mesma regra de faltaAutorizar em _shared/shorts.mjs)
+function semOk(lista){
+  var out = [];
+  lista.forEach(function(t){
+    var ok = okDe(t.lead_id), nome = ok === "sem-lead" ? "reunião de " + dataCurta(t.data) + " (sem lead)" : nomeCurto((leadDe(t.lead_id) || {}).nome);
+    if(ok !== "sim" && out.indexOf(nome) < 0) out.push(nome);
+  });
+  return out;
+}
+function todosTrechos(){
+  var out = [];
+  D.reunioes.forEach(function(r){ (r.momentos || []).forEach(function(m, i){ out.push({r:r, m:m, i:i}); }); });
+  return out.sort(function(a, b){ return String(b.r.data + b.r.hora).localeCompare(String(a.r.data + a.r.hora)) || (b.m.forca || 2) - (a.m.forca || 2) || String(a.m.ini).localeCompare(String(b.m.ini)); });
+}
+function linhaTrecho(x){
+  var r = x.r, ok = okDe(r.lead_id);
+  var h = '<div class="card" style="padding:0 .9rem" data-reuniao="' + esc(r.chave) + '"><div class="mom' + (x.m.usado ? " usado" : "") + '" data-mom="' + x.i + '" style="border-top:0">' + tempoTrecho(x.m);
+  h += '<div class="mom__c"><div class="mom__meta">' + dataCurta(r.data) + " · " + esc(nomeCurto((r.lead && r.lead.nome) || r.titulo)) + ' · <span style="color:' + (ok === "sim" ? "var(--credit)" : ok === "nao" ? "var(--perigo)" : "var(--short)") + '">🎬 ' + rotuloOk(ok) + "</span></div>" + textoTrecho(x.m, r) + "</div>";
+  h += '<div class="mom__a">' + (!r.gravacao_id ? '<span class="mini mudo" title="A rotina do diário não achou o vídeo desta reunião no Drive">sem gravação</span>' : x.m.usado ? "" : botaoCesta(r.chave, x.i)) + "</div></div></div>";
+  return h;
+}
+function renderCesta(){
+  if(!CESTA.length){
+    $("#cesta").innerHTML = '<div class="vazio">Escolha os trechos abaixo com <b>＋ Short</b> (também aparece nas reuniões) e gere o vídeo aqui. O Mac monta, a prévia volta para esta aba e nada é publicado sem a sua aprovação.</div>';
+    return;
+  }
+  var itens = CESTA.map(momentoDe), total = 0;
+  var h = '<form class="card cesta" data-form="novo-short">';
+  itens.forEach(function(x){ total += segs(x.m.fim) - segs(x.m.ini); });
+  h += "<h3>🎬 " + CESTA.length + (CESTA.length > 1 ? " trechos escolhidos" : " trecho escolhido") + "</h3>";
+  h += '<p class="mudo mini">Uns ' + Math.round(total * 0.8 + 3) + " s de vídeo depois de cortar as pausas (até 90 s fica melhor). A ordem da lista é a ordem do vídeo.</p>";
+  itens.forEach(function(x, k){
+    h += '<div class="cesta__item"><span class="cesta__n">' + (k + 1) + '.</span><div class="cesta__t">' + esc(TIPO_MOM[x.m.tipo] || x.m.tipo) + (x.m.fala ? ": “" + esc(x.m.fala) + "”" : "");
+    h += "<small>" + esc(nomeCurto((x.r.lead && x.r.lead.nome) || x.r.titulo)) + " · " + dataCurta(x.r.data) + " · ⏱ " + esc(tcurto(x.m.ini)) + "–" + esc(tcurto(x.m.fim)) + (x.m.cuidado ? " · ⚠️ " + esc(x.m.cuidado) : "") + "</small></div>";
+    h += '<div class="cesta__a"><button class="btn btn--sm" type="button" data-acao="cesta-mover" data-k="' + k + '" data-para="-1" title="Subir"' + (k ? "" : " disabled") + '>↑</button><button class="btn btn--sm" type="button" data-acao="cesta-mover" data-k="' + k + '" data-para="1" title="Descer"' + (k < itens.length - 1 ? "" : " disabled") + '>↓</button><button class="btn btn--sm btn--perigo" type="button" data-acao="cesta-tirar" data-k="' + k + '" title="Tirar">×</button></div></div>';
+  });
+  var faltam = semOk(itens.map(function(x){ return {lead_id:x.r.lead_id, data:x.r.data}; }));
+  if(faltam.length) h += '<p class="aviso" style="margin-top:.7rem">Ainda sem ok para aparecer: ' + esc(faltam.join(", ")) + ". O vídeo é montado, mas só publica depois que todos autorizarem (peça no card do lead).</p>";
+  h += '<div class="grade" style="margin-top:.8rem"><label class="campo">Título de abertura (opcional)<input class="inp" name="titulo" data-rascunho="titulo" maxlength="130" placeholder="' + esc(TITULO_PADRAO) + '" value="' + esc(RASCUNHO.titulo) + '"></label>';
+  h += '<label class="campo">Recado para a edição (opcional)<input class="inp" name="pedido" data-rascunho="pedido" maxlength="1000" placeholder="Ex.: começar pela pergunta da franquia" value="' + esc(RASCUNHO.pedido) + '"></label></div>';
+  h += '<div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary" type="submit">🎬 Gerar short</button><button class="btn btn--sm" type="button" data-acao="cesta-limpar">Limpar escolha</button>';
+  h += '<span class="mudo mini">O Mac pega o pedido em até meia hora e avisa no WhatsApp quando a prévia chegar.</span></div></form>';
+  $("#cesta").innerHTML = h;
+}
+function cardShort(s){
+  var h = '<div class="card short" data-short="' + esc(s.id) + '"><div class="short__cab"><span class="pill st-' + esc(s.status) + '">' + esc(STATUS_SHORT[s.status] || s.status) + '</span><span class="mono mini">pedido ' + quandoCurto(s.criado_em) + "</span>";
+  if(s.versao) h += '<span class="mudo mini">versão ' + s.versao + (s.duracao ? " · " + Math.round(s.duracao) + " s" : "") + "</span>";
+  h += "</div>";
+  var dica = {fila:"Esperando o Mac: a rotina pega em até meia hora.", montando:"O Mac está montando desde " + quandoCurto(s.status_em) + ". Leva uns 20 a 40 minutos.", ajustar:"O Mac monta a nova versão na próxima rodada.", aprovado:"Aprovado: o Mac publica na próxima rodada.", publicando:"Publicando agora."}[s.status];
+  if(dica) h += '<p class="mudo mini" style="margin-top:.3rem">' + dica + "</p>";
+  if(s.status === "erro") h += '<p class="aviso" style="margin-top:.5rem">' + esc(s.erro || "Falhou sem detalhe.") + "</p>";
+  if(s.titulo) h += '<p class="mini" style="margin-top:.35rem">Título de abertura: ' + esc(String(s.titulo).replace(/\n/g, " / ")) + "</p>";
+  if(s.pedido) h += '<p class="mini mudo">Recado: ' + esc(s.pedido) + "</p>";
+  if(s.ajuste && ["ajustar","montando","pronto","erro"].indexOf(s.status) >= 0) h += '<p class="mini" style="color:var(--morno)">Ajuste pedido: ' + esc(s.ajuste) + "</p>";
+  var lista = "<ol>" + (s.trechos || []).map(function(t){ return "<li><b>" + esc(nomeCurto(t.lead || t.reuniao || "")) + "</b> · " + dataCurta(t.data) + " · ⏱ " + esc(tcurto(t.ini)) + "–" + esc(tcurto(t.fim)) + " · " + esc(TIPO_MOM[t.tipo] || t.tipo) + (t.fala ? ": “" + esc(t.fala) + "”" : "") + "</li>"; }).join("") + "</ol>";
+  var comVideo = ["pronto","aprovado","publicando","publicado"].indexOf(s.status) >= 0;
+  if(!comVideo){
+    h += lista;
+  } else {
+    h += '<div class="short__grade"><div>' + (s.video_url ? '<video class="short__video" controls playsinline preload="metadata" src="' + esc(s.video_url) + '"></video>' : '<div class="short__video short__sem">' + (DEMO ? "A prévia do vídeo aparece aqui." : "Prévia indisponível agora. Clique em Atualizar.") + "</div>") + "</div><div>";
+    h += '<div class="bloco"><h3>Trechos</h3>' + lista + "</div>";
+    if(s.status === "pronto") h += formPublicacao(s);
+    if(s.status === "publicado" && s.publicado) h += '<div class="linha-acoes" style="margin-top:.6rem">' + (s.publicado.youtube ? '<a class="btn btn--sm" href="' + esc(s.publicado.youtube) + '" target="_blank" rel="noopener">▶ YouTube</a>' : "") + (s.publicado.instagram ? '<a class="btn btn--sm" href="' + esc(s.publicado.instagram) + '" target="_blank" rel="noopener">Reels</a>' : "") + "</div>";
+    if(s.status === "aprovado" || s.status === "publicando"){
+      var dd = s.destinos || {};
+      h += '<p class="mini mudo" style="margin-top:.5rem">Vai para: ' + [dd.youtube ? "YouTube Shorts" : "", dd.instagram ? "Reels" : ""].filter(Boolean).join(" e ") + (s.publicacao && s.publicacao.titulo ? " · “" + esc(s.publicacao.titulo) + "”" : "") + "</p>";
+    }
+    h += "</div></div>";
+  }
+  var acoes = "";
+  if(s.status === "erro") acoes += '<button class="btn btn--sm btn--primary" data-acao="short-tentar">Tentar de novo</button><button class="btn btn--sm" data-acao="short-ajuste">✏️ Pedir ajuste</button>';
+  if(["fila","montando","ajustar","aprovado","erro"].indexOf(s.status) >= 0) acoes += '<button class="btn btn--sm btn--perigo" data-acao="short-descartar">Descartar</button>';
+  if(acoes) h += '<div class="linha-acoes" style="margin-top:.6rem">' + acoes + "</div>";
+  if(s.status === "pronto" || s.status === "erro") h += '<form class="hidden" data-form="short-ajuste" style="margin-top:.6rem"><textarea class="inp" name="ajuste" maxlength="1000" placeholder="O que mudar? Ex.: tirar o 2º trecho, começar pela reação da Carla, a legenda erra o nome do Mob em 0:12" required></textarea><button class="btn btn--sm" type="submit" style="margin-top:.4rem">Mandar ajuste</button></form>';
+  return h + "</div>";
+}
+function formPublicacao(s){
+  var p = s.publicacao || {}, d = s.destinos || {youtube:true, instagram:true};
+  var faltam = semOk(s.trechos || []), quem = [];
+  (s.trechos || []).forEach(function(t){ if(t.lead_id && quem.indexOf(t.lead_id) < 0) quem.push(t.lead_id); });
+  var h = '<form data-form="short-pub" class="bloco" style="margin-top:.9rem"><h3>Quem aparece</h3><div class="linha-acoes">';
+  h += quem.map(function(id){ var ok = okDe(id); return '<button class="btn btn--sm" type="button" data-acao="ver-lead" data-lead-id="' + esc(id) + '" title="Abrir o lead">' + (ok === "sim" ? "✓ " : "🎬 ") + esc(nomeCurto((leadDe(id) || {}).nome)) + ' <span class="mudo">· ' + rotuloOk(ok) + "</span></button>"; }).join("") + "</div>";
+  h += '<h3 style="margin-top:.9rem">Onde publicar</h3><div class="checks"><label><input type="checkbox" name="youtube"' + (d.youtube ? " checked" : "") + "> YouTube Shorts (@jimmyfenner)</label><label><input type=\"checkbox\" name=\"instagram\"" + (d.instagram ? " checked" : "") + "> Reels no @minerandoosol, com o @querocarregador</label></div>";
+  h += '<label class="campo" style="margin-top:.7rem">Título do YouTube<input class="inp" name="titulo" maxlength="100" value="' + esc(p.titulo || "") + '"></label>';
+  h += '<label class="campo" style="margin-top:.5rem">Descrição do YouTube<textarea class="inp" name="descricao" maxlength="4500">' + esc(p.descricao || "") + "</textarea></label>";
+  h += '<label class="campo" style="margin-top:.5rem">Legenda do Reels<textarea class="inp" name="legenda" maxlength="2100">' + esc(p.legenda || "") + "</textarea></label>";
+  if(faltam.length) h += '<p class="aviso" style="margin-top:.6rem">Falta o ok para aparecer: ' + esc(faltam.join(", ")) + ". Aprovar libera quando todos autorizarem (abra o lead acima e peça).</p>";
+  h += '<div class="linha-acoes" style="margin-top:.7rem"><button class="btn btn--primary btn--sm" type="submit"' + (faltam.length ? " disabled" : "") + '>✅ Aprovar e publicar</button><button class="btn btn--sm" type="button" data-acao="short-salvar">Salvar texto</button><button class="btn btn--sm" type="button" data-acao="short-ajuste">✏️ Pedir ajuste</button><button class="btn btn--sm btn--perigo" type="button" data-acao="short-descartar">Descartar</button></div></form>';
+  return h;
+}
+function dadosPublicacao(f){
+  return {publicacao:{titulo:f.titulo.value, descricao:f.descricao.value, legenda:f.legenda.value}, destinos:{youtube:f.youtube.checked, instagram:f.instagram.checked}};
+}
+function renderShorts(){
+  limparCesta();
+  var lista = D.shorts || [];
+  var ativos = lista.filter(function(s){ return ATIVOS.indexOf(s.status) >= 0; }), hist = lista.filter(function(s){ return ATIVOS.indexOf(s.status) < 0; });
+  $("#shorts-ativos").innerHTML = ativos.length ? '<div class="secao">Pedidos em andamento</div><div class="lista" style="margin-bottom:0">' + ativos.map(cardShort).join("") + "</div>" : "";
+  renderCesta();
+  var f = $("#f-trechos").value;
+  var ts = todosTrechos().filter(function(x){ return f === "todos" || (!x.m.usado && (f !== "ok" || okDe(x.r.lead_id) === "sim")); });
+  var marcando = D.reunioes.some(trechosAMarcar);
+  $("#lista-trechos").innerHTML = ts.length ? ts.map(linhaTrecho).join("") + (marcando ? '<p class="mudo mini">Ainda há reuniões recentes para a rotina do diário marcar (duas por rodada, de hora em hora).</p>' : "")
+    : '<div class="vazio">' + (marcando ? "A rotina do diário ainda está marcando os trechos das reuniões (duas por rodada, de hora em hora)." : f === "ok" ? "Nenhum trecho de quem já autorizou." : "Nenhum trecho aqui.") + "</div>";
+  $("#shorts-hist").innerHTML = hist.length ? '<details class="hist"><summary>Publicados e descartados (' + hist.length + ")</summary><div class=\"lista\">" + hist.map(cardShort).join("") + "</div></details>" : "";
+}
+// marca/desmarca o trecho em todas as abas sem redesenhar os cards abertos
+function trocarCesta(chave, i){
+  var k = naCesta(chave, i);
+  if(k >= 0) CESTA.splice(k, 1);
+  else {
+    var r = D.reunioes.find(function(x){ return x.chave === chave; }), m = r && r.momentos && r.momentos[i];
+    if(!m) return;
+    if(CESTA.length >= 12){ toast("No máximo 12 trechos por short.", true); return; }
+    CESTA.push({chave:chave, i:i, ini:m.ini});
+  }
+  salvarCesta(); sincronizarCesta();
+  toast(k >= 0 ? "Tirei do próximo short." : "No próximo short: " + CESTA.length + (CESTA.length > 1 ? " trechos" : " trecho") + ". Gere na aba 🎬 Shorts.");
+}
+function sincronizarCesta(){
+  document.querySelectorAll(".btn--cesta").forEach(function(b){
+    var c = b.closest("[data-reuniao]"), m = b.closest("[data-mom]");
+    if(c && m) b.outerHTML = botaoCesta(c.getAttribute("data-reuniao"), Number(m.getAttribute("data-mom")));
+  });
+  renderCesta();
+}
+function salvarTrechos(el, mudar, msg){
+  var chave = el.closest("[data-reuniao]").getAttribute("data-reuniao"), i = Number(el.closest("[data-mom]").getAttribute("data-mom"));
+  var r = D.reunioes.find(function(x){ return x.chave === chave; }); if(!r) return;
+  var lista = JSON.parse(JSON.stringify(r.momentos || []));
+  if(mudar(lista, i) === false) return;
+  return fazer("reuniao_salvar", {chave:chave, momentos:lista}, msg).catch(function(){});
+}
+
 /* ---------- aba Lembretes ---------- */
 function linhaLembrete(l, dentroDoLead){
   var tarefa = l.tipo === "tarefa";
   var atras = aberto(l) && l.quando && new Date(l.quando) < new Date() && !l.repetir;
   var q = l.status === "enviado" ? "enviado" : l.status === "feito" ? (tarefa ? "feita" : "feito") : l.status === "apagado" ? (l.repetir ? "parado" : "apagado") : tarefa ? prazo(l) : quandoCurto(l.quando);
-  var h = '<div class="lemb' + (aberto(l) ? "" : " feito") + '" data-lembrete="' + l.id + '"><div class="lemb__q' + (atras && l.status === "pendente" ? " atrasado" : "") + '">#' + l.id + " " + q + "</div>";
+  var enc = encaminhadoDe(l);
+  var h = '<div class="lemb' + (aberto(l) ? "" : " feito") + (enc ? " encam" : "") + '" data-lembrete="' + l.id + '"><div class="lemb__q' + (atras && l.status === "pendente" && !enc ? " atrasado" : "") + '">#' + l.id + " " + q + "</div>";
   h += '<div class="lemb__t">' + (tarefa ? '<span class="pill" style="margin-right:.35rem">📋 tarefa</span>' : "") + esc(l.texto) + (!dentroDoLead && (l.lead_id || l.lead) ? "<small>" + esc(nomeLead(l.lead_id) || l.lead) + "</small>" : "");
+  if(enc) h += '<small class="encam">' + esc(textoEncaminhado(enc)) + "</small>";
   if(l.repetir) h += '<small style="color:#9FD3FF">🔁 ' + esc(descreverRep(l.repetir)) + (aberto(l) ? " · próxima " + quandoCurto(l.quando) : "") + "</small>";
   if(tarefa && l.quando && l.avisar === false && aberto(l)) h += "<small>aparece na agenda das 06:30; não avisa na hora</small>";
   if(l.status === "enviado") h += "<small>chegou no WhatsApp " + quandoCurto(l.enviado_em) + ", sem resposta</small>";
@@ -529,7 +828,10 @@ function linhaLembrete(l, dentroDoLead){
   if(tarefa) h += ' <label class="mini mudo"><input type="checkbox" name="avisar"' + (l.avisar !== false && l.quando ? " checked" : "") + "> avisar na hora</label>";
   h += ' <button class="btn btn--primary btn--sm" type="submit">Salvar</button>' + (tarefa ? '<p class="mini mudo" style="margin-top:.3rem">Deixe a data em branco para tarefa sem prazo.</p>' : "") + "</form></div>";
   h += '<div class="lemb__a">';
-  if(aberto(l)){
+  if(enc){
+    h += '<button class="btn btn--sm" data-acao="feito">' + (tarefa ? "Feita" : "Feito") + '</button><button class="btn btn--sm" data-acao="voltar-fila" title="Tira a marca de encaminhado e volta para a lista do que fazer">↩︎ Voltar para a fila</button>';
+    h += '<button class="btn btn--sm btn--perigo" data-acao="apagar-lembrete">Apagar</button>';
+  } else if(aberto(l)){
     if(l.repetir){
       h += '<button class="btn btn--sm" data-acao="pular" title="Pula só a próxima vez">⏭️ Pular a próxima</button>';
     } else {
@@ -538,6 +840,7 @@ function linhaLembrete(l, dentroDoLead){
       else h += '<button class="btn btn--sm" data-acao="adiar-1h">+1 h</button><button class="btn btn--sm" data-acao="adiar-amanha">Amanhã 9h</button>';
     }
     if(l.lead_id) h += '<button class="btn btn--sm" data-acao="agendar-do-lembrete" data-lead-id="' + esc(l.lead_id) + '" title="Agendar a mensagem para o lead no Turbo">✉️ Agendar msg</button>';
+    if(l.lead_id && !l.repetir) h += '<button class="btn btn--sm" data-acao="ja-encaminhei" title="Já tratei por fora (liguei, mandei pelo WhatsApp): vai para Encaminhados">✓ Já encaminhei</button>';
     h += '<button class="btn btn--sm" data-acao="editar-lembrete">Editar</button><button class="btn btn--sm btn--perigo" data-acao="apagar-lembrete">' + (l.repetir ? "Parar" : "Apagar") + "</button>";
   } else {
     h += '<button class="btn btn--sm" data-acao="reabrir">Reabrir</button>';
@@ -556,7 +859,14 @@ function renderLembretes(){
     var x = aberto(a) - aberto(b); if(x) return -x;
     return aberto(a) ? porQuando(a, b) : String(b.atualizado_em).localeCompare(String(a.atualizado_em));
   });
-  $("#lista-lembretes").innerHTML = lista.length ? lista.map(function(l){ return linhaLembrete(l, false); }).join("") : '<div class="vazio">Nada em aberto aqui.</div>';
+  // o que fazer em cima; o que já foi encaminhado (mensagem agendada/mandada) numa seção à parte; feitos no fim
+  var fazerL = lista.filter(aFazer), encL = lista.filter(encaminhadoDe), fechados = lista.filter(function(l){ return !aberto(l); });
+  encL.sort(function(a, b){ return String(a.encaminhado.para || a.encaminhado.em).localeCompare(String(b.encaminhado.para || b.encaminhado.em)); });
+  var linha = function(l){ return linhaLembrete(l, false); };
+  var h = fazerL.length ? fazerL.map(linha).join("") : '<div class="vazio">' + (encL.length ? "Nada para fazer agora: o resto já foi encaminhado." : "Nada em aberto aqui.") + "</div>";
+  if(encL.length) h += '<div class="secao">✉️ Encaminhados · esperando resposta (' + encL.length + ")</div>" + encL.map(linha).join("");
+  if(fechados.length) h += '<div class="secao">Feitos e apagados</div>' + fechados.map(linha).join("");
+  $("#lista-lembretes").innerHTML = h;
 }
 
 /* ---------- aba Reuniões ---------- */
@@ -579,14 +889,52 @@ document.addEventListener("click", function(e){
   var b = e.target.closest("[data-acao]"); if(!b) return;
   var acao = b.getAttribute("data-acao"), id = leadDoEl(b), lid = lembreteDoEl(b);
   if(acao === "nada") return;
+  if(acao === "cesta"){ trocarCesta(b.closest("[data-reuniao]").getAttribute("data-reuniao"), Number(b.closest("[data-mom]").getAttribute("data-mom"))); return; }
+  if(acao === "cesta-mover"){
+    var k1 = Number(b.getAttribute("data-k")), k2 = k1 + Number(b.getAttribute("data-para"));
+    if(k2 >= 0 && k2 < CESTA.length){ var tmp = CESTA[k1]; CESTA[k1] = CESTA[k2]; CESTA[k2] = tmp; salvarCesta(); renderCesta(); }
+    return;
+  }
+  if(acao === "cesta-tirar"){ CESTA.splice(Number(b.getAttribute("data-k")), 1); salvarCesta(); sincronizarCesta(); return; }
+  if(acao === "cesta-limpar"){ if(confirm("Limpar os trechos escolhidos?")){ CESTA = []; salvarCesta(); sincronizarCesta(); } return; }
+  var cardS0 = b.closest("[data-short]"), sid = cardS0 && cardS0.getAttribute("data-short");
+  if(acao === "short-ajuste"){ var fa = $('[data-form="short-ajuste"]', cardS0); fa.classList.toggle("hidden"); if(!fa.classList.contains("hidden")) fa.ajuste.focus(); return; }
+  if(acao === "short-salvar"){
+    b.disabled = true;
+    chamar("short_salvar", Object.assign({id:sid}, dadosPublicacao(b.closest("form")))).then(function(j){
+      var s0 = D.shorts.find(function(x){ return x.id === sid; }); if(s0 && j.short){ s0.publicacao = j.short.publicacao; s0.destinos = j.short.destinos; }
+      toast("Texto salvo.");
+    }).catch(function(err){ toast(err.message, true); }).finally(function(){ b.disabled = false; });
+    return;
+  }
+  if(acao === "short-descartar"){ if(confirm("Descartar este short? A prévia é apagada e os trechos voltam para a lista.")) fazer("short_descartar", {id:sid}, "Short descartado.").catch(function(){}); return; }
+  if(acao === "short-tentar"){ fazer("short_tentar", {id:sid}, "Voltou para a fila do Mac.").catch(function(){}); return; }
   if(acao === "abrir"){ abertos[id] = !abertos[id]; renderLeads(); return; }
   if(acao === "editar" || acao === "mensagem"){
     var card = b.closest(".card");
     var f = $('[data-form="' + acao + '"]', card); f.classList.toggle("hidden");
-    if(acao === "mensagem" && !f.classList.contains("hidden")){ preencherInstancias(f, id); $("textarea", f).focus(); }
+    if(acao === "mensagem" && !f.classList.contains("hidden")){ f.removeAttribute("data-de-lembrete"); f.removeAttribute("data-short"); preencherInstancias(f, id); $("textarea", f).focus(); }
     return;
   }
-  if(acao === "fechar-form"){ b.closest("form").classList.add("hidden"); return; }
+  if(acao === "fechar-form"){ var ff = b.closest("form"); ff.classList.add("hidden"); ff.removeAttribute("data-short"); ff.removeAttribute("data-de-lembrete"); return; }
+  if(acao === "pedir-short"){
+    var cardS = b.closest(".card"), fS = $('[data-form="mensagem"]', cardS), leadS = D.leads.find(function(x){ return x.id === id; });
+    fS.classList.remove("hidden"); preencherInstancias(fS, id);
+    fS.querySelector('[value="agora"]').checked = true; mudarModo(fS);
+    fS.texto.value = PEDIDO_SHORT.replace("{nome}", leadS.nome.replace("[exemplo] ", "").split(" ")[0]);
+    fS.setAttribute("data-short", "1"); fS.scrollIntoView({behavior:"smooth", block:"center"}); fS.texto.focus();
+    return;
+  }
+  if(acao === "mom-usado"){
+    var proj = prompt("Em qual short entrou este trecho? (ex.: 027)");
+    if(proj && proj.trim()) salvarTrechos(b, function(lista, i){ lista[i].usado = proj.trim().slice(0, 80); }, "Marcado como usado no " + proj.trim() + ".");
+    return;
+  }
+  if(acao === "mom-desmarcar"){ salvarTrechos(b, function(lista, i){ lista[i].usado = null; }, "Desmarcado."); return; }
+  if(acao === "mom-tirar"){
+    if(confirm("Tirar este trecho da lista de shorts?")) salvarTrechos(b, function(lista, i){ lista.splice(i, 1); }, "Trecho tirado.");
+    return;
+  }
   if(acao === "contato"){
     var campo = b.getAttribute("data-campo");
     if(contatoAberto[id] === campo) delete contatoAberto[id]; else contatoAberto[id] = campo;
@@ -607,7 +955,7 @@ document.addEventListener("click", function(e){
     return;
   }
   if(acao === "cancelar-agendada"){
-    if(confirm("Cancelar esta mensagem agendada? Ela some do Turbo também.")) fazer("agendado_cancelar", {id: b.closest("[data-agendada]").getAttribute("data-agendada")}, "Mensagem cancelada.").catch(function(){});
+    if(confirm("Cancelar esta mensagem agendada? Ela some do Turbo também, e os lembretes que ela cobria voltam para a fila.")) fazer("agendado_cancelar", {id: b.closest("[data-agendada]").getAttribute("data-agendada")}, "Mensagem cancelada.").catch(function(){});
     return;
   }
   if(acao === "agendar-do-lembrete"){
@@ -615,6 +963,7 @@ document.addEventListener("click", function(e){
     abertos[alvo] = true; $("#f-situacao").value = ""; $("#busca").value = ""; mostrarAba("leads"); renderLeads();
     var card = document.querySelector('[data-lead="' + alvo + '"]'); if(!card) return;
     var f = $('[data-form="mensagem"]', card); f.classList.remove("hidden"); preencherInstancias(f, alvo);
+    f.setAttribute("data-de-lembrete", String(lid));
     f.querySelector('[value="agendar"]').checked = true; mudarModo(f);
     if(lemb && new Date(lemb.quando) > new Date()) f.quando.value = paraLocal(lemb.quando);
     card.scrollIntoView({behavior:"smooth", block:"start"}); f.texto.focus();
@@ -638,6 +987,8 @@ document.addEventListener("click", function(e){
     mostrarAba("leads"); renderLeads(); var el = document.querySelector('[data-lead="' + lidLead + '"]'); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); return;
   }
   if(acao === "feito") return fazer("lembrete_salvar", {id:lid, status:"feito"}, "Feito ✅");
+  if(acao === "ja-encaminhei") return fazer("lembrete_salvar", {id:lid, encaminhado:true}, "Foi para Encaminhados ✉️");
+  if(acao === "voltar-fila") return fazer("lembrete_salvar", {id:lid, encaminhado:null}, "Voltou para a fila.");
   if(acao === "reabrir") return fazer("lembrete_salvar", {id:lid, status:"pendente"}, "Lembrete reaberto.");
   if(acao === "apagar-lembrete"){
     var lA = D.lembretes.find(function(x){ return x.id === lid; }) || {};
@@ -656,6 +1007,7 @@ document.addEventListener("change", function(e){
   if(acao === "modo"){ mudarModo(s.closest("form")); return; }
   if(acao === "situacao") fazer("lead_salvar", {id:id, situacao:s.value}, "Situação: " + SITUACAO[s.value]);
   if(acao === "temperatura") fazer("lead_salvar", {id:id, temperatura:s.value || null}, "Temperatura salva.");
+  if(acao === "short-ok") fazer("lead_salvar", {id:id, short_ok:s.value || null}, s.value ? SHORT_OK[s.value].replace("🎬 short: ", "Short: ") : "Short: não pedido");
   if(acao === "status-reuniao") fazer("reuniao_salvar", {chave:s.closest("[data-reuniao]").getAttribute("data-reuniao"), status:s.value}, "Status: " + STATUS[s.value]);
 });
 
@@ -665,7 +1017,21 @@ document.addEventListener("submit", function(e){
   var id = leadDoEl(f), btn = f.querySelector('[type="submit"]');
   function trava(p){ return p.finally ? p.finally(function(){ btn.disabled = false; }) : p; }
   btn.disabled = true;
-  if(tipo === "editar"){
+  if(tipo === "novo-short"){
+    var itens = CESTA.map(function(c){ return {chave:c.chave, i:c.i, ini:c.ini}; });
+    trava(chamar("short_criar", {itens:itens, titulo:f.titulo.value, pedido:f.pedido.value}).then(function(){
+      CESTA = []; salvarCesta(); RASCUNHO = {titulo:"", pedido:""};
+      toast("Pedido feito 🎬 O Mac pega em até meia hora e avisa no WhatsApp."); return carregar();
+    }).catch(function(err){ toast(err.message, true); }));
+  } else if(tipo === "short-pub"){
+    var dp = dadosPublicacao(f), sidP = f.closest("[data-short]").getAttribute("data-short");
+    var onde = [dp.destinos.youtube ? "YouTube Shorts" : "", dp.destinos.instagram ? "Reels do @minerandoosol" : ""].filter(Boolean).join(" e ");
+    if(!onde){ toast("Escolha onde publicar.", true); btn.disabled = false; return; }
+    if(!confirm("Aprovar e publicar no " + onde + "? O Mac publica na próxima rodada.")){ btn.disabled = false; return; }
+    trava(fazer("short_aprovar", Object.assign({id:sidP}, dp), "Aprovado ✅ O Mac publica na próxima rodada.")).catch(function(){});
+  } else if(tipo === "short-ajuste"){
+    trava(fazer("short_ajustar", {id:f.closest("[data-short]").getAttribute("data-short"), ajuste:f.ajuste.value}, "Ajuste pedido. O Mac monta a nova versão na próxima rodada.")).catch(function(){});
+  } else if(tipo === "editar"){
     trava(fazer("lead_salvar", {id:id, nome:f.nome.value, telefone:f.telefone.value, turbo_url:f.turbo_url.value, cidade:f.cidade.value, empresa:f.empresa.value, produto:f.produto.value || null}, "Lead salvo.")).catch(function(){});
   } else if(tipo === "contato"){
     trava(chamar("lead_salvar", {id:id, telefone:f.telefone.value, turbo_url:f.turbo_url.value}).then(function(){
@@ -693,14 +1059,20 @@ document.addEventListener("submit", function(e){
   } else if(tipo === "mensagem" && f.querySelector('[name="modo"]:checked').value === "agendar"){
     var q = deLocal(f.quando.value);
     if(!q || new Date(q) < new Date(Date.now() - 6e4)){ toast("Escolha um horário que ainda não passou.", true); btn.disabled = false; return; }
-    trava(chamar("agendar", {lead_id:id, texto:f.texto.value, quando:q, cancelar_se_responder:f.cancelar.checked}).then(function(){
-      toast("Agendada no Turbo para " + quandoCurto(q) + " ✅"); return carregar();
+    trava(chamar("agendar", {lead_id:id, texto:f.texto.value, quando:q, cancelar_se_responder:f.cancelar.checked, lembrete_id:Number(f.getAttribute("data-de-lembrete")) || null}).then(function(j){
+      f.removeAttribute("data-de-lembrete");
+      toast("Agendada no Turbo para " + quandoCurto(q) + " ✅" + avisoEncaminhados(j)); return carregar();
     }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "mensagem"){
     var inst = f.instancia.value, txt = f.texto.value;
     if(!inst){ toast("Escolha de qual WhatsApp sai a mensagem.", true); btn.disabled = false; return; }
-    trava(chamar("enviar", {lead_id:id, texto:txt, instancia:inst}).then(function(j){
-      if(j.status === "ok") toast("Mensagem enviada ✅"); else toast(j.erro || "Não saiu.", true);
+    var pedindo = f.getAttribute("data-short") === "1";
+    // pedido de autorização para short não resolve lembrete nenhum: não encaminha
+    trava(chamar("enviar", {lead_id:id, texto:txt, instancia:inst, encaminhar:!pedindo, lembrete_id:Number(f.getAttribute("data-de-lembrete")) || null}).then(function(j){
+      f.removeAttribute("data-de-lembrete");
+      if(j.status === "ok") toast(pedindo ? "Pedido enviado ✅ Marquei o short como pedido." : "Mensagem enviada ✅" + avisoEncaminhados(j)); else toast(j.erro || "Não saiu.", true);
+      var ldP = D.leads.find(function(x){ return x.id === id; });
+      if(pedindo && j.status === "ok" && ldP && !ldP.short_ok) return chamar("lead_salvar", {id:id, short_ok:"pedido"}).then(carregar, carregar);
       return carregar();
     }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "editar-lembrete"){
@@ -763,11 +1135,20 @@ function preencherInstancias(form, id){
 
 function mostrarAba(nome){
   document.querySelectorAll(".aba").forEach(function(a){ a.setAttribute("aria-selected", String(a.getAttribute("data-aba") === nome)); });
-  ["leads","lembretes","reunioes"].forEach(function(n){ $("#aba-" + n).classList.toggle("hidden", n !== nome); });
+  ["leads","lembretes","reunioes","shorts"].forEach(function(n){ $("#aba-" + n).classList.toggle("hidden", n !== nome); });
+  abaAVista();
 }
+// no celular as abas rolam de lado: deixa a escolhida à vista (também depois do 1º render, quando a tela aparece)
+function abaAVista(){
+  var atual = document.querySelector('.aba[aria-selected="true"]'), nav = $(".abas");
+  if(atual && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, atual.offsetLeft - nav.offsetLeft - 24);
+}
+document.addEventListener("input", function(e){ var r = e.target.getAttribute && e.target.getAttribute("data-rascunho"); if(r) RASCUNHO[r] = e.target.value; });
+$("#f-trechos").addEventListener("change", renderShorts);
 document.querySelectorAll(".aba").forEach(function(a){ a.addEventListener("click", function(){ mostrarAba(a.getAttribute("data-aba")); }); });
 $("#busca").addEventListener("input", renderLeads);
 $("#f-situacao").addEventListener("change", renderLeads);
+$("#f-short").addEventListener("change", renderLeads);
 $("#f-concluidos").addEventListener("change", renderLembretes);
 $("#btn-atualizar").addEventListener("click", function(){ carregar().then(function(){ toast("Atualizado."); }); });
 $("#btn-sair").addEventListener("click", function(){ if(DEMO) return; sb.auth.signOut().then(function(){ location.reload(); }); });
@@ -783,6 +1164,18 @@ $("#form-login").addEventListener("submit", function(e){
 });
 
 /* ---------- demonstração (?demo) ---------- */
+// demonstração da regra de _shared/encaminhar.mjs: lembretes abertos do lead até o fim do dia da mensagem
+function demoEncaminhar(leadId, info){
+  var base = info.para && Date.parse(info.para) > Date.now() ? info.para : new Date().toISOString();
+  var limite = Date.parse(chaveDia(base) + "T23:59:59-03:00");
+  var ids = [];
+  D.lembretes.forEach(function(l){
+    if(l.lead_id !== leadId || !aberto(l) || l.repetir || l.encaminhado) return;
+    if(l.id !== info.lembrete_id && !(l.quando && Date.parse(l.quando) <= limite)) return;
+    l.encaminhado = {como:info.como, em:new Date().toISOString(), para:info.para || null, agendada_id:info.agendada_id || null}; ids.push(l.id);
+  });
+  return ids;
+}
 function demoChamar(acao, d){
   var agora = new Date().toISOString();
   var L = function(id){ return D.lembretes.find(function(x){ return x.id === id; }); };
@@ -798,13 +1191,15 @@ function demoChamar(acao, d){
     var l = D.leads.find(function(x){ return x.id === d.id; }); Object.keys(d).forEach(function(k){ if(k !== "id") l[k] = d[k]; });
   }
   if(acao === "lead_remover") D.leads = D.leads.filter(function(x){ return x.id !== d.id; });
-  if(acao === "reuniao_salvar"){ var r = D.reunioes.find(function(x){ return x.chave === d.chave; }); r.status = d.status; }
+  if(acao === "reuniao_salvar"){ var r = D.reunioes.find(function(x){ return x.chave === d.chave; }); if(d.status !== undefined) r.status = d.status; if(d.momentos !== undefined) r.momentos = d.momentos; }
   if(acao === "reuniao_remover") D.reunioes = D.reunioes.filter(function(x){ return x.chave !== d.chave; });
   if(acao === "lembrete_salvar"){
     var x = L(d.id);
     if(d.pular){ var px = new Date(x.quando); px.setDate(px.getDate() + (x.repetir.tipo === "mensal" ? 30 : x.repetir.tipo === "semanal" ? 7 : 1)); x.quando = px.toISOString(); }
     if(d.status) x.status = d.status;
-    if(d.quando !== undefined){ x.quando = d.quando; x.status = "pendente"; }
+    if(d.quando !== undefined){ x.quando = d.quando; x.status = "pendente"; x.encaminhado = null; }
+    if(d.status === "pendente") x.encaminhado = null;
+    if(d.encaminhado !== undefined) x.encaminhado = d.encaminhado ? {como:"manual", em:agora} : null;
     if(d.repetir !== undefined) x.repetir = d.repetir ? Object.assign({hora:hhmm(x.quando), dias:[new Date(x.quando).getDay()], dia:Number(partes(x.quando).day)}, d.repetir) : null;
     if(d.avisar !== undefined) x.avisar = d.avisar;
     if(d.texto) x.texto = d.texto; x.atualizado_em = agora;
@@ -832,25 +1227,72 @@ function demoChamar(acao, d){
     if(!ld.telefone && !ehTurbo(ld.turbo_url)) return Promise.reject(new Error("Ponha o telefone ou o link da conversa no Turbo antes de agendar."));
     if(!ehTurbo(ld.turbo_url)) ld.turbo_url = "https://igreenturbo.com.br/app/inbox?contact=00000000-0000-0000-0000-00000000000" + String(D.leads.indexOf(ld) + 1);
     var item = {id:"ag" + Date.now(), lead_id:d.lead_id, message:d.texto, scheduled_at:d.quando, status:"pending", cancel_on_inbound:d.cancelar_se_responder};
-    return Promise.resolve({item:item}).then(function(r){ AG.push(item); return r; });
+    var encA = demoEncaminhar(d.lead_id, {como:"agendada", para:d.quando, agendada_id:item.id, lembrete_id:d.lembrete_id});
+    return Promise.resolve({item:item, encaminhados:encA}).then(function(r){ AG.push(item); return r; });
   }
-  if(acao === "agendado_cancelar"){ AG.forEach(function(a){ if(a.id === d.id) a.status = "cancelled"; }); return Promise.resolve({ok:true}); }
+  if(acao === "agendado_cancelar"){
+    AG.forEach(function(a){ if(a.id === d.id) a.status = "cancelled"; });
+    D.lembretes.forEach(function(l){ if(l.encaminhado && l.encaminhado.agendada_id === d.id && aberto(l)) l.encaminhado = null; });
+    return Promise.resolve({ok:true});
+  }
   if(acao === "instancias") return Promise.resolve({instancias:[{nome:"pessoal",estado:"open",numero:"554891067007"},{nome:"carregador",estado:"open",numero:"554788092413"},{nome:"Debora",estado:"close",numero:"554791997299"}]});
-  if(acao === "enviar"){ D.envios.unshift({lead_id:d.lead_id, instancia:d.instancia, texto:d.texto, status:"ok", criado_em:agora}); return Promise.resolve({status:"ok"}); }
+  if(acao === "enviar"){
+    D.envios.unshift({lead_id:d.lead_id, instancia:d.instancia, texto:d.texto, status:"ok", criado_em:agora});
+    return Promise.resolve({status:"ok", encaminhados:d.encaminhar === false ? [] : demoEncaminhar(d.lead_id, {como:"enviada", lembrete_id:d.lembrete_id})});
+  }
+  var S = function(id){ return D.shorts.find(function(x){ return x.id === id; }); };
+  if(acao === "short_criar"){
+    if(!(d.itens || []).length) return Promise.reject(new Error("Escolha pelo menos um trecho."));
+    var linhasT = String(d.titulo || "").split(/\n|\s\/\s/).map(function(x){ return x.trim(); }).filter(Boolean);
+    if(linhasT.length > 3) return Promise.reject(new Error("O título de abertura tem no máximo 3 linhas."));
+    var trechosN = d.itens.map(function(it){
+      var r = D.reunioes.find(function(x){ return x.chave === it.chave; }), m = r.momentos[it.i], l = leadDe(r.lead_id);
+      return {chave:it.chave, i:it.i, data:r.data, hora:r.hora, reuniao:r.titulo, lead_id:r.lead_id, lead:l ? l.nome : null, gravacao_id:r.gravacao_id, ini:m.ini, fim:m.fim, quem:m.quem, tipo:m.tipo, fala:m.fala, porque:m.porque, cuidado:m.cuidado, fonte:m.fonte};
+    });
+    D.shorts.unshift({id:"demo-" + Date.now(), criado_em:agora, status:"fila", status_em:agora, trechos:trechosN, titulo:linhasT.join("\n") || null, pedido:d.pedido || null, versao:0, destinos:{youtube:true, instagram:true}});
+    return Promise.resolve({short:D.shorts[0]});
+  }
+  if(acao === "short_salvar"){ var s1 = S(d.id); s1.publicacao = d.publicacao; s1.destinos = d.destinos; return Promise.resolve({short:s1}); }
+  if(acao === "short_aprovar"){
+    var s2 = S(d.id), f2 = semOk(s2.trechos);
+    if(f2.length) return Promise.reject(new Error("Falta o ok para aparecer: " + f2.join(", ") + "."));
+    Object.assign(s2, {status:"aprovado", status_em:agora, publicacao:d.publicacao, destinos:d.destinos, aprovado_em:agora});
+  }
+  if(acao === "short_ajustar") Object.assign(S(d.id), {status:"ajustar", status_em:agora, ajuste:d.ajuste});
+  if(acao === "short_tentar"){ var s3 = S(d.id); s3.status = s3.aprovado_em ? "aprovado" : s3.ajuste ? "ajustar" : "fila"; s3.erro = null; s3.status_em = agora; }
+  if(acao === "short_descartar") Object.assign(S(d.id), {status:"descartado", status_em:agora, video_url:null});
   return Promise.resolve({ok:true});
 }
 function demoDados(){
   var h = function(dias, hora){ var p = partes(Date.now() + dias * 864e5); return new Date(p.year + "-" + p.month + "-" + p.day + "T" + hora + ":00-03:00").toISOString(); };
   var dia = function(dias){ return chaveDia(Date.now() + dias * 864e5); };
   D.leads = [
-    {id:"a1", nome:"[exemplo] Carla Menezes", telefone:"5547999990001", turbo_url:"https://igreenturbo.com.br/app/inbox?contact=00000000-0000-0000-0000-000000000001", cidade:"Itajaí/SC", produto:"mob", situacao:"aberto", temperatura:"quente", atualizado_em:h(0,"10:00")},
+    {id:"a1", nome:"[exemplo] Carla Menezes", telefone:"5547999990001", turbo_url:"https://igreenturbo.com.br/app/inbox?contact=00000000-0000-0000-0000-000000000001", cidade:"Itajaí/SC", produto:"mob", situacao:"aberto", temperatura:"quente", short_ok:"sim", atualizado_em:h(0,"10:00")},
+    {id:"a4", nome:"[exemplo] Marcos Ribeiro", telefone:"5548999990004", cidade:"Tubarão/SC", produto:"mob", situacao:"aberto", temperatura:"quente", short_ok:"pedido", atualizado_em:h(-2,"15:00")},
     {id:"a2", nome:"[exemplo] Rogério Tavares", telefone:null, cidade:"Londrina/PR", produto:"mob", situacao:"aberto", temperatura:"morno", atualizado_em:h(-1,"10:00")},
     {id:"a3", nome:"[exemplo] Lúcia Prado", telefone:"5511999990003", cidade:"Campinas/SP", produto:"licenca-igreen", situacao:"perdido", temperatura:"frio", atualizado_em:h(-3,"10:00")}
   ];
   D.reunioes = [
-    {chave:"doc:x1", lead_id:"a1", lead:{nome:"[exemplo] Carla Menezes"}, data:dia(0), hora:"10:02", titulo:"Reunião com Carla Menezes - carregador", status:"realizada", duracao_min:38, temperatura:"quente", resumo:"Tem um posto de conveniência na saída da cidade e quer o Mob Fast nas duas vagas da frente. Pediu o link do sinal.", temperatura_porque:"Pediu o link de pagamento do sinal.", objecoes:["Quer confirmar a potência do padrão"], proximos_passos:[{quem:"Jimmy", o_que:"Mandar o link do pedido do Mob Fast", quando_dito:"hoje", minuto:"00:31:10"},{quem:"Carla", o_que:"Pagar o sinal", quando_dito:"até sexta", minuto:"00:33:02"}]},
-    {chave:"doc:x2", lead_id:"a2", lead:{nome:"[exemplo] Rogério Tavares"}, data:dia(-1), hora:"16:00", titulo:"Reunião com Rogério Tavares", status:"realizada", duracao_min:25, temperatura:"morno", resumo:"Dono de lava-rápido; gostou do modelo, mas decide com o sócio.", objecoes:["Decide com o sócio"], proximos_passos:[{quem:"Rogério", o_que:"Conversar com o sócio", quando_dito:"semana que vem", minuto:"00:22:40"}]},
-    {chave:"evt:x3", lead_id:"a3", lead:{nome:"[exemplo] Lúcia Prado"}, data:dia(-3), hora:"09:00", titulo:"Apresentação Individual (Lúcia Prado)", status:"nao_compareceu"}
+    {chave:"doc:x1", lead_id:"a1", lead:{nome:"[exemplo] Carla Menezes"}, data:dia(0), hora:"10:02", titulo:"Reunião com Carla Menezes - carregador", status:"realizada", duracao_min:38, temperatura:"quente", resumo:"Tem um posto de conveniência na saída da cidade e quer o Mob Fast nas duas vagas da frente. Pediu o link do sinal.", temperatura_porque:"Pediu o link de pagamento do sinal.", objecoes:["Quer confirmar a potência do padrão"], proximos_passos:[{quem:"Jimmy", o_que:"Mandar o link do pedido do Mob Fast", quando_dito:"hoje", minuto:"00:31:10"},{quem:"Carla", o_que:"Pagar o sinal", quando_dito:"até sexta", minuto:"00:33:02"}],
+      doc_id:"demo-doc-carla", gravacao_id:"demo-gravacao-carla", momentos:[
+        {ini:"00:12:40", fim:"00:13:05", quem:"Carla", tipo:"reacao", fala:"Então o carro fica carregando enquanto a pessoa toma um café?", porque:"Ela mesma descobre o motivo de ter o carregador no posto de conveniência.", cuidado:null, forca:3, fonte:"transcricao", usado:null},
+        {ini:"00:21:10", fim:"00:21:48", quem:"Carla e Jimmy", tipo:"pergunta", fala:"Isso é franquia?", porque:"Pergunta que quase todo investidor faz, com resposta curta.", cuidado:"Slide com valores na tela: desfocar.", forca:2, fonte:"transcricao", usado:null},
+        {ini:"00:30:02", fim:"00:30:20", quem:"Carla", tipo:"depoimento", fala:"Eu já tinha pensado nisso faz um ano.", porque:"Decisão dela, sem empurrão.", cuidado:null, forca:2, fonte:"anotacoes", usado:"027"}]},
+    {chave:"doc:x2", lead_id:"a2", lead:{nome:"[exemplo] Rogério Tavares"}, data:dia(-1), hora:"16:00", titulo:"Reunião com Rogério Tavares", status:"realizada", duracao_min:25, temperatura:"morno", resumo:"Dono de lava-rápido; gostou do modelo, mas decide com o sócio.", objecoes:["Decide com o sócio"], proximos_passos:[{quem:"Rogério", o_que:"Conversar com o sócio", quando_dito:"semana que vem", minuto:"00:22:40"}], doc_id:"demo-doc-rogerio", momentos:[]},
+    {chave:"evt:x3", lead_id:"a3", lead:{nome:"[exemplo] Lúcia Prado"}, data:dia(-3), hora:"09:00", titulo:"Apresentação Individual (Lúcia Prado)", status:"nao_compareceu"},
+    {chave:"doc:x4", lead_id:"a4", lead:{nome:"[exemplo] Marcos Ribeiro"}, data:dia(-2), hora:"15:00", titulo:"Reunião com Marcos Ribeiro - carregador", status:"realizada", duracao_min:44, temperatura:"quente", resumo:"Dono de dois postos na BR-101; quer o Ultra Fast no maior.", doc_id:"demo-doc-marcos", gravacao_id:"demo-gravacao-marcos", momentos:[
+      {ini:"00:08:15", fim:"00:08:42", quem:"Marcos", tipo:"objecao", fala:"Mas e se ninguém usar o carregador?", porque:"Objeção que todo dono de posto tem, respondida com o número de carros da região.", cuidado:"Mapa do Atlas com a cidade: desfocar.", forca:3, fonte:"transcricao", usado:null},
+      {ini:"00:27:30", fim:"00:27:52", quem:"Marcos", tipo:"reacao", fala:"Nossa, então ele se paga antes do que eu imaginava.", porque:"Reação espontânea depois da explicação da recarga.", cuidado:null, forca:2, fonte:"transcricao", usado:null}]}
+  ];
+  D.shorts = [
+    {id:"demo-s1", criado_em:h(0,"08:40"), status:"pronto", status_em:h(0,"09:20"), versao:1, duracao:71.4, titulo:"Reuniões reais\ncom quem quer\nter um eletroposto", pedido:null,
+      trechos:[{chave:"doc:x1", i:1, data:dia(0), lead_id:"a1", lead:"[exemplo] Carla Menezes", ini:"00:21:10", fim:"00:21:48", tipo:"pergunta", fala:"Isso é franquia?"},
+               {chave:"doc:x4", i:1, data:dia(-2), lead_id:"a4", lead:"[exemplo] Marcos Ribeiro", ini:"00:27:30", fim:"00:27:52", tipo:"reacao", fala:"Nossa, então ele se paga antes do que eu imaginava."}],
+      destinos:{youtube:true, instagram:true}, publicacao:{titulo:"É franquia? Reuniões reais com quem quer ter um eletroposto #igreencreaton @igreenenergy", descricao:"Bastidores de reuniões reais pelo Meet apresentando o eletroposto da iGreen.\n\n⚡ Quer o seu eletroposto: https://querocarregador.com.br", legenda:"Bastidores de reuniões reais apresentando o eletroposto da iGreen.\n\n⚡ querocarregador.com.br\n\n#igreencreaton #igreenenergy #eletropostos"}},
+    {id:"demo-s2", criado_em:h(-1,"17:10"), status:"erro", status_em:h(-1,"17:40"), versao:0, erro:"Não consegui baixar a gravação de " + dataCurta(dia(-2)) + ": o Chrome abriu o Drive sem a conta contato@. Entre nela no Chrome e clique em Tentar de novo.",
+      trechos:[{chave:"doc:x4", i:0, data:dia(-2), lead_id:"a4", lead:"[exemplo] Marcos Ribeiro", ini:"00:08:15", fim:"00:08:42", tipo:"objecao", fala:"Mas e se ninguém usar o carregador?"}]},
+    {id:"demo-s3", criado_em:h(-6,"10:00"), status:"publicado", status_em:h(-5,"11:00"), versao:2, duracao:58, publicado:{youtube:"https://youtube.com/shorts/demo", instagram:"https://www.instagram.com/reel/demo/"},
+      trechos:[{chave:"doc:x1", i:2, data:dia(0), lead_id:"a1", lead:"[exemplo] Carla Menezes", ini:"00:30:02", fim:"00:30:20", tipo:"depoimento", fala:"Eu já tinha pensado nisso faz um ano."}], destinos:{youtube:true, instagram:true}}
   ];
   D.lembretes = [
     {id:1, texto:"Conferir se a Carla pagou o sinal do Mob Fast", quando:h(1,"09:00"), lead_id:"a1", status:"pendente", atualizado_em:h(0,"10:40")},
@@ -866,6 +1308,8 @@ function demoDados(){
 }
 
 /* ---------- arranque ---------- */
+// o aviso do WhatsApp abre direto na aba Shorts (…/reunioes?aba=shorts)
+if(/[?&]aba=shorts\b/.test(location.search) || location.hash === "#shorts") mostrarAba("shorts");
 if(DEMO){
   $("#demo-banner").classList.remove("hidden");
   demoDados(); $("#app").classList.remove("hidden"); render();
