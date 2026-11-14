@@ -131,6 +131,7 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
 .mom__c .cuid{color:var(--morno)}
 .mom__a{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end}
 .mom.usado .mom__t,.mom.usado .mom__c{opacity:.5}
+.forca{white-space:nowrap;color:var(--short)}.forca.f3{color:#F2C14E}.forca.f1{color:var(--muted)}.forca__v{opacity:.3}
 @media(max-width:560px){.mom{flex-wrap:wrap}.mom__a{width:100%;justify-content:flex-start}}
 .mom__meta{font-family:var(--mono);font-size:.68rem;color:var(--muted-dim);margin-bottom:.1rem}
 .btn--cesta.dentro{border-color:var(--short);color:var(--short)}
@@ -288,6 +289,10 @@ details.hist summary{cursor:pointer;color:var(--muted);font-size:.84rem;margin:.
           <option value="ok">Só de quem autorizou</option>
           <option value="todos">Todos, inclusive usados</option>
         </select>
+        <select class="sel btn--sm" id="o-trechos" aria-label="Ordem dos trechos">
+          <option value="data">Mais recentes primeiro</option>
+          <option value="forca">Mais fortes primeiro</option>
+        </select>
       </div>
       <div class="lista" id="lista-trechos"></div>
       <div id="shorts-hist"></div>
@@ -343,6 +348,12 @@ var TEMP = {quente:"🔥 quente", morno:"🟡 morno", frio:"🧊 frio"};
 var PRODUTO = {"licenca-igreen":"Licença iGreen", mob:"Mob", telecom:"Telecom", outro:"Outro"};
 // trechos para short marcados pela rotina do diário (tipos iguais aos de supabase/functions/_shared/momentos.mjs)
 var TIPO_MOM = {reacao:"reação", pergunta:"pergunta e resposta", objecao:"objeção respondida", depoimento:"depoimento", explicacao:"explicação curta", humor:"descontração"};
+// força do trecho (1 a 3), dada pela rotina do diário: 3 abriria um short, 2 é bom, 1 só se faltar
+var FORCA_MOM = {3:"forte", 2:"bom", 1:"reserva"};
+var DICA_FORCA = {3:"Força 3 de 3: abriria um short", 2:"Força 2 de 3: trecho bom", 1:"Força 1 de 3: só se faltar"};
+function nForca(f){ f = Number(f); return f >= 1 && f <= 3 ? Math.round(f) : 2; }
+function estrelas(f){ var n = nForca(f); return '<span class="forca f' + n + '" title="' + DICA_FORCA[n] + '" aria-label="' + DICA_FORCA[n] + '">' + "★★★".slice(0, n) + '<span class="forca__v" aria-hidden="true">' + "★★★".slice(0, 3 - n) + "</span> " + FORCA_MOM[n] + "</span>"; }
+function forcaDe(chave, ini){ var r = D.reunioes.find(function(x){ return x.chave === chave; }); var m = r && (r.momentos || []).find(function(x){ return x.ini === ini; }); return m ? m.forca : null; }
 var SHORT_OK = {pedido:"🎬 short: pedido, sem resposta", sim:"🎬 short: autorizou", nao:"🎬 short: recusou"};
 var PEDIDO_SHORT = "Oi, {nome}! Tudo bem? Estou montando um vídeo curto com trechos de reuniões reais, e um momento da nossa conversa ficou muito bom. Aparecem a imagem e a voz, sem o seu nome. Posso usar? Se preferir que não, fica tudo certo.";
 // pedidos de short (tabela reunioes_shorts; regras em supabase/functions/_shared/shorts.mjs)
@@ -644,7 +655,7 @@ function blocoTrechos(r){
   return h + "</div>";
 }
 function tempoTrecho(m){
-  return '<div class="mom__t">' + esc(tcurto(m.ini)) + "–" + esc(tcurto(m.fim)) + "<br>" + "★★★".slice(0, m.forca || 2) + '<span style="opacity:.35">' + "★★★".slice(0, 3 - (m.forca || 2)) + "</span></div>";
+  return '<div class="mom__t">' + esc(tcurto(m.ini)) + "–" + esc(tcurto(m.fim)) + "<br>" + estrelas(m.forca) + "</div>";
 }
 function textoTrecho(m, r){
   var h = "<b>" + esc(TIPO_MOM[m.tipo] || m.tipo) + "</b>" + (m.quem ? " · " + esc(m.quem) : "") + (m.fala ? ": “" + esc(m.fala) + "”" : "");
@@ -709,7 +720,7 @@ function renderCesta(){
   h += '<p class="mudo mini">Uns ' + Math.round(total * 0.8 + 3) + " s de vídeo depois de cortar as pausas (até 90 s fica melhor). A ordem da lista é a ordem do vídeo.</p>";
   itens.forEach(function(x, k){
     h += '<div class="cesta__item"><span class="cesta__n">' + (k + 1) + '.</span><div class="cesta__t">' + esc(TIPO_MOM[x.m.tipo] || x.m.tipo) + (x.m.fala ? ": “" + esc(x.m.fala) + "”" : "");
-    h += "<small>" + esc(nomeCurto((x.r.lead && x.r.lead.nome) || x.r.titulo)) + " · " + dataCurta(x.r.data) + " · ⏱ " + esc(tcurto(x.m.ini)) + "–" + esc(tcurto(x.m.fim)) + (x.m.cuidado ? " · ⚠️ " + esc(x.m.cuidado) : "") + "</small></div>";
+    h += "<small>" + esc(nomeCurto((x.r.lead && x.r.lead.nome) || x.r.titulo)) + " · " + dataCurta(x.r.data) + " · ⏱ " + esc(tcurto(x.m.ini)) + "–" + esc(tcurto(x.m.fim)) + " · " + estrelas(x.m.forca) + (x.m.cuidado ? " · ⚠️ " + esc(x.m.cuidado) : "") + "</small></div>";
     h += '<div class="cesta__a"><button class="btn btn--sm" type="button" data-acao="cesta-mover" data-k="' + k + '" data-para="-1" title="Subir"' + (k ? "" : " disabled") + '>↑</button><button class="btn btn--sm" type="button" data-acao="cesta-mover" data-k="' + k + '" data-para="1" title="Descer"' + (k < itens.length - 1 ? "" : " disabled") + '>↓</button><button class="btn btn--sm btn--perigo" type="button" data-acao="cesta-tirar" data-k="' + k + '" title="Tirar">×</button></div></div>';
   });
   var recusa = recusaram(itens.map(function(x){ return {lead_id:x.r.lead_id, data:x.r.data}; }));
@@ -730,7 +741,7 @@ function cardShort(s){
   if(s.titulo) h += '<p class="mini" style="margin-top:.35rem">Título de abertura: ' + esc(String(s.titulo).replace(/\n/g, " / ")) + "</p>";
   if(s.pedido) h += '<p class="mini mudo">Recado: ' + esc(s.pedido) + "</p>";
   if(s.ajuste && ["ajustar","montando","pronto","erro"].indexOf(s.status) >= 0) h += '<p class="mini" style="color:var(--morno)">Ajuste pedido: ' + esc(s.ajuste) + "</p>";
-  var lista = "<ol>" + (s.trechos || []).map(function(t){ return "<li><b>" + esc(nomeCurto(t.lead || t.reuniao || "")) + "</b> · " + dataCurta(t.data) + " · ⏱ " + esc(tcurto(t.ini)) + "–" + esc(tcurto(t.fim)) + " · " + esc(TIPO_MOM[t.tipo] || t.tipo) + (t.fala ? ": “" + esc(t.fala) + "”" : "") + "</li>"; }).join("") + "</ol>";
+  var lista = "<ol>" + (s.trechos || []).map(function(t){ return "<li><b>" + esc(nomeCurto(t.lead || t.reuniao || "")) + "</b> · " + dataCurta(t.data) + " · ⏱ " + esc(tcurto(t.ini)) + "–" + esc(tcurto(t.fim)) + (forcaDe(t.chave, t.ini) ? " · " + estrelas(forcaDe(t.chave, t.ini)) : "") + " · " + esc(TIPO_MOM[t.tipo] || t.tipo) + (t.fala ? ": “" + esc(t.fala) + "”" : "") + "</li>"; }).join("") + "</ol>";
   var comVideo = ["pronto","aprovado","publicando","publicado"].indexOf(s.status) >= 0;
   if(!comVideo){
     h += lista;
@@ -777,6 +788,7 @@ function renderShorts(){
   renderCesta();
   var f = $("#f-trechos").value;
   var ts = todosTrechos().filter(function(x){ return f === "todos" || (!x.m.usado && (f !== "ok" || okDe(x.r.lead_id) === "sim")); });
+  if($("#o-trechos").value === "forca") ts.sort(function(a, b){ return nForca(b.m.forca) - nForca(a.m.forca) || String(b.r.data + b.r.hora).localeCompare(String(a.r.data + a.r.hora)) || String(a.m.ini).localeCompare(String(b.m.ini)); });
   var marcando = D.reunioes.some(trechosAMarcar);
   $("#lista-trechos").innerHTML = ts.length ? ts.map(linhaTrecho).join("") + (marcando ? '<p class="mudo mini">Ainda há reuniões recentes para a rotina do diário marcar (duas por rodada, de hora em hora).</p>' : "")
     : '<div class="vazio">' + (marcando ? "A rotina do diário ainda está marcando os trechos das reuniões (duas por rodada, de hora em hora)." : f === "ok" ? "Nenhum trecho de quem já autorizou." : "Nenhum trecho aqui.") + "</div>";
@@ -1146,6 +1158,7 @@ function abaAVista(){
 }
 document.addEventListener("input", function(e){ var r = e.target.getAttribute && e.target.getAttribute("data-rascunho"); if(r) RASCUNHO[r] = e.target.value; });
 $("#f-trechos").addEventListener("change", renderShorts);
+$("#o-trechos").addEventListener("change", renderShorts);
 document.querySelectorAll(".aba").forEach(function(a){ a.addEventListener("click", function(){ mostrarAba(a.getAttribute("data-aba")); }); });
 $("#busca").addEventListener("input", renderLeads);
 $("#f-situacao").addEventListener("change", renderLeads);
