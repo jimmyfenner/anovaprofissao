@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  faltaAutorizar, faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
-  normalizarPublicacao, normalizarTitulo, rotuloUsado, segundosDosTrechos,
+  faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
+  normalizarPublicacao, normalizarTitulo, recusaram, rotuloUsado, segundosDosTrechos,
 } from '../supabase/functions/_shared/shorts.mjs';
 
 const momentos = [
@@ -14,7 +14,7 @@ const reunioes = [
   { chave: 'doc:b', lead_id: 'L2', data: '2026-11-10', titulo: 'Sem gravação', gravacao_id: null, momentos },
   { chave: 'doc:c', lead_id: null, data: '2026-11-09', titulo: 'Parceiro', gravacao_id: 'GRAV87654321', momentos },
 ];
-const leads = [{ id: 'L1', nome: '[exemplo] Carla Menezes', short_ok: 'sim' }, { id: 'L2', nome: 'Rogério', short_ok: 'pedido' }];
+const leads = [{ id: 'L1', nome: '[exemplo] Carla Menezes', short_ok: 'sim' }, { id: 'L2', nome: 'Rogério', short_ok: 'pedido' }, { id: 'L3', nome: 'Marcos', short_ok: 'nao' }];
 
 test('cópia dos trechos guarda o que o Mac precisa', () => {
   const t = montarTrechos([{ chave: 'doc:a', i: 1, ini: '00:21:10' }], reunioes, leads);
@@ -35,14 +35,14 @@ test('recusa trecho repetido, lista mudada, reunião sem gravação e pedido vaz
   assert.throws(() => montarTrechos(Array.from({ length: 13 }, (_, i) => ({ chave: 'doc:a', i })), reunioes, leads), /No máximo 12/);
 });
 
-test('quem falta autorizar: lead sem "sim" e reunião sem lead, sem repetir', () => {
-  const t = [
-    ...montarTrechos([{ chave: 'doc:a', i: 0 }, { chave: 'doc:a', i: 1 }], reunioes, leads),
-    ...montarTrechos([{ chave: 'doc:c', i: 0 }], reunioes, leads),
-  ];
-  assert.deepEqual(faltaAutorizar(t, leads), ['reunião de 09/11 (sem lead para autorizar)']);
-  const t2 = [{ lead_id: 'L2', data: '2026-11-10' }, { lead_id: 'L2', data: '2026-11-10' }];
-  assert.deepEqual(faltaAutorizar(t2, leads), ['Rogério']);
+test('sem esperar autorização (ordem de 14/11/2026): só quem recusou fica de fora', () => {
+  const comRecusa = [...reunioes, { chave: 'doc:d', lead_id: 'L3', data: '2026-11-08', gravacao_id: 'GRAV11112222', momentos }];
+  // sem lead, sem resposta e "pedido" entram normalmente
+  assert.equal(montarTrechos([{ chave: 'doc:c', i: 0 }], comRecusa, leads).length, 1);
+  assert.throws(() => montarTrechos([{ chave: 'doc:d', i: 0 }], comRecusa, leads), /Marcos recusou aparecer/);
+  const t = [{ lead_id: 'L2', data: '2026-11-10' }, { lead_id: 'L3' }, { lead_id: 'L3' }, { lead_id: null }];
+  assert.deepEqual(recusaram(t, leads), ['Marcos']);
+  assert.deepEqual(recusaram([{ lead_id: 'L2' }, { lead_id: null }], leads), []);
 });
 
 test('título de abertura: até 3 linhas de 40 letras', () => {
@@ -62,15 +62,19 @@ test('texto da publicação e destinos', () => {
   assert.deepEqual(normalizarDestinos({ youtube: 1 }), { youtube: true, instagram: false });
 });
 
-test('para aprovar: pronto, destino, textos e ok de todos', () => {
+test('para aprovar: pronto, destino e textos; ninguém que recusou', () => {
   const trechos = montarTrechos([{ chave: 'doc:a', i: 0 }], reunioes, leads);
   const base = { status: 'pronto', trechos, destinos: { youtube: true, instagram: true }, publicacao: { titulo: 'T', legenda: 'L' } };
   assert.deepEqual(faltaParaAprovar(base, leads), []);
   assert.match(faltaParaAprovar({ ...base, status: 'montando' }, leads)[0], /não está pronto/);
   assert.deepEqual(faltaParaAprovar({ ...base, destinos: {} }, leads), ['Escolha onde publicar.']);
   assert.deepEqual(faltaParaAprovar({ ...base, publicacao: { titulo: 'T' } }, leads), ['Falta a legenda do Reels.']);
-  const semOk = leads.map((l) => ({ ...l, short_ok: l.id === 'L1' ? 'pedido' : l.short_ok }));
-  assert.deepEqual(faltaParaAprovar(base, semOk), ['Falta o ok para aparecer: Carla Menezes.']);
+  // sem resposta ou sem pedido de autorização: aprova do mesmo jeito
+  const semOk = leads.map((l) => ({ ...l, short_ok: l.id === 'L1' ? null : l.short_ok }));
+  assert.deepEqual(faltaParaAprovar(base, semOk), []);
+  // recusou depois do pedido feito: não aprova
+  const recusou = leads.map((l) => ({ ...l, short_ok: l.id === 'L1' ? 'nao' : l.short_ok }));
+  assert.match(faltaParaAprovar(base, recusou)[0], /Recusou aparecer em short: Carla Menezes/);
 });
 
 test('passos do Mac', () => {

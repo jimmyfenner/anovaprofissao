@@ -1404,12 +1404,14 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   e publica é a rotina **shorts-do-painel** do Mac (`studio/tools/shorts-painel`, LEIA-ME lá), com
   o token do assistente: `shorts_fila`, `short_upload` (link assinado para subir a prévia no bucket
   privado `reunioes-shorts`, `<id>/v<N>.mp4`, até 50 MB), `short_marcar` (passos permitidos em
-  `macPode`; "pronto" exige o arquivo no bucket; "publicando" confere de novo `short_ok = sim` de
-  todos os leads dos trechos; "publicado" marca os trechos como `usado: "painel dd/mm"` na reunião)
+  `macPode`; "pronto" exige o arquivo no bucket; "publicando" confere de novo que nenhum lead dos
+  trechos recusou (`short_ok = nao`); "publicado" marca os trechos como `usado: "painel dd/mm"` na reunião)
   e `short_avisado`. No painel, o pronto mostra a prévia (link assinado de 2 h no `estado`), quem
   aparece com a autorização, destinos (YouTube Shorts @jimmyfenner; Reels @minerandoosol com o
   @querocarregador) e o texto proposto pelo Mac (`short_salvar`); **Aprovar e publicar**
-  (`short_aprovar`) só libera com o ok de todos. Aviso no WhatsApp (pronto, erro, publicado): ciclo do
+  (`short_aprovar`) não espera autorização (ordem do Jimmy de 14/11/2026, "produza-os sempre"):
+  só quem recusou (`short_ok = nao`) fica de fora, no pedido (`montarTrechos`), na aprovação e na
+  publicação (`recusaram`). O "Pedir autorização" continua como cortesia. Aviso no WhatsApp (pronto, erro, publicado): ciclo do
   assistente do Mac (`lib/shorts.mjs`), uma vez por mudança (`avisado`). Link direto:
   `/reunioes?aba=shorts`.
 - **Lembrete encaminhado** (12/11/2026, migração 30, "agendei mensagem para o Danilo e ele continua no

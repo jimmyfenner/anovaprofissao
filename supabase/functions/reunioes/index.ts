@@ -13,8 +13,8 @@ import { normalizarRepeticao, proximaOcorrencia } from "../_shared/repeticao.mjs
 import { idDrive, normalizarMomentos } from "../_shared/momentos.mjs";
 import { cobertosPelaMensagem, normalizarEncaminhado } from "../_shared/encaminhar.mjs";
 import {
-  faltaAutorizar, faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
-  normalizarPublicacao, normalizarTitulo, rotuloUsado,
+  faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
+  normalizarPublicacao, normalizarTitulo, recusaram, rotuloUsado,
 } from "../_shared/shorts.mjs";
 
 const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
@@ -279,9 +279,9 @@ async function marcarShort(b: any) {
     if (b.publicacao !== undefined) c.publicacao = pura(() => normalizarPublicacao(b.publicacao));
   }
   if (para === "publicando") {
-    // confere de novo na hora de publicar: alguém pode ter mudado a autorização depois da aprovação
-    const falta = faltaAutorizar(s.trechos, await leadsCurtos());
-    if (falta.length) throw new Recusa(`Falta o ok para aparecer: ${falta.join(", ")}.`, 409);
+    // sem esperar autorização (ordem de 14/11/2026); só não publica se alguém que aparece recusou depois
+    const recusa = recusaram(s.trechos, await leadsCurtos());
+    if (recusa.length) throw new Recusa(`Recusou aparecer em short: ${recusa.join(", ")}.`, 409);
     if (!s.aprovado_em) throw new Recusa("O short não foi aprovado no painel.", 409);
   }
   if (para === "publicado") {
@@ -924,7 +924,7 @@ Deno.serve(async (req) => {
           rest("reunioes_shorts?status=in.(fila,ajustar,aprovado,montando,publicando)&select=*&order=criado_em.asc"),
           leadsCurtos(),
         ]);
-        return json({ shorts: lista.map((s: any) => ({ ...s, falta_autorizar: faltaAutorizar(s.trechos, leads) })) });
+        return json({ shorts: lista.map((s: any) => ({ ...s, recusaram: recusaram(s.trechos, leads) })) });
       }
       if (acao === "short_upload") return json(await linkDeUpload(idShort(b.id)));
       if (acao === "short_marcar") return json({ short: await marcarShort(b) });

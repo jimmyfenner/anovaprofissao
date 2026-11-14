@@ -1,4 +1,5 @@
-// Pedidos de short feitos no painel /reunioes (tabela reunioes_shorts, migração 29).
+// Pedidos de short feitos no painel /reunioes (tabela reunioes_shorts, migração 29). Sem esperar autorização
+// de quem aparece (só quem recusou fica de fora: ver `recusaram`).
 // O Jimmy escolhe trechos já marcados pela rotina do diário (reunioes.momentos) e aperta "Gerar short";
 // o pedido guarda uma CÓPIA de cada trecho, para que editar a reunião depois não mude o que o Mac monta.
 // A rotina shorts-do-painel do Mac (studio/tools/shorts-painel) anda com o status; o painel aprova,
@@ -37,6 +38,7 @@ export function montarTrechos(itens, reunioes, leads) {
     if (!m || (it.ini !== undefined && m.ini !== it.ini)) throw new Error('Os trechos da reunião de ' + ddmm(r.data) + ' mudaram. Atualize a página.');
     if (!r.gravacao_id) throw new Error('A reunião de ' + ddmm(r.data) + ' está sem a gravação do Meet ligada: sem ela o Mac não monta o vídeo.');
     var lead = (leads || []).find(function (l) { return l.id === r.lead_id; });
+    if (lead && lead.short_ok === 'nao') throw new Error(String(lead.nome || '').replace('[exemplo] ', '') + ' recusou aparecer em short: tire o trecho.');
     return {
       chave: chave, i: i, data: r.data || null, hora: r.hora || null, reuniao: texto(r.titulo, 200),
       lead_id: r.lead_id || null, lead: lead ? lead.nome : null,
@@ -47,13 +49,15 @@ export function montarTrechos(itens, reunioes, leads) {
   });
 }
 
-// quem aparece e ainda não disse "sim" (lead da reunião de cada trecho), sem repetir
-export function faltaAutorizar(trechos, leads) {
+// Autorização (14/11/2026, ordem do Jimmy: "remova a necessidade de aprovação expressa das reuniões para os
+// shorts, produza-os sempre"): o short sai sem esperar o "sim" de quem aparece. Só fica de fora quem RECUSOU
+// (short_ok = 'nao'): esta lista diz quem, sem repetir.
+export function recusaram(trechos, leads) {
   var out = [];
   (trechos || []).forEach(function (t) {
     var l = (leads || []).find(function (x) { return x.id === t.lead_id; });
-    var nome = l ? String(l.nome || '').replace('[exemplo] ', '') : 'reunião de ' + ddmm(t.data) + ' (sem lead para autorizar)';
-    if ((!l || l.short_ok !== 'sim') && out.indexOf(nome) < 0) out.push(nome);
+    var nome = l ? String(l.nome || '').replace('[exemplo] ', '') : '';
+    if (l && l.short_ok === 'nao' && out.indexOf(nome) < 0) out.push(nome);
   });
   return out;
 }
@@ -95,8 +99,8 @@ export function faltaParaAprovar(short, leads) {
   if (!d.youtube && !d.instagram) f.push('Escolha onde publicar.');
   if (d.youtube && !p.titulo) f.push('Falta o título do YouTube.');
   if (d.instagram && !p.legenda) f.push('Falta a legenda do Reels.');
-  var nomes = faltaAutorizar(short.trechos, leads);
-  if (nomes.length) f.push('Falta o ok para aparecer: ' + nomes.join(', ') + '.');
+  var nomes = recusaram(short.trechos, leads);
+  if (nomes.length) f.push('Recusou aparecer em short: ' + nomes.join(', ') + '. Peça ajuste tirando o trecho.');
   return f;
 }
 

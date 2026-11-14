@@ -637,7 +637,7 @@ function blocoTrechos(r){
   var h = '<div class="moms"><div class="moms__cab">🎬 Trechos para short</div>';
   r.momentos.forEach(function(m, i){
     h += '<div class="mom' + (m.usado ? " usado" : "") + '" data-mom="' + i + '">' + tempoTrecho(m) + '<div class="mom__c">' + textoTrecho(m, r) + '</div><div class="mom__a">';
-    if(r.gravacao_id && !m.usado) h += botaoCesta(r.chave, i);
+    if(r.gravacao_id && !m.usado && okDe(r.lead_id) !== "nao") h += botaoCesta(r.chave, i);
     h += (m.usado ? '<button class="btn btn--sm" data-acao="mom-desmarcar">Desmarcar</button>' : '<button class="btn btn--sm" data-acao="mom-usado" title="Já entrou num short">Usado</button>');
     h += '<button class="btn btn--sm btn--perigo" data-acao="mom-tirar" title="Tirar este trecho da lista">Tirar</button></div></div>';
   });
@@ -670,17 +670,18 @@ function leadDe(id){ return D.leads.find(function(l){ return l.id === id; }); }
 function nomeCurto(n){ return String(n || "").replace("[exemplo] ", ""); }
 function okDe(leadId){ var l = leadId && leadDe(leadId); return l ? (l.short_ok || null) : "sem-lead"; }
 var ROTULO_OK = {sim:"autorizou", pedido:"pedido, sem resposta", nao:"recusou", "sem-lead":"sem lead para autorizar"};
-function rotuloOk(v){ return ROTULO_OK[v] || "falta pedir"; }
+function rotuloOk(v){ return ROTULO_OK[v] || "autorização não pedida"; }
 function segs(t){ var m = /^(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)$/.exec(String(t || "")); return m ? (Number(m[1]) || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]) : 0; }
 function emPedidoAtivo(chave, ini){
   return (D.shorts || []).find(function(s){ return ATIVOS.indexOf(s.status) >= 0 && (s.trechos || []).some(function(t){ return t.chave === chave && t.ini === ini; }); });
 }
-// quem aparece e ainda não autorizou (mesma regra de faltaAutorizar em _shared/shorts.mjs)
-function semOk(lista){
+// o short sai sem esperar autorização (ordem do Jimmy de 14/11/2026); só fica de fora quem RECUSOU
+// (mesma regra de recusaram em _shared/shorts.mjs)
+function recusaram(lista){
   var out = [];
   lista.forEach(function(t){
-    var ok = okDe(t.lead_id), nome = ok === "sem-lead" ? "reunião de " + dataCurta(t.data) + " (sem lead)" : nomeCurto((leadDe(t.lead_id) || {}).nome);
-    if(ok !== "sim" && out.indexOf(nome) < 0) out.push(nome);
+    var nome = nomeCurto((leadDe(t.lead_id) || {}).nome);
+    if(okDe(t.lead_id) === "nao" && out.indexOf(nome) < 0) out.push(nome);
   });
   return out;
 }
@@ -692,8 +693,8 @@ function todosTrechos(){
 function linhaTrecho(x){
   var r = x.r, ok = okDe(r.lead_id);
   var h = '<div class="card" style="padding:0 .9rem" data-reuniao="' + esc(r.chave) + '"><div class="mom' + (x.m.usado ? " usado" : "") + '" data-mom="' + x.i + '" style="border-top:0">' + tempoTrecho(x.m);
-  h += '<div class="mom__c"><div class="mom__meta">' + dataCurta(r.data) + " · " + esc(nomeCurto((r.lead && r.lead.nome) || r.titulo)) + ' · <span style="color:' + (ok === "sim" ? "var(--credit)" : ok === "nao" ? "var(--perigo)" : "var(--short)") + '">🎬 ' + rotuloOk(ok) + "</span></div>" + textoTrecho(x.m, r) + "</div>";
-  h += '<div class="mom__a">' + (!r.gravacao_id ? '<span class="mini mudo" title="A rotina do diário não achou o vídeo desta reunião no Drive">sem gravação</span>' : x.m.usado ? "" : botaoCesta(r.chave, x.i)) + "</div></div></div>";
+  h += '<div class="mom__c"><div class="mom__meta">' + dataCurta(r.data) + " · " + esc(nomeCurto((r.lead && r.lead.nome) || r.titulo)) + ' · <span style="color:' + (ok === "sim" ? "var(--credit)" : ok === "nao" ? "var(--perigo)" : "var(--muted)") + '">🎬 ' + rotuloOk(ok) + "</span></div>" + textoTrecho(x.m, r) + "</div>";
+  h += '<div class="mom__a">' + (!r.gravacao_id ? '<span class="mini mudo" title="A rotina do diário não achou o vídeo desta reunião no Drive">sem gravação</span>' : x.m.usado ? "" : ok === "nao" ? '<span class="mini" style="color:var(--perigo)">recusou aparecer</span>' : botaoCesta(r.chave, x.i)) + "</div></div></div>";
   return h;
 }
 function renderCesta(){
@@ -711,11 +712,11 @@ function renderCesta(){
     h += "<small>" + esc(nomeCurto((x.r.lead && x.r.lead.nome) || x.r.titulo)) + " · " + dataCurta(x.r.data) + " · ⏱ " + esc(tcurto(x.m.ini)) + "–" + esc(tcurto(x.m.fim)) + (x.m.cuidado ? " · ⚠️ " + esc(x.m.cuidado) : "") + "</small></div>";
     h += '<div class="cesta__a"><button class="btn btn--sm" type="button" data-acao="cesta-mover" data-k="' + k + '" data-para="-1" title="Subir"' + (k ? "" : " disabled") + '>↑</button><button class="btn btn--sm" type="button" data-acao="cesta-mover" data-k="' + k + '" data-para="1" title="Descer"' + (k < itens.length - 1 ? "" : " disabled") + '>↓</button><button class="btn btn--sm btn--perigo" type="button" data-acao="cesta-tirar" data-k="' + k + '" title="Tirar">×</button></div></div>';
   });
-  var faltam = semOk(itens.map(function(x){ return {lead_id:x.r.lead_id, data:x.r.data}; }));
-  if(faltam.length) h += '<p class="aviso" style="margin-top:.7rem">Ainda sem ok para aparecer: ' + esc(faltam.join(", ")) + ". O vídeo é montado, mas só publica depois que todos autorizarem (peça no card do lead).</p>";
+  var recusa = recusaram(itens.map(function(x){ return {lead_id:x.r.lead_id, data:x.r.data}; }));
+  if(recusa.length) h += '<p class="aviso" style="margin-top:.7rem">Recusou aparecer em short: ' + esc(recusa.join(", ")) + ". Tire o trecho para gerar.</p>";
   h += '<div class="grade" style="margin-top:.8rem"><label class="campo">Título de abertura (opcional)<input class="inp" name="titulo" data-rascunho="titulo" maxlength="130" placeholder="' + esc(TITULO_PADRAO) + '" value="' + esc(RASCUNHO.titulo) + '"></label>';
   h += '<label class="campo">Recado para a edição (opcional)<input class="inp" name="pedido" data-rascunho="pedido" maxlength="1000" placeholder="Ex.: começar pela pergunta da franquia" value="' + esc(RASCUNHO.pedido) + '"></label></div>';
-  h += '<div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary" type="submit">🎬 Gerar short</button><button class="btn btn--sm" type="button" data-acao="cesta-limpar">Limpar escolha</button>';
+  h += '<div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary" type="submit"' + (recusa.length ? " disabled" : "") + '>🎬 Gerar short</button><button class="btn btn--sm" type="button" data-acao="cesta-limpar">Limpar escolha</button>';
   h += '<span class="mudo mini">O Mac pega o pedido em até meia hora e avisa no WhatsApp quando a prévia chegar.</span></div></form>';
   $("#cesta").innerHTML = h;
 }
@@ -753,7 +754,7 @@ function cardShort(s){
 }
 function formPublicacao(s){
   var p = s.publicacao || {}, d = s.destinos || {youtube:true, instagram:true};
-  var faltam = semOk(s.trechos || []), quem = [];
+  var recusa = recusaram(s.trechos || []), quem = [];
   (s.trechos || []).forEach(function(t){ if(t.lead_id && quem.indexOf(t.lead_id) < 0) quem.push(t.lead_id); });
   var h = '<form data-form="short-pub" class="bloco" style="margin-top:.9rem"><h3>Quem aparece</h3><div class="linha-acoes">';
   h += quem.map(function(id){ var ok = okDe(id); return '<button class="btn btn--sm" type="button" data-acao="ver-lead" data-lead-id="' + esc(id) + '" title="Abrir o lead">' + (ok === "sim" ? "✓ " : "🎬 ") + esc(nomeCurto((leadDe(id) || {}).nome)) + ' <span class="mudo">· ' + rotuloOk(ok) + "</span></button>"; }).join("") + "</div>";
@@ -761,8 +762,8 @@ function formPublicacao(s){
   h += '<label class="campo" style="margin-top:.7rem">Título do YouTube<input class="inp" name="titulo" maxlength="100" value="' + esc(p.titulo || "") + '"></label>';
   h += '<label class="campo" style="margin-top:.5rem">Descrição do YouTube<textarea class="inp" name="descricao" maxlength="4500">' + esc(p.descricao || "") + "</textarea></label>";
   h += '<label class="campo" style="margin-top:.5rem">Legenda do Reels<textarea class="inp" name="legenda" maxlength="2100">' + esc(p.legenda || "") + "</textarea></label>";
-  if(faltam.length) h += '<p class="aviso" style="margin-top:.6rem">Falta o ok para aparecer: ' + esc(faltam.join(", ")) + ". Aprovar libera quando todos autorizarem (abra o lead acima e peça).</p>";
-  h += '<div class="linha-acoes" style="margin-top:.7rem"><button class="btn btn--primary btn--sm" type="submit"' + (faltam.length ? " disabled" : "") + '>✅ Aprovar e publicar</button><button class="btn btn--sm" type="button" data-acao="short-salvar">Salvar texto</button><button class="btn btn--sm" type="button" data-acao="short-ajuste">✏️ Pedir ajuste</button><button class="btn btn--sm btn--perigo" type="button" data-acao="short-descartar">Descartar</button></div></form>';
+  if(recusa.length) h += '<p class="aviso" style="margin-top:.6rem">Recusou aparecer em short: ' + esc(recusa.join(", ")) + ". Peça ajuste tirando o trecho dele.</p>";
+  h += '<div class="linha-acoes" style="margin-top:.7rem"><button class="btn btn--primary btn--sm" type="submit"' + (recusa.length ? " disabled" : "") + '>✅ Aprovar e publicar</button><button class="btn btn--sm" type="button" data-acao="short-salvar">Salvar texto</button><button class="btn btn--sm" type="button" data-acao="short-ajuste">✏️ Pedir ajuste</button><button class="btn btn--sm btn--perigo" type="button" data-acao="short-descartar">Descartar</button></div></form>';
   return h;
 }
 function dadosPublicacao(f){
@@ -1254,8 +1255,8 @@ function demoChamar(acao, d){
   }
   if(acao === "short_salvar"){ var s1 = S(d.id); s1.publicacao = d.publicacao; s1.destinos = d.destinos; return Promise.resolve({short:s1}); }
   if(acao === "short_aprovar"){
-    var s2 = S(d.id), f2 = semOk(s2.trechos);
-    if(f2.length) return Promise.reject(new Error("Falta o ok para aparecer: " + f2.join(", ") + "."));
+    var s2 = S(d.id), f2 = recusaram(s2.trechos);
+    if(f2.length) return Promise.reject(new Error("Recusou aparecer em short: " + f2.join(", ") + "."));
     Object.assign(s2, {status:"aprovado", status_em:agora, publicacao:d.publicacao, destinos:d.destinos, aprovado_em:agora});
   }
   if(acao === "short_ajustar") Object.assign(S(d.id), {status:"ajustar", status_em:agora, ajuste:d.ajuste});
