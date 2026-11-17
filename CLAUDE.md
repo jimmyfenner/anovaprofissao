@@ -1414,6 +1414,12 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   publicação (`recusaram`). O "Pedir autorização" continua como cortesia. Aviso no WhatsApp (pronto, erro, publicado): ciclo do
   assistente do Mac (`lib/shorts.mjs`), uma vez por mudança (`avisado`). Link direto:
   `/reunioes?aba=shorts`.
+- **Shorts automáticos e Stories** (17/11/2026, "gere todos os shorts, os que eu não gostar eu
+  removo"): ação do Mac `shorts_auto` (o `fila` do shorts-painel chama antes de listar) cria um pedido
+  por reunião com `gravacao_id` e trechos que nunca entrou em pedido nenhum, nem descartado
+  (`pedidosAutomaticos` em `_shared/shorts.mjs`: trechos não usados, mais fortes até 105 s brutos, o
+  mais forte abre e o resto na ordem da conversa). Destino novo `stories` (Stories do @minerandoosol,
+  desligado por padrão, `DESTINOS_PADRAO`); `publicado.stories = true` quando sai.
 - **Lembrete encaminhado** (12/11/2026, migração 30, "agendei mensagem para o Danilo e ele continua no
   topo dos lembretes"): `reunioes_lembretes.encaminhado` = `{como: agendada|enviada|manual, em, para,
   agendada_id, texto}`. O `agendar` (Turbo) e o `enviar` do painel marcam sozinhos os lembretes abertos
