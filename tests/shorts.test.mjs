@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
-  normalizarPublicacao, normalizarTitulo, recusaram, rotuloUsado, segundosDosTrechos,
+  normalizarPublicacao, normalizarTitulo, pedidosAutomaticos, recusaram, rotuloUsado, segundosDosTrechos,
 } from '../supabase/functions/_shared/shorts.mjs';
 
 const momentos = [
@@ -59,7 +59,7 @@ test('texto da publicação e destinos', () => {
   assert.equal(p.descricao, 'linha 1\nlinha 2');
   assert.equal(p.legenda, null);
   assert.throws(() => normalizarPublicacao({ titulo: 'x'.repeat(101) }), /título do YouTube/);
-  assert.deepEqual(normalizarDestinos({ youtube: 1 }), { youtube: true, instagram: false });
+  assert.deepEqual(normalizarDestinos({ youtube: 1 }), { youtube: true, instagram: false, stories: false });
 });
 
 test('para aprovar: pronto, destino e textos; ninguém que recusou', () => {
@@ -99,4 +99,26 @@ test('duração somada e trechos usados depois de publicar', () => {
   assert.equal(r.momentos[1].usado, 'painel 12/11');
   assert.equal(r.momentos[0].usado, null);
   assert.equal(mudada[1].usado, null, 'não mexe na lista original');
+});
+
+test('pedidos automáticos: um por reunião gravada, mais forte abre, nada repetido', () => {
+  const m = [
+    { ini: '00:05:00', fim: '00:05:30', tipo: 'reacao', forca: 2 },
+    { ini: '00:10:00', fim: '00:10:40', tipo: 'pergunta', forca: 3 },
+    { ini: '00:20:00', fim: '00:20:30', tipo: 'depoimento', forca: 2, usado: 'painel 12/11' },
+    { ini: '00:30:00', fim: '00:30:35', tipo: 'objecao', forca: 2 },
+    { ini: '00:40:00', fim: '00:40:30', tipo: 'humor', forca: 1 },
+  ];
+  const rs = [
+    { chave: 'doc:a', lead_id: 'L1', gravacao_id: 'G1', momentos: m },
+    { chave: 'doc:b', lead_id: 'L1', gravacao_id: null, momentos: m },
+    { chave: 'doc:c', lead_id: 'L3', gravacao_id: 'G3', momentos: m },
+    { chave: 'doc:d', lead_id: null, gravacao_id: 'G4', momentos: [] },
+    { chave: 'doc:e', lead_id: null, gravacao_id: 'G5', momentos: m },
+  ];
+  const ps = pedidosAutomaticos(rs, leads, [{ trechos: [{ chave: 'doc:e' }] }]);
+  assert.deepEqual(ps.map((p) => p.chave), ['doc:a']);
+  // 40 (forte) + 30 + 35 = 105 s; o de força 1 não cabe; o usado fica de fora; o forte abre, resto em ordem
+  assert.deepEqual(ps[0].itens.map((x) => x.i), [1, 0, 3]);
+  assert.equal(montarTrechos(ps[0].itens, rs, leads).length, 3);
 });

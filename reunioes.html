@@ -710,7 +710,7 @@ function linhaTrecho(x){
 }
 function renderCesta(){
   if(!CESTA.length){
-    $("#cesta").innerHTML = '<div class="vazio">Escolha os trechos abaixo com <b>＋ Short</b> (também aparece nas reuniões) e gere o vídeo aqui. O Mac monta, a prévia volta para esta aba e nada é publicado sem a sua aprovação.</div>';
+    $("#cesta").innerHTML = '<div class="vazio">Toda reunião gravada que tem trechos vira um short sozinha: o Mac monta um por reunião (os trechos mais fortes, até ~90 s) e a prévia aparece aqui. Assista, aprove o que gostar e descarte o resto; nada é publicado sem a sua aprovação. Para um short com outra combinação de trechos, escolha abaixo com <b>＋ Short</b>.</div>';
     return;
   }
   var itens = CESTA.map(momentoDe), total = 0;
@@ -749,10 +749,10 @@ function cardShort(s){
     h += '<div class="short__grade"><div>' + (s.video_url ? '<video class="short__video" controls playsinline preload="metadata" src="' + esc(s.video_url) + '"></video>' : '<div class="short__video short__sem">' + (DEMO ? "A prévia do vídeo aparece aqui." : "Prévia indisponível agora. Clique em Atualizar.") + "</div>") + "</div><div>";
     h += '<div class="bloco"><h3>Trechos</h3>' + lista + "</div>";
     if(s.status === "pronto") h += formPublicacao(s);
-    if(s.status === "publicado" && s.publicado) h += '<div class="linha-acoes" style="margin-top:.6rem">' + (s.publicado.youtube ? '<a class="btn btn--sm" href="' + esc(s.publicado.youtube) + '" target="_blank" rel="noopener">▶ YouTube</a>' : "") + (s.publicado.instagram ? '<a class="btn btn--sm" href="' + esc(s.publicado.instagram) + '" target="_blank" rel="noopener">Reels</a>' : "") + "</div>";
+    if(s.status === "publicado" && s.publicado) h += '<div class="linha-acoes" style="margin-top:.6rem">' + (s.publicado.youtube ? '<a class="btn btn--sm" href="' + esc(s.publicado.youtube) + '" target="_blank" rel="noopener">▶ YouTube</a>' : "") + (s.publicado.instagram ? '<a class="btn btn--sm" href="' + esc(s.publicado.instagram) + '" target="_blank" rel="noopener">Reels</a>' : "") + (s.publicado.stories ? '<span class="pill">✓ Stories</span>' : "") + "</div>";
     if(s.status === "aprovado" || s.status === "publicando"){
       var dd = s.destinos || {};
-      h += '<p class="mini mudo" style="margin-top:.5rem">Vai para: ' + [dd.youtube ? "YouTube Shorts" : "", dd.instagram ? "Reels" : ""].filter(Boolean).join(" e ") + (s.publicacao && s.publicacao.titulo ? " · “" + esc(s.publicacao.titulo) + "”" : "") + "</p>";
+      h += '<p class="mini mudo" style="margin-top:.5rem">Vai para: ' + [dd.youtube ? "YouTube Shorts" : "", dd.instagram ? "Reels" : "", dd.stories ? "Stories" : ""].filter(Boolean).join(" · ") + (s.publicacao && s.publicacao.titulo ? " · “" + esc(s.publicacao.titulo) + "”" : "") + "</p>";
     }
     h += "</div></div>";
   }
@@ -769,7 +769,7 @@ function formPublicacao(s){
   (s.trechos || []).forEach(function(t){ if(t.lead_id && quem.indexOf(t.lead_id) < 0) quem.push(t.lead_id); });
   var h = '<form data-form="short-pub" class="bloco" style="margin-top:.9rem"><h3>Quem aparece</h3><div class="linha-acoes">';
   h += quem.map(function(id){ var ok = okDe(id); return '<button class="btn btn--sm" type="button" data-acao="ver-lead" data-lead-id="' + esc(id) + '" title="Abrir o lead">' + (ok === "sim" ? "✓ " : "🎬 ") + esc(nomeCurto((leadDe(id) || {}).nome)) + ' <span class="mudo">· ' + rotuloOk(ok) + "</span></button>"; }).join("") + "</div>";
-  h += '<h3 style="margin-top:.9rem">Onde publicar</h3><div class="checks"><label><input type="checkbox" name="youtube"' + (d.youtube ? " checked" : "") + "> YouTube Shorts (@jimmyfenner)</label><label><input type=\"checkbox\" name=\"instagram\"" + (d.instagram ? " checked" : "") + "> Reels no @minerandoosol, com o @querocarregador</label></div>";
+  h += '<h3 style="margin-top:.9rem">Onde publicar</h3><div class="checks"><label><input type="checkbox" name="youtube"' + (d.youtube ? " checked" : "") + "> YouTube Shorts (@jimmyfenner)</label><label><input type=\"checkbox\" name=\"instagram\"" + (d.instagram ? " checked" : "") + "> Reels no @minerandoosol, com o @querocarregador</label><label><input type=\"checkbox\" name=\"stories\"" + (d.stories ? " checked" : "") + "> Stories do @minerandoosol (vídeo acima de 60 s vai em partes)</label></div>";
   h += '<label class="campo" style="margin-top:.7rem">Título do YouTube<input class="inp" name="titulo" maxlength="100" value="' + esc(p.titulo || "") + '"></label>';
   h += '<label class="campo" style="margin-top:.5rem">Descrição do YouTube<textarea class="inp" name="descricao" maxlength="4500">' + esc(p.descricao || "") + "</textarea></label>";
   h += '<label class="campo" style="margin-top:.5rem">Legenda do Reels<textarea class="inp" name="legenda" maxlength="2100">' + esc(p.legenda || "") + "</textarea></label>";
@@ -778,7 +778,7 @@ function formPublicacao(s){
   return h;
 }
 function dadosPublicacao(f){
-  return {publicacao:{titulo:f.titulo.value, descricao:f.descricao.value, legenda:f.legenda.value}, destinos:{youtube:f.youtube.checked, instagram:f.instagram.checked}};
+  return {publicacao:{titulo:f.titulo.value, descricao:f.descricao.value, legenda:f.legenda.value}, destinos:{youtube:f.youtube.checked, instagram:f.instagram.checked, stories:f.stories.checked}};
 }
 function renderShorts(){
   limparCesta();
@@ -1038,7 +1038,7 @@ document.addEventListener("submit", function(e){
     }).catch(function(err){ toast(err.message, true); }));
   } else if(tipo === "short-pub"){
     var dp = dadosPublicacao(f), sidP = f.closest("[data-short]").getAttribute("data-short");
-    var onde = [dp.destinos.youtube ? "YouTube Shorts" : "", dp.destinos.instagram ? "Reels do @minerandoosol" : ""].filter(Boolean).join(" e ");
+    var onde = [dp.destinos.youtube ? "YouTube Shorts" : "", dp.destinos.instagram ? "Reels do @minerandoosol" : "", dp.destinos.stories ? "Stories do @minerandoosol" : ""].filter(Boolean).join(", ");
     if(!onde){ toast("Escolha onde publicar.", true); btn.disabled = false; return; }
     if(!confirm("Aprovar e publicar no " + onde + "? O Mac publica na próxima rodada.")){ btn.disabled = false; return; }
     trava(fazer("short_aprovar", Object.assign({id:sidP}, dp), "Aprovado ✅ O Mac publica na próxima rodada.")).catch(function(){});

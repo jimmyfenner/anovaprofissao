@@ -86,8 +86,43 @@ export function normalizarPublicacao(v) {
   return out;
 }
 
+// youtube = Shorts do @jimmyfenner · instagram = Reels do @minerandoosol · stories = Stories do @minerandoosol
 export function normalizarDestinos(v) {
-  return { youtube: Boolean(v && v.youtube), instagram: Boolean(v && v.instagram) };
+  return { youtube: Boolean(v && v.youtube), instagram: Boolean(v && v.instagram), stories: Boolean(v && v.stories) };
+}
+export var DESTINOS_PADRAO = { youtube: true, instagram: true, stories: false };
+
+// Pedidos automáticos (17/11/2026, ordem do Jimmy: "gere todos os shorts, os que eu não gostar eu removo;
+// melhor do que colocar na fila, coisa que eu vou esquecer"). Um short por reunião que tem gravação e
+// trechos marcados e que nunca entrou em pedido nenhum (nem descartado: descartar é a resposta dele).
+// Escolhe os trechos mais fortes até ~105 s brutos (uns 85 s depois de tirar as pausas); o mais forte abre
+// e o resto segue a ordem da conversa. Devolve [{itens, chave}] no formato que montarTrechos aceita.
+export var SEGUNDOS_AUTO = 105;
+export function pedidosAutomaticos(reunioes, leads, shorts) {
+  var usadas = {};
+  (shorts || []).forEach(function (s) { (s.trechos || []).forEach(function (t) { usadas[t.chave] = true; }); });
+  var out = [];
+  (reunioes || []).forEach(function (r) {
+    if (!r || !r.gravacao_id || usadas[r.chave] || !Array.isArray(r.momentos) || !r.momentos.length) return;
+    var lead = (leads || []).find(function (l) { return l.id === r.lead_id; });
+    if (lead && lead.short_ok === 'nao') return;
+    var cand = r.momentos.map(function (m, i) { return { m: m, i: i }; }).filter(function (x) {
+      return x.m && !x.m.usado && seg(x.m.fim) > seg(x.m.ini);
+    });
+    if (!cand.length) return;
+    cand.sort(function (a, b) { return (b.m.forca || 2) - (a.m.forca || 2) || seg(a.m.ini) - seg(b.m.ini); });
+    var escolha = [], total = 0;
+    cand.forEach(function (x) {
+      var d = seg(x.m.fim) - seg(x.m.ini);
+      if (escolha.length >= MAX_TRECHOS || (escolha.length && total + d > SEGUNDOS_AUTO)) return;
+      escolha.push(x);
+      total += d;
+    });
+    var abre = escolha[0];
+    var resto = escolha.slice(1).sort(function (a, b) { return seg(a.m.ini) - seg(b.m.ini); });
+    out.push({ chave: r.chave, itens: [abre].concat(resto).map(function (x) { return { chave: r.chave, i: x.i, ini: x.m.ini }; }) });
+  });
+  return out;
 }
 
 // o que falta para aprovar (lista vazia = pode)
@@ -96,7 +131,7 @@ export function faltaParaAprovar(short, leads) {
   if (!short || short.status !== 'pronto') return ['O short ainda não está pronto para revisar.'];
   var d = normalizarDestinos(short.destinos);
   var p = short.publicacao || {};
-  if (!d.youtube && !d.instagram) f.push('Escolha onde publicar.');
+  if (!d.youtube && !d.instagram && !d.stories) f.push('Escolha onde publicar.');
   if (d.youtube && !p.titulo) f.push('Falta o título do YouTube.');
   if (d.instagram && !p.legenda) f.push('Falta a legenda do Reels.');
   var nomes = recusaram(short.trechos, leads);

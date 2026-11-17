@@ -13,8 +13,8 @@ import { normalizarRepeticao, proximaOcorrencia } from "../_shared/repeticao.mjs
 import { idDrive, normalizarMomentos } from "../_shared/momentos.mjs";
 import { cobertosPelaMensagem, normalizarEncaminhado } from "../_shared/encaminhar.mjs";
 import {
-  faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
-  normalizarPublicacao, normalizarTitulo, recusaram, rotuloUsado,
+  DESTINOS_PADRAO, faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
+  normalizarPublicacao, normalizarTitulo, pedidosAutomaticos, recusaram, rotuloUsado,
 } from "../_shared/shorts.mjs";
 
 const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
@@ -241,9 +241,32 @@ async function criarShort(b: any) {
   const titulo = pura(() => normalizarTitulo(b.titulo));
   const [s] = await rest("reunioes_shorts", {
     method: "POST",
-    body: JSON.stringify({ trechos, titulo, pedido: texto(b.pedido, 1000), destinos: { youtube: true, instagram: true } }),
+    body: JSON.stringify({ trechos, titulo, pedido: texto(b.pedido, 1000), destinos: DESTINOS_PADRAO }),
   });
   return s;
+}
+// o Mac chama antes de olhar a fila: toda reunião gravada com trechos vira pedido sozinha (17/11/2026)
+async function criarShortsAutomaticos() {
+  const [reunioes, leads, shorts] = await Promise.all([
+    rest("reunioes?momentos=not.is.null&gravacao_id=not.is.null&select=chave,lead_id,data,hora,titulo,gravacao_id,doc_id,momentos&order=data.asc,hora.asc"),
+    leadsCurtos(),
+    rest("reunioes_shorts?select=trechos"),
+  ]);
+  const criados: string[] = [];
+  const falhas: string[] = [];
+  for (const p of pedidosAutomaticos(reunioes, leads, shorts)) {
+    try {
+      const trechos = montarTrechos(p.itens, reunioes, leads);
+      const [s] = await rest("reunioes_shorts", {
+        method: "POST",
+        body: JSON.stringify({ trechos, titulo: null, pedido: null, destinos: DESTINOS_PADRAO }),
+      });
+      criados.push(s.id);
+    } catch (e) {
+      falhas.push(`${p.chave}: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+  return { criados, falhas };
 }
 async function aprovarShort(b: any) {
   const id = idShort(b.id);
@@ -286,7 +309,7 @@ async function marcarShort(b: any) {
   }
   if (para === "publicado") {
     const link = (v: unknown) => /^https:\/\/(www\.)?(youtube\.com|youtu\.be|instagram\.com)\/\S{3,300}$/.test(String(v ?? "")) ? String(v) : null;
-    c.publicado = { youtube: link(b.publicado?.youtube), instagram: link(b.publicado?.instagram) };
+    c.publicado = { youtube: link(b.publicado?.youtube), instagram: link(b.publicado?.instagram), stories: b.publicado?.stories ? true : null };
     c.erro = null;
   }
   if (para === "erro") c.erro = texto(b.erro, 1000) ?? "Falhou sem detalhe.";
@@ -926,6 +949,7 @@ Deno.serve(async (req) => {
         ]);
         return json({ shorts: lista.map((s: any) => ({ ...s, recusaram: recusaram(s.trechos, leads) })) });
       }
+      if (acao === "shorts_auto") return json(await criarShortsAutomaticos());
       if (acao === "short_upload") return json(await linkDeUpload(idShort(b.id)));
       if (acao === "short_marcar") return json({ short: await marcarShort(b) });
       if (acao === "short_avisado") {
