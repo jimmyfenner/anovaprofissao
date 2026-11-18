@@ -170,6 +170,59 @@ export function selosMensagem(envios, disparos, agora) {
   return mapa;
 }
 
+/* ---- mensagens agendadas no iGreen Turbo pela Conversa (17/11/2026) ----
+   itens: linhas de conversa_agendadas (db/31): { id, numero, quando, texto,
+   instancia, status, cancelar_se_responder }. Só contam "pending" e
+   "processing" com hora até 10 min atrás (o Turbo manda as agendadas de minuto
+   em minuto; passado disso, a linha só está esperando a próxima leitura).
+   Mapa número -> selo no formato do disparo, com turbo: true e o id da agendada. */
+var SELO_CURTO_TURBO = { pessoal: "7007", carregador: "2413" };
+
+function seloTrecho(t) {
+  var s = String(t == null ? "" : t).replace(/\s+/g, " ").trim();
+  return s.length > 90 ? s.slice(0, 89).replace(/\s+\S*$/, "") + "…" : s;
+}
+
+export function selosTurbo(itens, agora) {
+  var ag = seloAgora(agora), mapa = {}, conta = {}, lista = itens || [], i;
+  for (i = 0; i < lista.length; i++) {
+    var x = lista[i];
+    if (!x || (x.status !== "pending" && x.status !== "processing")) continue;
+    var q = seloMs(x.quando), num = seloNumero(x.numero);
+    if (isNaN(q) || q < ag - 600e3 || !num) continue;
+    conta[num] = (conta[num] || 0) + 1;
+    if (mapa[num] && mapa[num].quando <= q) continue;
+    var saindo = x.status === "processing" || q <= ag;
+    var pelo = SELO_CURTO_TURBO[x.instancia] ? "pelo " + SELO_CURTO_TURBO[x.instancia] : "";
+    mapa[num] = {
+      tipo: saindo ? "enviando" : "agendada",
+      curto: saindo ? "Enviando" : "Agendada " + quandoSelo(q, ag),
+      texto: saindo ? "Mensagem agendada saindo agora" : "Mensagem agendada · " + quandoSelo(q, ag),
+      quando: q, chave: saindo ? -Infinity : q, turbo: true, agendada_id: x.id || null, disparo_id: null,
+      origem: ["no iGreen Turbo", pelo].filter(Boolean).join(", "),
+      cancela: x.cancelar_se_responder === true, trecho: seloTrecho(x.texto), outras: 0, titulo: ""
+    };
+  }
+  for (var n in mapa) {
+    if (!Object.prototype.hasOwnProperty.call(mapa, n)) continue;
+    var s = mapa[n];
+    s.outras = conta[n] - 1;
+    s.titulo = s.texto + " (" + dataCompletaSelo(s.quando) + ", " + s.origem + ")" +
+      (s.cancela ? ". Não sai se a pessoa responder antes" : "") +
+      (s.trecho ? ": “" + s.trecho + "”" : "") +
+      (s.outras > 0 ? ". Este número tem mais " + s.outras + (s.outras === 1 ? " mensagem agendada" : " mensagens agendadas") : "");
+  }
+  return mapa;
+}
+
+/* O selo que aparece quando o número tem disparo na fila e agendada no Turbo:
+   vale o mais próximo (saindo agora antes de tudo, pausado por último). */
+export function seloMaisProximo(a, b) {
+  if (!a) return b || null;
+  if (!b) return a;
+  return b.chave < a.chave ? b : a;
+}
+
 /* Selo de um lead pelo WhatsApp dele (aceita com ou sem 55, com máscara). */
 export function seloDoNumero(mapa, numero) {
   var n = seloNumero(numero);

@@ -263,6 +263,9 @@ const admin = separaCabeca(fs.readFileSync(path.join(__dirname, 'admin.html'), '
 const COLAGENS = [
   { marca: '/*@@MENSAGEM@@*/', arquivo: 'supabase/functions/_shared/mensagem.mjs', o_que: 'o renderizador das mensagens do disparo' },
   { marca: '/*@@SELO@@*/', arquivo: 'painel/selo.mjs', o_que: 'o selo de mensagem agendada da lista de leads' },
+  // Conversa pelo iGreen Turbo (17/11/2026): as contas (as mesmas da função "conversa") e a janela
+  { marca: '/*@@CONVERSA@@*/', arquivo: 'supabase/functions/_shared/conversa.mjs', o_que: 'as contas da conversa pelo iGreen Turbo' },
+  { marca: '/*@@CONVERSA_UI@@*/', arquivo: 'painel/conversa-ui.js', o_que: 'a janela da conversa pelo iGreen Turbo' },
 ];
 for (const c of COLAGENS) {
   const js = fs.readFileSync(path.join(__dirname, ...c.arquivo.split('/')), 'utf8').replace(/^export\s+/gm, '');

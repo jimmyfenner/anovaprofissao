@@ -223,6 +223,15 @@
       ]
     },
     {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(self), camera=(self)"
+        }
+      ]
+    },
+    {
       "source": "/fonts/(.*)",
       "headers": [
         {

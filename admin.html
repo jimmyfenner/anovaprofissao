@@ -275,6 +275,180 @@ body.modal-aberto{overflow:hidden}
 .dl__lnk{display:inline;margin-left:.35rem;padding:0;border:0;background:none;color:var(--credit);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;white-space:nowrap}
 .dl__lnk:hover{color:#4BEA9C}
 
+/* conversa pelo iGreen Turbo (17/11/2026): selo na lista, filtro e a janela */
+.pill--conv{display:block;width:fit-content;max-width:100%;margin-top:.3rem;white-space:normal;overflow-wrap:anywhere;text-transform:none;letter-spacing:0;font-family:var(--body);font-size:.76rem;font-weight:500;cursor:pointer}
+.pill--conv:hover{text-decoration:underline}
+.pill--conv.is-nenhuma{color:#E0A83C;border-color:rgba(224,168,60,.4);background:rgba(224,168,60,.08)}
+.pill--conv.is-aguardando{color:var(--st-contatado);border-color:rgba(107,168,216,.4);background:rgba(107,168,216,.08)}
+.pill--conv.is-respondeu{color:var(--credit);border-color:rgba(52,219,139,.4);background:rgba(52,219,139,.08)}
+.pill--conv.is-recebeu{color:#F2C46B;border-color:rgba(224,168,60,.6);background:rgba(224,168,60,.16)}
+.cv-lendo{font-family:var(--mono);font-size:.72rem;color:var(--muted-dim);white-space:nowrap}
+.cv-lendo.is-erro{color:var(--st-perdido);white-space:normal}
+.cv-lendo:empty{display:none}
+.cv-ic{width:16px;height:16px;flex:none;vertical-align:-3px}
+.cv-ic--p{width:12px;height:12px;vertical-align:-1px}
+.cv-ic--cor{color:var(--credit)}
+.cv-gira{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:cv-gira .8s linear infinite;vertical-align:-2px;flex:none}
+@keyframes cv-gira{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.cv-gira{animation-duration:2.4s}}
+/* janela: altura explícita (ver .anp-modal); no celular ocupa a tela toda */
+.cv-box{position:relative;display:flex;flex-direction:column;gap:.7rem;width:100%;max-width:700px;height:min(92vh,880px);margin-block:auto;padding:1.1rem 1.15rem;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 24px 60px rgba(0,0,0,.5);overflow:hidden}
+@media(max-width:640px){
+  .anp-modal.cv-modal{padding:0}
+  .cv-box{max-width:none;height:100vh;height:100dvh;border-radius:0;border:0;padding:.85rem .85rem max(.85rem,env(safe-area-inset-bottom))}
+}
+.cv-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem}
+.cv-top h2{font-size:1.1rem;overflow-wrap:anywhere}
+.cv-top .sub{margin:.25rem 0 0;font-size:.82rem;color:var(--muted-dim);line-height:1.5}
+.cv-top .sub a{color:var(--credit);text-decoration:none;white-space:nowrap}
+.cv-top .sub a:hover{text-decoration:underline}
+.cv-msgs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:.45rem;padding:.8rem;border:1px solid var(--line-soft);border-radius:10px;background:var(--ink)}
+.cv-vazio{color:var(--muted);font-size:.88rem;display:flex;align-items:center;gap:.5rem}
+.cv-b{display:flex}
+.cv-b.is-minha{justify-content:flex-end}
+.cv-b__c{max-width:85%;display:flex;flex-direction:column;gap:.3rem;padding:.5rem .75rem;border-radius:14px;font-size:.93rem;line-height:1.45}
+.cv-b.is-minha .cv-b__c{border-bottom-right-radius:4px;background:rgba(52,219,139,.13)}
+.cv-b.is-dele .cv-b__c{border-bottom-left-radius:4px;border:1px solid var(--line);background:var(--surface-2)}
+.cv-b__t{white-space:pre-wrap;overflow-wrap:anywhere}
+.cv-b__m{display:flex;align-items:center;justify-content:flex-end;gap:.2rem;font-size:.72rem;color:var(--muted-dim);white-space:nowrap;flex-wrap:wrap}
+.cv-b__rot{font-size:.86rem;font-style:italic;color:var(--muted)}
+.cv-b__img{display:block;max-width:100%;max-height:260px;border-radius:10px;object-fit:cover}
+.cv-b__img.is-fig{width:110px;height:110px;object-fit:contain}
+.cv-b__aud{width:240px;max-width:100%}
+.cv-b__vid{display:block;max-width:100%;max-height:260px;border-radius:10px;background:#000}
+.cv-b__vid.is-ptv{width:220px;height:220px;border-radius:50%;object-fit:cover}
+.cv-b__doc{display:inline-flex;align-items:center;gap:.35rem;color:var(--text)}
+.cv-tique{display:inline-flex}
+.cv-tique .cv-ic{width:14px;height:14px}
+.cv-tique.is-lida{color:#7CC4F2}
+.cv-tique.is-falhou{color:var(--st-perdido)}
+.cv-aviso{font-size:.78rem;color:#E0A83C}
+.cv-alerta{display:flex;align-items:flex-start;gap:.5rem;padding:.55rem .75rem;border:1px solid rgba(196,120,90,.6);border-radius:8px;background:rgba(196,120,90,.12);color:#F0B49C;font-size:.86rem;font-weight:500}
+.cv-alerta .cv-ic{margin-top:.15rem}
+.cv-alerta span{min-width:0;overflow-wrap:anywhere}
+.cv-alerta--amb{border-color:rgba(224,168,60,.45);background:rgba(224,168,60,.1);color:#E0A83C}
+.cv-alerta--esc{background:rgba(196,120,90,.25);color:#FFD9CB;text-align:left}
+.cv-ok{font-size:.8rem;color:var(--credit)}
+.cv-comp{display:flex;flex-direction:column;gap:.55rem}
+.cv-comp textarea.inp{min-height:0;resize:none;line-height:1.45;font-size:.93rem}
+.cv-barra{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.cv-icones{display:flex;gap:.3rem}
+.cv-bt{display:grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid var(--line);border-radius:50%;background:none;color:var(--text);cursor:pointer;flex:none}
+.cv-bt:hover{border-color:var(--muted-dim);background:var(--surface-2)}
+.cv-bt.is-on{border-color:var(--credit);color:var(--credit)}
+.cv-bt[disabled]{opacity:.45;cursor:not-allowed}
+.cv-pelo{display:flex;align-items:center;gap:.4rem;font-size:.84rem;color:var(--muted)}
+.cv-pelo .inp{padding:.5em .6em}
+.cv-barra #cv-enviar{margin-left:auto}
+.cv-estado{font-size:.76rem;color:var(--muted-dim);display:flex;align-items:center;gap:.4rem}
+.cv-anexo{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font-size:.86rem}
+.cv-anexo__n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-anexo .cv-bt{width:32px;height:32px}
+.cv-ag{display:flex;flex-wrap:wrap;align-items:center;gap:.45rem .6rem;padding:.6rem .7rem;border:1px solid rgba(107,168,216,.35);border-radius:10px;background:rgba(107,168,216,.07)}
+.cv-ag .inp{padding:.45em .6em}
+.cv-ag small{font-size:.74rem;color:var(--muted-dim)}
+.cv-ag .cp-chk{width:100%}
+.cv-ag .dica{width:100%;font-size:.78rem;color:var(--muted)}
+.cv-agl{display:flex;flex-direction:column;gap:.35rem;padding:.55rem .7rem;border:1px dashed rgba(107,168,216,.45);border-radius:10px}
+.cv-agl__t{display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--st-contatado);font-weight:600}
+.cv-agl__i{display:flex;align-items:center;gap:.6rem}
+.cv-agl__c{flex:1;min-width:0;font-size:.8rem;color:var(--muted)}
+.cv-agl__c b{color:var(--text);font-weight:600}
+.cv-agl__c span{display:block;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-agl__erro{font-size:.76rem;color:var(--st-perdido)}
+.cv-prontas{display:flex;flex-wrap:wrap;gap:.4rem}
+.cv-pronta{display:inline-flex;align-items:center;gap:.4rem;min-height:36px;padding:.3rem .85rem;border:1px solid rgba(52,219,139,.45);border-radius:99px;background:rgba(52,219,139,.08);color:var(--credit);font:500 .84rem var(--body);cursor:pointer}
+.cv-pronta:hover{background:rgba(52,219,139,.16)}
+.cv-pronta--ed{border-color:var(--line);background:none;color:var(--muted)}
+.cv-pronta--ed:hover{color:var(--text);background:var(--surface-2)}
+.cv-pronta[disabled]{opacity:.45;cursor:not-allowed}
+.cv-link{padding:0;border:0;background:none;color:var(--muted);font:inherit;font-size:.84rem;text-decoration:underline;cursor:pointer}
+.cv-link:hover{color:var(--text)}
+.cv-painel{max-height:44vh;overflow-y:auto;display:flex;flex-direction:column;gap:.35rem;padding:.7rem .8rem;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.cv-fx__top,.cv-ger__top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;font-size:.9rem;margin-bottom:.2rem}
+.cv-fx__erro{font-size:.82rem;color:var(--st-perdido)}
+.cv-fx__pasta,.cv-fx__item{display:flex;align-items:center;gap:.5rem;width:100%;min-height:40px;padding:0 .5rem;border:0;border-radius:8px;background:none;color:var(--text);font:inherit;font-size:.88rem;text-align:left;cursor:pointer}
+.cv-fx__pasta:hover,.cv-fx__item:hover{background:var(--line-soft)}
+.cv-fx__pasta span{flex:1;font-weight:600}
+.cv-fx__pasta small{font-family:var(--mono);font-size:.72rem;color:var(--muted-dim)}
+.cv-fx__seta{width:14px;height:14px;transition:transform .15s}
+.cv-fx__pasta.is-aberta .cv-fx__seta{transform:rotate(90deg)}
+.cv-fx__item .cv-ic{color:var(--muted-dim)}
+.cv-fx__dentro{margin-left:1rem;padding-left:.5rem;border-left:1px solid var(--line)}
+.cv-fx__sem{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-dim);margin:.4rem .5rem 0}
+.cv-fx__etapas{display:flex;flex-direction:column;gap:.1rem}
+.cv-fx__et{display:flex;align-items:center;gap:.55rem;min-height:36px;padding:0 .5rem;border-radius:8px;font-size:.88rem;cursor:pointer}
+.cv-fx__et:hover{background:var(--line-soft)}
+.cv-fx__et input{accent-color:var(--credit);width:16px;height:16px;margin:0}
+.cv-fx__et.is-inicio span{font-weight:600}
+.cv-fx__et.is-sem-nome span{color:var(--muted)}
+.cv-fx__mandar{width:100%;margin-top:.3rem}
+.cv-ger__i{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--line)}
+.cv-ger__i:last-of-type{border-bottom:0}
+.cv-ger__ic{flex:1;min-width:0;font-size:.84rem}
+.cv-ger__ic small{font-size:.72rem;color:var(--muted-dim)}
+.cv-ger__ic span{display:block;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cv-ger__form{display:flex;flex-direction:column;gap:.7rem}
+.cv-ger__c{display:flex;flex-direction:column;gap:.35rem;font-size:.82rem;color:var(--muted)}
+.cv-ger__c > span:first-child{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dim)}
+.cv-ger__c textarea.inp{min-height:120px}
+.cv-ger__acoes{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.3rem}
+/* gravador de áudio */
+.cv-g{display:flex;flex-direction:column;gap:.5rem}
+.cv-g--rec{flex-direction:row;align-items:center;gap:.7rem;padding:.5rem .7rem;border:1px solid rgba(239,68,68,.45);border-radius:12px;background:rgba(239,68,68,.08)}
+.cv-g--prev{padding:.6rem .7rem;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.cv-g--erro{display:block;padding:.55rem .75rem;border:1px solid rgba(196,120,90,.6);border-radius:10px;background:rgba(196,120,90,.12);color:#F0B49C;font-size:.88rem}
+.cv-g__bola{color:#EF4444;animation:cv-pisca 1.2s ease-in-out infinite;display:inline-flex}
+.cv-g__bola .cv-ic{width:12px;height:12px}
+@keyframes cv-pisca{50%{opacity:.35}}
+.cv-g__tempo{width:2.8rem;flex:none;font-family:var(--mono);font-size:.9rem;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted)}
+.cv-g--rec .cv-g__tempo{text-align:left;color:var(--text)}
+.cv-g__onda{position:relative;flex:1;min-width:0;height:36px;color:#F87171;border-color:rgba(252,165,165,.3);display:block}
+.cv-g__onda--esc{color:var(--credit);border-color:rgba(255,255,255,.22)}
+.cv-g__onda canvas{display:block;width:100%;height:100%}
+.cv-g__toque,.cv-g__abrindo{position:absolute;inset:0;display:grid;place-items:center;font-size:.8rem;font-weight:500;color:inherit}
+.cv-g__abrindo{color:var(--muted)}
+.cv-g__parar{display:inline-flex;align-items:center;gap:.4rem;height:40px;padding:0 1rem;border:0;border-radius:99px;background:#EF4444;color:#fff;font:600 .88rem var(--body);cursor:pointer;flex:none}
+.cv-g__parar .cv-ic{width:14px;height:14px}
+.cv-g__parar[disabled]{opacity:.55;cursor:not-allowed}
+.cv-bt--g{width:40px;height:40px}
+.cv-g__linha{display:flex;align-items:center;gap:.7rem}
+.cv-g__play{display:grid;place-items:center;width:42px;height:42px;border:0;border-radius:50%;background:var(--credit);color:#04120B;cursor:pointer;flex:none}
+.cv-g__acoes{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem}
+.cv-g__env{margin-left:auto}
+.cv-onda{flex:1;min-width:0;height:36px;display:flex;align-items:center;gap:2px;cursor:pointer;color:var(--muted)}
+.cv-onda i{flex:1;min-width:2px;border-radius:99px;background:currentColor;opacity:.3}
+.cv-onda i.is-on{background:var(--credit);opacity:1}
+.cv-onda__linha{position:relative;display:block;width:100%;height:4px;border-radius:99px;background:rgba(143,163,154,.3)}
+.cv-onda__linha b{position:absolute;inset:0 auto 0 0;border-radius:99px;background:var(--credit)}
+/* gravador do vídeo redondo: cobre a janela */
+.cv-pv{position:absolute;inset:0;z-index:5;display:grid;place-items:center;overflow-y:auto;padding:1rem;background:#000;color:#fff}
+.cv-pv__in{width:100%;max-width:380px;display:flex;flex-direction:column;gap:1rem;text-align:center}
+.cv-pv__circ{position:relative;width:288px;max-width:100%;aspect-ratio:1;margin-inline:auto}
+.cv-pv__janela{position:absolute;inset:0;overflow:hidden;border-radius:50%;border:4px solid rgba(52,219,139,.55);background:#000}
+.cv-pv__cam,.cv-pv__prev{width:100%;height:100%;object-fit:cover;display:block}
+.cv-pv__cam{transform:scaleX(-1)}
+.cv-pv__prev{cursor:pointer}
+.cv-pv__conv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:.5rem;background:rgba(0,0,0,.6);font-size:.92rem}
+.cv-pv__ver{position:absolute;inset:0;display:grid;place-items:center;border:0;background:rgba(0,0,0,.25);color:#fff;cursor:pointer}
+.cv-pv__ver span{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:rgba(0,0,0,.6)}
+.cv-pv__ver .cv-ic{width:30px;height:30px;margin-left:4px}
+.cv-pv__anel{position:absolute;inset:0;transform:rotate(-90deg);pointer-events:none}
+.cv-pv__anel circle{stroke:var(--credit);transition:stroke-dashoffset .25s linear}
+.cv-pv__anel[data-cor="rec"] circle{stroke:#EF4444}
+.cv-pv__rot{width:6rem;flex:none;text-align:left;font-size:.86rem;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:.35rem;font-family:var(--mono)}
+.cv-pv__mic,.cv-pv__rev{display:flex;flex-direction:column;gap:.5rem}
+.cv-g__linha--esc .cv-onda{color:#fff}
+.cv-g__linha--esc .cv-g__tempo{color:rgba(255,255,255,.8)}
+.cv-pv__acoes{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem}
+.cv-pv__bt{display:inline-flex;align-items:center;gap:.45rem;height:46px;padding:0 1.2rem;border:1px solid rgba(255,255,255,.3);border-radius:99px;background:none;color:#fff;font:600 .95rem var(--body);cursor:pointer}
+.cv-pv__bt--icone{width:46px;padding:0;justify-content:center}
+.cv-pv__bt--rec{border-color:#EF4444;background:#EF4444}
+.cv-pv__bt--cor{border-color:var(--credit);background:var(--credit);color:#04120B}
+.cv-pv__bt[disabled]{opacity:.5;cursor:not-allowed}
+.cv-pv__bt .cv-ic{width:15px;height:15px}
+.cv-pv__nota{font-size:.8rem;color:rgba(255,255,255,.6)}
+
 /* detail */
 .detail{padding:0 1.15rem 1.35rem;display:grid;gap:1.3rem}
 @media(min-width:860px){.detail{grid-template-columns:1.25fr 1fr}}
@@ -488,15 +662,24 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
         <option value="licenciado">Espelhos de licenciados</option>
       </select>
       <select class="inp" id="f-origem"><option value="">Todas as origens</option></select>
+      <select class="inp" id="f-conv" aria-label="Conversa no WhatsApp">
+        <option value="">Todas as conversas</option>
+        <option value="nenhuma">Ainda não mandei mensagem</option>
+        <option value="sem_resposta">Mandei e nunca respondeu</option>
+        <option value="aguardando">Mandei por último</option>
+        <option value="esperando">Esperando minha resposta</option>
+      </select>
       <select class="inp" id="f-ordem" aria-label="Ordem">
         <option value="recentes">Mais recentes primeiro</option>
         <option value="antigos">Mais antigos primeiro</option>
+        <option value="conversa">Última conversa no WhatsApp</option>
       </select>
       <span class="selacts">
         <button class="btn btn--sm" type="button" id="sel-todos">Selecionar os 0 da lista</button>
         <button class="btn btn--sm hidden" type="button" id="sel-limpar">Limpar seleção</button>
       </span>
       <span class="count" id="contador"></span>
+      <span class="cv-lendo" id="cv-lendo" role="status"></span>
     </div>
 
     <div class="list" id="lista"></div>
@@ -883,6 +1066,51 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
       <div id="cp-msg"></div>
     </div>
   </div>
+
+  <!-- Conversa pelo iGreen Turbo (painel/conversa-ui.js) -->
+  <div class="anp-modal cv-modal hidden" id="conv">
+    <div class="cv-box" role="dialog" aria-modal="true" aria-labelledby="cv-tit">
+      <div class="cv-top">
+        <div style="min-width:0"><h2 id="cv-tit">Conversa</h2><p class="sub" id="cv-sub"></p></div>
+        <button class="btn btn--sm" type="button" id="cv-fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div class="cv-msgs" id="cv-msgs" aria-live="polite"></div>
+      <p class="cv-aviso hidden" id="cv-erros"></p>
+      <div id="cv-agendadas"></div>
+      <div class="cv-comp">
+        <div id="cv-erro"></div>
+        <div class="cv-painel hidden" id="cv-fluxos" aria-label="Fluxos do iGreen Turbo"></div>
+        <div class="cv-painel hidden" id="cv-gerenciar" aria-label="Mensagens prontas"></div>
+        <div class="cv-prontas" id="cv-prontas"></div>
+        <div class="cv-anexo hidden" id="cv-anexo"></div>
+        <div id="cv-grav-audio"></div>
+        <textarea class="inp" id="cv-txt" rows="2" maxlength="4096" placeholder="Escreva a mensagem" aria-label="Mensagem"></textarea>
+        <div class="cv-ag hidden" id="cv-ag">
+          <span>Agendar para</span>
+          <input class="inp" type="date" id="cv-ag-data" aria-label="Dia">
+          <input class="inp" type="time" id="cv-ag-hora" aria-label="Hora">
+          <small>horário de Brasília</small>
+          <label class="cp-chk"><input type="checkbox" id="cv-ag-cancela" checked><span>Não mandar se a pessoa responder antes</span></label>
+          <span class="dica" id="cv-ag-dica"></span>
+        </div>
+        <div class="cv-barra">
+          <span class="cv-icones">
+            <button class="cv-bt" type="button" id="cv-b-anexo" aria-label="Anexar foto, vídeo ou documento" title="Anexar foto, vídeo ou documento"><svg class="cv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+            <button class="cv-bt" type="button" id="cv-b-fluxo" aria-label="Mandar um fluxo" title="Mandar um fluxo do iGreen Turbo" aria-pressed="false"><svg class="cv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="8" x="3" y="3" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect width="8" height="8" x="13" y="13" rx="2"/></svg></button>
+            <button class="cv-bt" type="button" id="cv-b-video" aria-label="Gravar vídeo redondo" title="Gravar vídeo redondo"><svg class="cv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2"/></svg></button>
+            <button class="cv-bt" type="button" id="cv-b-audio" aria-label="Gravar áudio" title="Gravar áudio"><svg class="cv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></button>
+            <button class="cv-bt" type="button" id="cv-b-agendar" aria-label="Agendar a mensagem" title="Agendar a mensagem (iGreen Turbo)" aria-pressed="false"><svg class="cv-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></button>
+          </span>
+          <label class="cv-pelo">Sai pelo <select class="inp" id="cv-inst"></select></label>
+          <button class="btn btn--primary" type="button" id="cv-enviar">Enviar</button>
+        </div>
+        <p class="cv-estado" id="cv-estado"></p>
+        <p class="cv-ok hidden" id="cv-ok" role="status"></p>
+        <input type="file" id="cv-arq" hidden accept="image/*,video/*,audio/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx">
+      </div>
+      <div id="cv-grav-video"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -896,6 +1124,10 @@ textarea.inp{width:100%;min-height:92px;resize:vertical;font-family:var(--body);
 /* Selo "mensagem agendada" na lista de leads: o build.js cola aqui o arquivo
    painel/selo.mjs (função pura, com testes em tests/selo.test.mjs). */
 /*@@SELO@@*/
+
+/* Conversa pelo iGreen Turbo: o build.js cola aqui as contas de
+   supabase/functions/_shared/conversa.mjs (as mesmas da função "conversa"). */
+/*@@CONVERSA@@*/
 
 /* ============ CONFIGURAÇÃO ============
    Preencha depois de criar o projeto no Supabase.
@@ -967,6 +1199,8 @@ function carregar(){
       abrirPainel();
       carregarResumo();
       carregarSelos();   // selo "mensagem agendada" (desenha de novo só se houver)
+      // selos da conversa guardados (db/31); os velhos o render pede ao iGreen Turbo
+      if(TEM_CONVERSA) cvCarregarResumos().then(function(m){ if(m && vista === "leads" && podeRedesenhar()) render(); });
     });
 }
 
@@ -977,7 +1211,7 @@ function abrirPainel(){
 }
 
 /* ---------- filtros ---------- */
-["#busca","#f-status","#f-tipo","#f-origem","#f-ordem"].forEach(function(s){
+["#busca","#f-status","#f-tipo","#f-origem","#f-ordem","#f-conv"].forEach(function(s){
   $(s).addEventListener("input", render);
   $(s).addEventListener("change", render);
 });
@@ -996,7 +1230,7 @@ function filtrados(){
   var sentido = $("#f-ordem").value === "antigos" ? 1 : -1;
   // o período vale para os números e a lista; a busca procura em todas as datas
   var corte = q ? 0 : (inicioPeriodo(periodo) || 0);
-  return leads.filter(function(l){
+  var lista = leads.filter(function(l){
     if(pag && paginaDoLead(l) !== pag) return false;
     if(st && l.status !== st) return false;
     // integrador pelo mesmo critério do selo (cobre os gravados antes da migração 10)
@@ -1013,7 +1247,13 @@ function filtrados(){
     }
     return true;
   }).sort(function(a,b){ return sentido * (new Date(a.criado_em) - new Date(b.criado_em)); });
+  // por cima: situação da conversa no WhatsApp e ordem pela última mensagem (selos do iGreen Turbo)
+  cvBase = lista;
+  if(!TEM_CONVERSA) return lista;
+  return convListaPorConversa(lista, cvResumos, $("#f-conv").value, $("#f-ordem").value === "conversa",
+    function(l){ return l.whatsapp_e164; }, function(l){ return l.criado_em; });
 }
+var cvBase = [];   // a lista antes do filtro da conversa (é dela que se pedem os selos)
 
 /* ---------- resultados ---------- */
 var periodo = 30, resumo = null, semMigracao = false, pedidoResumo = 0;
@@ -1185,11 +1425,12 @@ setInterval(function(){
   if(!sb) return;
   Promise.all([
     sb.from("leads").select("*").order("criado_em",{ascending:false}).limit(1000),
-    carregarSelos(true)
+    carregarSelos(true),
+    TEM_CONVERSA ? cvCarregarResumos() : false
   ]).then(function(rs){
     var r = rs[0];
     if(!r.error) leads = r.data || [];
-    if(!r.error || rs[1]) render();
+    if(!r.error || rs[1] || rs[2]) render();
   });
   carregarResumo();
 }, 60000);
@@ -1214,10 +1455,11 @@ function render(){
   var fs = filtrados(), lista = $("#lista");
   $("#contador").textContent = fs.length + (fs.length===1?" lead":" leads");
   atualizaSelecao(fs);
+  if(TEM_CONVERSA) cvPedirResumos(cvBase);   // selos da conversa que faltam (Turbo)
 
   if(!fs.length){
     lista.innerHTML = '<div class="empty"><p>Nenhum lead por aqui</p><p>'+
-      (leads.length ? "Tente afrouxar os filtros." : "Assim que alguém terminar o quiz no site, ele aparece aqui.")+'</p></div>';
+      (leads.length ? ($("#f-conv").value && cvLendo ? "Lendo as conversas no iGreen Turbo…" : "Tente afrouxar os filtros.") : "Assim que alguém terminar o quiz no site, ele aparece aqui.")+'</p></div>';
     return;
   }
 
@@ -1234,6 +1476,7 @@ function render(){
         '<svg class="lead__chev" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2.5L8 6l-4 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '<span class="lead__who"><strong>'+esc(l.nome)+'</strong><span>'+(l.tipo==="direto"||l.tipo==="agendamento" ? esc(l.email||"—") : esc(l.cidade||"—")+(l.uf?" / "+esc(l.uf):""))+'</span>'+
           (selo ? '<span class="pill pill--msg is-'+selo.tipo+'" title="'+esc(selo.titulo)+'">'+esc(selo.curto)+'</span>' : '')+
+          (TEM_CONVERSA ? cvSeloHtml(l) : '')+
         '</span>'+
         (l.tipo==="agendamento" ? '<span class="pill pill--agenda" title="'+esc(dataReuniao(l.agenda_inicio))+'">Reunião '+esc(diaReuniao(l.agenda_inicio))+'</span>' : '')+
         (l.tipo==="direto" ? '<span class="pill pill--direto">Cadastro direto</span>' : '')+
@@ -1244,7 +1487,9 @@ function render(){
         '<span class="pill pill--'+l.status+'">'+STATUS[l.status]+'</span>'+
         '<span class="lead__when'+(espera?' is-espera" title="Sem contato há mais de 24 horas':'')+'">'+quando(l.criado_em)+'</span>'+
       '</button>'+
-      (l.whatsapp_e164 ? '<a class="btn btn--primary btn--sm lead__chamar" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Chamar</a>' : '')+
+      // Conversa pelo iGreen Turbo no lugar do Chamar (17/11/2026); espelho de licenciado segue com o Chamar
+      (TEM_CONVERSA && !cvMotivo(l) ? '<button class="btn btn--primary btn--sm lead__chamar" type="button" data-conv="'+l.id+'">Conversa</button>'
+        : l.whatsapp_e164 ? '<a class="btn btn--primary btn--sm lead__chamar" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Chamar</a>' : '')+
       '</div>'+
       (aberta ? detalhe(l) : "")+
     '</div>';
@@ -1273,6 +1518,13 @@ function render(){
       var id = b.getAttribute("data-msg"), l = leads.find(function(x){ return x.id === id; });
       if(l) abrirCompositor([l]);
     });
+  });
+  $$("[data-conv]").forEach(function(b){
+    b.addEventListener("click", function(){ cvAbrirPorId(b.getAttribute("data-conv")); });
+  });
+  $$("[data-conv-abrir]").forEach(function(s){
+    // o selo fica dentro do botão da linha: abre a conversa sem abrir o detalhe
+    s.addEventListener("click", function(e){ e.stopPropagation(); e.preventDefault(); cvAbrirPorId(s.getAttribute("data-conv-abrir")); });
   });
   $$("[data-verdisp]").forEach(function(b){
     b.addEventListener("click", function(){
@@ -1329,7 +1581,8 @@ function detalhe(l){
   return '<div class="detail">'+
     '<dl class="dl">'+
       (selo ? '<div class="dl__r"><dt>Mensagem</dt><dd class="dl__msg">'+esc(selo.titulo)+'.'+
-        '<button class="dl__lnk" type="button" data-verdisp="'+esc(selo.disparo_id)+'">Ver em Disparos</button></dd></div>' : "")+
+        (selo.turbo ? '<button class="dl__lnk" type="button" data-conv="'+esc(l.id)+'">Ver na conversa</button>'
+                    : '<button class="dl__lnk" type="button" data-verdisp="'+esc(selo.disparo_id)+'">Ver em Disparos</button>')+'</dd></div>' : "")+
       (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
       (l.tipo==="agendamento" ? linha("Reunião", dataReuniao(l.agenda_inicio) + " (30 min, Google Meet)" + (new Date(l.agenda_fim) < new Date() ? " — já passou" : "")) +
                                 linha("Confirmou", l.agenda_aceite) +
@@ -1364,7 +1617,8 @@ function detalhe(l){
       '<div><h3>Anotações</h3>'+
         '<textarea class="inp" style="margin-top:.4rem" data-nota="'+l.id+'" placeholder="O que ficou combinado…">'+esc(l.anotacoes||"")+'</textarea></div>'+
       '<div class="acts">'+
-        '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Abrir conversa</a>'+
+        (TEM_CONVERSA && !cvMotivo(l) ? '<button class="btn btn--primary btn--sm" type="button" data-conv="'+l.id+'">Conversa</button>'
+          : '<a class="btn btn--primary btn--sm" target="_blank" rel="noopener" data-chamar="'+l.id+'" href="'+esc(linkChamar(l))+'">Abrir conversa</a>')+
         '<button class="btn btn--sm" type="button" data-msg="'+l.id+'"'+(semMsg ? ' disabled title="'+esc(semMsg)+'"' : '')+'>Enviar mensagem</button>'+
         (l.agenda_meet ? '<a class="btn btn--sm" target="_blank" rel="noopener" href="'+esc(l.agenda_meet)+'">Abrir o Meet</a>' : '')+
         '<button class="btn btn--sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('+JSON.stringify(l.whatsapp||"")+')">Copiar telefone</button>'+
@@ -1420,12 +1674,19 @@ function mudarStatus(id, valor){
 function excluirLead(id, botao){
   if(DEMO){ leads = leads.filter(function(x){return x.id!==id}); aberto = null; render(); return; }
   var lead = leads.find(function(x){return x.id===id});
-  /* LGPD: as mensagens enviadas a este número (db/18) saem antes do lead, nos
-     dois caminhos. Se não der para apagar o histórico, nada é apagado. */
-  apagarEnviosDoNumero(lead).then(function(ok){
-    if(ok){ excluirLeadDeVez(id, lead, botao); return; }
+  var volta = function(msg){
     botao.disabled = false; botao.textContent = "Excluir"; botao.classList.remove("is-armado");
-    alert("Não consegui apagar as mensagens enviadas a este número. Nada foi apagado; tente de novo em instantes.");
+    alert(msg);
+  };
+  /* LGPD: antes do lead saem as agendadas no iGreen Turbo (canceladas lá) e o
+     selo da conversa (db/31), e as mensagens enviadas a este número (db/18), nos
+     dois caminhos. Se não der para cancelar ou apagar, nada é apagado. */
+  (TEM_CONVERSA ? cvAntesDeExcluir(lead) : Promise.resolve("")).then(function(erro){
+    if(erro){ volta(erro + " Nada foi apagado; tente de novo em instantes."); return; }
+    apagarEnviosDoNumero(lead).then(function(ok){
+      if(ok){ excluirLeadDeVez(id, lead, botao); return; }
+      volta("Não consegui apagar as mensagens enviadas a este número. Nada foi apagado; tente de novo em instantes.");
+    });
   });
 }
 function excluirLeadDeVez(id, lead, botao){
@@ -2188,7 +2449,8 @@ var TEM_SELO = typeof selosMensagem === "function";   // false só no admin.html
 var selosMsg = {};           // número (55 + DDD + número) -> selo
 var selosSujos = false;      // mudaram e a lista ainda não foi redesenhada
 var pedidoSelos = 0;
-function seloDe(l){ return TEM_SELO ? seloDoNumero(selosMsg, l.whatsapp_e164) : null; }
+// disparo na fila e agendada no iGreen Turbo (Conversa): vale o mais próximo
+function seloDe(l){ return TEM_SELO ? seloMaisProximo(seloDoNumero(selosMsg, l.whatsapp_e164), TEM_CONVERSA ? cvSeloTurboDe(l) : null) : null; }
 function assinaturaSelos(m){
   return Object.keys(m).sort().map(function(k){ return k + "|" + m[k].curto + "|" + m[k].titulo + "|" + m[k].disparo_id; }).join("\n");
 }
@@ -2196,10 +2458,21 @@ function assinaturaSelos(m){
 function carregarSelos(semDesenhar){
   if(!TEM_SELO) return Promise.resolve(false);
   var meu = ++pedidoSelos;   // só a resposta do último pedido vale
-  return (DEMO ? Promise.resolve(demoFilaSelos()) : buscarFilaSelos()).then(function(r){
-    if(!r || meu !== pedidoSelos) return false;   // sem resposta: ficam os selos de antes
-    var novos = selosMensagem(r.envios, r.disparos, Date.now());
-    if(assinaturaSelos(novos) !== assinaturaSelos(selosMsg)){ selosMsg = novos; selosSujos = true; }
+  return Promise.all([
+    DEMO ? Promise.resolve(demoFilaSelos()) : buscarFilaSelos(),
+    // agendadas no iGreen Turbo pela Conversa (db/31)
+    TEM_CONVERSA ? cvCarregarAgendadas().catch(function(e){ console.error(e); return false; }) : Promise.resolve(false)
+  ]).then(function(rs){
+    var r = rs[0];
+    if(meu !== pedidoSelos) return false;
+    if(TEM_CONVERSA){
+      var tb = cvSelosTurbo();
+      if(assinaturaSelos(tb) !== assinaturaSelos(cvSelosTb)){ cvSelosTb = tb; selosSujos = true; }
+    }
+    if(r){   // sem resposta: ficam os selos de antes
+      var novos = selosMensagem(r.envios, r.disparos, Date.now());
+      if(assinaturaSelos(novos) !== assinaturaSelos(selosMsg)){ selosMsg = novos; selosSujos = true; }
+    }
     if(!selosSujos) return false;
     if(semDesenhar) return true;
     if(vista === "leads" && !$("#tela-painel").classList.contains("hidden") && podeRedesenhar()) render();
@@ -3156,6 +3429,9 @@ function demoDisp(acao, x){
   }
   return {ok:true};
 }
+
+/* Janela da Conversa pelo iGreen Turbo (painel/conversa-ui.js), colada pelo build.js. */
+/*@@CONVERSA_UI@@*/
 
 /* ---------- utilidades ---------- */
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){

@@ -228,3 +228,48 @@ test("o arquivo é ES5 e roda colado numa função com use strict (como no paine
     assert.equal(api.dataCompletaSelo("2026-11-08T12:00:00Z"), "domingo, 08/11 às 09:00");
   }
 });
+
+// ---- agendadas no iGreen Turbo pela Conversa (17/11/2026) ----
+import { selosTurbo, seloMaisProximo } from "../painel/selo.mjs";
+
+const agendada = (x = {}) => ({ id: "a1", numero: NUM, quando: BRT("03", "18:00").toISOString(), texto: "Oi, tudo bem?", instancia: "pessoal", status: "pending", cancelar_se_responder: true, ...x });
+
+test("selosTurbo: agendada no Turbo vira selo com hora, número e trecho", () => {
+  const s = selosTurbo([agendada()], AGORA)[NUM];
+  assert.equal(s.curto, "Agendada hoje 18:00");
+  assert.equal(s.turbo, true);
+  assert.equal(s.agendada_id, "a1");
+  assert.equal(s.titulo, "Mensagem agendada · hoje 18:00 (terça-feira, 03/11 às 18:00, no iGreen Turbo, pelo 7007). Não sai se a pessoa responder antes: “Oi, tudo bem?”");
+});
+
+test("selosTurbo: a mais próxima vale, conta as outras e ignora as que já foram", () => {
+  const m = selosTurbo([
+    agendada({ id: "a2", quando: BRT("04", "09:00").toISOString(), instancia: "carregador", cancelar_se_responder: false }),
+    agendada({ id: "a1" }),
+    agendada({ id: "a3", status: "sent" }),
+    agendada({ id: "a4", status: "cancelled" }),
+    agendada({ id: "a5", numero: "5547999990000", quando: BRT("03", "14:00").toISOString() }),   // 1 h atrás: já passou
+  ], AGORA);
+  assert.equal(m[NUM].agendada_id, "a1");
+  assert.equal(m[NUM].outras, 1);
+  assert.match(m[NUM].titulo, /Este número tem mais 1 mensagem agendada$/);
+  assert.equal(m["5547999990000"], undefined);
+});
+
+test("selosTurbo: na hora (ou processando) vira Enviando, e o texto longo é cortado", () => {
+  const longa = "palavra ".repeat(30);
+  const s = selosTurbo([agendada({ quando: BRT("03", "14:55").toISOString(), texto: longa })], AGORA)[NUM];
+  assert.equal(s.curto, "Enviando");
+  assert.ok(s.trecho.length <= 90 && s.trecho.endsWith("…"));
+  assert.equal(selosTurbo([agendada({ status: "processing" })], AGORA)[NUM].curto, "Enviando");
+});
+
+test("seloMaisProximo: disparo e Turbo no mesmo número", () => {
+  const turbo = selosTurbo([agendada()], AGORA)[NUM];                      // hoje 18:00
+  const fila = umSelo({ agendado_para: BRT("03", "16:00").toISOString() });  // hoje 16:00
+  assert.equal(seloMaisProximo(fila, turbo), fila);
+  assert.equal(seloMaisProximo(turbo, umSelo({}, { status: "pausado" })), turbo);
+  assert.equal(seloMaisProximo(null, turbo), turbo);
+  assert.equal(seloMaisProximo(turbo, null), turbo);
+  assert.equal(seloMaisProximo(null, null), null);
+});

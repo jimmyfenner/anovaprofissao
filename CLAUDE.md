@@ -409,6 +409,7 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 | Pixel da Meta | ID `1752542589367351`, chave `meta_pixel` no `site_config` |
 | API de Conversões da Meta | Supabase Edge Function `conversao-meta`, só lead de integrador |
 | Disparo de mensagens | Supabase Edge Function `disparos` + `pg_cron` (fila em `disparo_envios`) |
+| Conversa com o lead | Supabase Edge Function `conversa` + API do iGreen Turbo (`TURBO_TOKEN`), db/31 |
 
 ## Segredos — o que nunca circula
 
@@ -1431,6 +1432,52 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   `agendada_id`). No painel ficam numa seção "✉️ Encaminhados · esperando resposta", fora dos números
   de "Lembretes hoje" e da aba. No Mac: não saem no WhatsApp na hora, não entram na agenda das 06:30
   (só a contagem), vão para uma lista à parte no *pendentes* e no Diário.
+
+## Conversa pelo iGreen Turbo (nov/2026)
+
+Pedido do Jimmy em 17/11/2026: no querovendercarregador.com.br/admin (o mesmo painel deste
+projeto) a mesma Conversa do igreencel e do querocarregador. O botão **Conversa** substitui o
+Chamar (o espelho de licenciado continua com o Chamar, porque a página disse que quem chama é o
+licenciado) e abre a janela com o que já foi trocado nos dois números do Jimmy no Turbo
+(`pessoal` 7007, o principal daqui, e `carregador` 2413), relida a cada 6 s.
+
+- **O que manda, pelo número escolhido em "Sai pelo"** (sem escolha, o da última mensagem que ele
+  mandou): texto, áudio gravado, vídeo redondo (grava até 60 s ou converte um vídeo anexado com
+  `mediabunny` 1.56.2, carregado do jsDelivr só quando precisa), foto, vídeo, documento e fluxo
+  ativo do Turbo, inteiro ou a partir de uma etapa. Os gravadores são os do igreencel: onda ao
+  vivo, aviso de microfone mudo ou cortado, prévia com Descartar/Gravar de novo/Enviar. Arquivo
+  sobe do navegador direto para o Turbo (URL assinada). Enviar marca "Novo" como "Contatado".
+- **Agendar** (relógio): só texto, pela rota `schedule` do Turbo (a mesma do diário de reuniões),
+  com "Não mandar se a pessoa responder antes" ligado por padrão; o contato é criado antes no
+  número escolhido (`lead-contact`). As agendadas do número aparecem na janela com Cancelar e
+  entram no selo "Agendada" da lista (o mesmo do disparo: vale o mais próximo; `selosTurbo` e
+  `seloMaisProximo` em `painel/selo.mjs`). A cada 5 min a função relê no Turbo as agendadas dos
+  contatos conhecidos (pega também as criadas pela Inbox de lá).
+- **Mensagens prontas** (`mensagens_prontas`, editáveis na própria janela: nome do botão, para
+  quem aparece e texto com as variáveis do disparo e `{reuniao}`). O toque só preenche a caixa;
+  a saudação acompanha a hora de saída (muda se ele agendar) e as variações ficam fixas enquanto a
+  pronta está na caixa. As quatro primeiras são os textos do antigo Chamar. Variável digitada à
+  mão também vira texto na hora do envio.
+- **Selo da conversa** embaixo do nome ("Você ainda não mandou mensagem", "Respondeu há 2 h"...),
+  filtro "Todas as conversas" pela situação e a ordem "Última conversa no WhatsApp". O painel lê
+  os resumos guardados (`conversa_resumo`) e pede ao Turbo, pela função, os de mais de 10 min:
+  os 50 do topo, ou todos com o filtro ou a ordem da conversa ligados (25 por pedido).
+- **Função `conversa`** (`supabase/functions/conversa`, verify_jwt ligado, login do painel):
+  ler, enviar, upload, fluxos, etapas, fluxo, resumos, agendar, agendadas, cancelar_agendada.
+  Usa o segredo `TURBO_TOKEN` (o mesmo da `reunioes`, workspace do Jimmy). Recusa espelho de
+  licenciado. Contas puras em `supabase/functions/_shared/conversa.mjs` (ES5, coladas no painel
+  pelo marcador da conversa; testes em `tests/conversa.test.mjs`); a janela é
+  `painel/conversa-ui.js`, colada pelo marcador da janela (prefixo `cv`).
+- **Banco** (`db/31-conversa.sql`): `conversa_resumo` (só contagens e datas, sem texto, e o
+  contato do lead em cada número do Turbo), `conversa_agendadas` (o painel lê e apaga; quem grava
+  é a função) e `mensagens_prontas`.
+- **LGPD:** Excluir cancela no Turbo as agendadas pendentes do número e apaga o resumo e as
+  agendadas antes de apagar o lead; se não conseguir cancelar, nada é apagado.
+- **Microfone e câmera:** o `vercel.json` bloqueia os dois no site todo e libera só em `/admin`
+  (`Permissions-Policy`).
+- **Testar sem banco:** a cópia de demonstração (`url` vazio no `CFG`) tem conversas, fluxos,
+  agendadas e prontas falsas. O navegador do app bloqueia microfone e câmera; para ver os
+  gravadores, troque `navigator.mediaDevices.getUserMedia` por um tom e um canvas na página.
 
 ## Instância do WhatsApp: `pessoal`, a mesma do iGreen Turbo (04/11/2026)
 

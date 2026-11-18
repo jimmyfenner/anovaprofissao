@@ -25,6 +25,12 @@ test("build.js põe o renderizador e o selo no painel, sem export", () => {
   assert.match(html, /function seloDoNumero\(mapa, numero\)/);
   assert.ok(!html.includes("@@SELO@@"), "o marcador do selo tem que sumir no build");
 
+  // conversa pelo iGreen Turbo (17/11/2026): as contas e a janela, no mesmo script
+  assert.match(html, /function convSelo\(r, agora\)/);
+  assert.match(html, /function cvAbrir\(l\)/);
+  assert.ok(!html.includes("@@CONVERSA"), "os marcadores da conversa têm que sumir no build");
+  assert.match(html, /id="conv"/, "a janela da conversa está no painel");
+
   // o script do painel continua válido (sintaxe) depois da colagem
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
   const painel = scripts.find((s) => s.includes("function renderizar("));
