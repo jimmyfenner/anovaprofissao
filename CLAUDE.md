@@ -986,10 +986,12 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   de `mapa-conexao-green/componente/geometria-ufs.js`) com as distribuidoras
   por estado vindas de `mapa-conexao-green/regras.json` (gerado do backup do
   Academy) mais as exceções que o Jimmy passou em 27/10/2026: sem cobertura em
-  AC, AM, AP, DF, RO e RR; em SP não atende Enel SP e CPFL Piratininga; no RJ
-  não atende Light. A EDP São Paulo voltou em novembro/2026 (newsletter:
-  reabertura a partir de 350 kWh, 2 boletos, energia limitada) e aparece com
-  a etiqueta "Reaberta". Dica ao passar o mouse/tocar; clique
+  AC, AM, AP, DF, RO e RR; em SP não atende Enel SP e CPFL Piratininga. A
+  EDP São Paulo voltou em novembro/2026 (newsletter: reabertura a partir de
+  350 kWh, 2 boletos, energia limitada) e aparece com a etiqueta "Reaberta";
+  a Light (RJ) passou a ser atendida em 19/11/2026 (etiqueta "Novo", a partir
+  de 300 kWh) e o RJ ficou todo verde. Equatorial Pará: mínimo de 100 kWh +
+  custo de disponibilidade (nota na dica). Dica ao passar o mouse/tocar; clique
   fixa. **Marcadores ⚡ (âmbar)** = distribuidoras da campanha Bônus Extra
   Green do mês (tabela `BONUS` no `patch_mapa.py`, tirada do regulamento no
   export do Academy; `2` = só com troca de titularidade). É o padrão visual
@@ -1023,8 +1025,20 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   tabela `pvRawData` de gaabiislva.github.io/index (pública no código da
   página), copiada em `apresentacao-igreen-2026/fontes/hub-gabi-pv.json`, via
   `faixas()` no `patch_mapa.py`. Distribuidora do Academy que não está no hub
-  sai do mapa (PR Celesc e SC Copel). Para atualizar, baixar a tabela de novo
-  e substituir o JSON. Nome de fornecedora nunca entra nesses dados.
+  sai do mapa. **Em 17/11/2026 o hub tirou a tabela de descontos** e ficou só
+  com o consumo mínimo por pós-venda (`minKwhData`); a lista do pós-venda
+  iGreen está em `fontes/hub-gabi-minimos-igreen-2026-11-19.json`. Os
+  descontos seguem da cópia de 02/11, e quem não está nela (Light, Celesc PR,
+  Copel SC, EDP SP) tem as faixas em `FAIXAS_FIXAS`: regra padrão do pós-venda
+  iGreen, 8% A e 10% B desde o mínimo, 12% C e 14% D desde 1.000 kWh. Nome de
+  fornecedora nunca entra nesses dados.
+- **Botão PDF (19/11/2026)**: na barra de controles, ao lado da tela cheia,
+  baixa o PDF fechado (uma imagem por slide). Link curto para mandar no
+  WhatsApp: `anovaprofissao.com.br/apresentacao.pdf` (redirect temporário no
+  `vercel.json` para `/apresentacao/iGreen-2026-apresentacao.pdf`). O PDF só
+  muda quando o `gerar_pdf.sh` roda e os dois arquivos são copiados de novo.
+  Desde nov/2026 o Chrome headless sai com erro ao fechar mesmo gravando o
+  arquivo; o script confere o arquivo em vez do código de saída.
 - **Teste de boot obrigatório**: `verificar_boot.sh` (junto do deck) abre o
   HTML sem `?static`, como o público vê, e falha se o slide 1 não ativar; o
   `gerar_pdf.sh` roda esse teste antes de tudo. Motivo: em 28/10/2026 o deck
