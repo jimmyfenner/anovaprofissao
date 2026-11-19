@@ -34,6 +34,26 @@
   ],
   "rewrites": [
     {
+      "source": "/meet",
+      "has": [
+        {
+          "type": "host",
+          "value": "anovaprofissao.com.br"
+        }
+      ],
+      "destination": "https://palco-tau.vercel.app/meet"
+    },
+    {
+      "source": "/meet/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "anovaprofissao.com.br"
+        }
+      ],
+      "destination": "https://palco-tau.vercel.app/meet/:path*"
+    },
+    {
       "source": "/robots.txt",
       "has": [
         {
@@ -228,6 +248,24 @@
         {
           "key": "Permissions-Policy",
           "value": "geolocation=(), microphone=(self), camera=(self)"
+        }
+      ]
+    },
+    {
+      "source": "/meet",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(self), camera=(self), display-capture=(self)"
+        }
+      ]
+    },
+    {
+      "source": "/meet/(.*)",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(self), camera=(self), display-capture=(self)"
         }
       ]
     },

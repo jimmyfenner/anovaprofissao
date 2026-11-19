@@ -1571,3 +1571,13 @@ e os gestos de dois ou mais dedos. Com isso, na lousa, a Pencil desenha por
 cima do site e o dedo continua usando o site, sem trocar de modo. O visitante
 comum não baixa nada. O arquivo `ponte.js` é gerado no projeto da lousa
 (`/Volumes/Sandisk/Claude/lousa/build.js`), não aqui.
+
+## Palco em /meet (nov/2026)
+
+Pedido do Jimmy em 18/11/2026: o Palco (estúdio de lives tipo StreamYard, repositório
+próprio `jimmyfenner/palco`, projeto Vercel `palco`) aparece em
+**anovaprofissao.com.br/meet**. Este site só repassa: o `vercel.json` reescreve `/meet` e
+`/meet/:path*` (só no host `anovaprofissao.com.br`) para `https://palco-tau.vercel.app/meet…`,
+e libera câmera, microfone e captura de tela só em `/meet` (`Permissions-Policy`), como
+já faz em `/admin`. Código, variáveis e deploy do Palco ficam no projeto dele; aqui não
+há nada do Palco além dessas regras. O Palco é servido com `basePath: "/meet"`.
