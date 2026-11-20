@@ -72,8 +72,9 @@ function cvMotivo(l){
 }
 function cvParaDoLead(l){
   if(l.tipo === "agendamento") return "agendamento";
-  if(ehInteg(l)) return "integrador";
+  // o cadastro direto da página de integradores (20/11/2026) também é "direto": não respondeu o formulário
   if(l.tipo === "direto") return "direto";
+  if(ehInteg(l)) return "integrador";
   return "quiz";
 }
 

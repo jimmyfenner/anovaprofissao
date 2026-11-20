@@ -781,6 +781,19 @@ script; a tag só carrega nos domínios reais e a conversão só dispara depois 
 o banco confirma a gravação do lead. A Política de Privacidade (item 8) descreve
 a tag; `ATUALIZADO` foi para 18/10/2026.
 
+**Cadastro direto (20/11/2026).** Pedido do Jimmy: a página tinha muito para ler e os botões
+de destaque eram todos de conversa. O botão principal virou **"Quero me cadastrar"** (menu
+fixo, topo, depois do vídeo, junto do preço em "Próximo passo" e no fechamento); o formulário
+segue em "Me conta o seu momento" (abaixo do topo) e "Quero conversar antes" (fechamento), e a
+agenda continua em "Agendar uma conversa". O botão abre a mesma janela da home (nome, e-mail,
+WhatsApp, com o preço da licença) e leva ao `LINK_CADASTRO` (o mesmo da home; o painel troca
+pela chave `link_cadastro`). O lead grava `tipo` "direto" e `solucao` citando a página de
+integradores: o painel mostra "Cadastro direto" e "Integrador", conta na página de integradores
+(etapas "Abriram o cadastro direto" e "Foram ao cadastro oficial") e o aviso da função
+`whatsapp` diz "integrador decidido". A ida para a iGreen não espera o banco (2,5 s no máximo).
+Dispara a conversão do Google Ads "Lead integrador" (depois que o banco grava) e o "Lead" do pixel; a API de Conversões da
+Meta continua só para `tipo` "integrador".
+
 ## API de Conversões da Meta — lead de integrador (30/out/2026)
 
 Pedido do Jimmy, tomando o igreencel.com.br como régua: o lead chega à Meta mesmo

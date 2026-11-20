@@ -1268,7 +1268,7 @@ var ETAPAS = {
 // o que não é etapa, mas vale saber
 var A_PARTE = {
   home: [["whatsapp_click","Clicaram no WhatsApp"],["cadastro_direto_abriu","Abriram o cadastro direto"],["cadastro_click","Foram ao cadastro oficial"],["video_start","Deram play em um vídeo"]],
-  integradores: [["whatsapp_click","Clicaram no WhatsApp"],["momento_somar","Cartão: somar ao que já vende"],["momento_vendas","Cartão: as vendas caíram"],["momento_mudar","Cartão: mudar de ramo"],["video_fundador_abgd","Viram o corte do Carlos"]],
+  integradores: [["cadastro_direto_abriu","Abriram o cadastro direto"],["cadastro_direto_enviou","Foram ao cadastro oficial"],["whatsapp_click","Clicaram no WhatsApp"],["momento_somar","Cartão: somar ao que já vende"],["momento_vendas","Cartão: as vendas caíram"],["momento_mudar","Cartão: mudar de ramo"],["video_fundador_abgd","Viram o corte do Carlos"]],
   transicao: [["whatsapp_click","Clicaram no WhatsApp"],["orbita_integradores","Foram para integradores"],["orbita_querocarregador","Foram para o QueroCarregador"]]
 };
 A_PARTE.licenciados = A_PARTE.home;
@@ -1583,11 +1583,11 @@ function detalhe(l){
       (selo ? '<div class="dl__r"><dt>Mensagem</dt><dd class="dl__msg">'+esc(selo.titulo)+'.'+
         (selo.turbo ? '<button class="dl__lnk" type="button" data-conv="'+esc(l.id)+'">Ver na conversa</button>'
                     : '<button class="dl__lnk" type="button" data-verdisp="'+esc(selo.disparo_id)+'">Ver em Disparos</button>')+'</dd></div>' : "")+
-      (l.tipo==="direto" ? linha("Veio por", "Botão de cadastro direto — não fez o quiz") : "")+
+      (l.tipo==="direto" ? linha("Veio por", ehInteg(l) ? "Botão de cadastro direto da página de integradores (querovendercarregador.com.br) — foi para o cadastro oficial sem preencher o formulário" : "Botão de cadastro direto — não fez o quiz") : "")+
       (l.tipo==="agendamento" ? linha("Reunião", dataReuniao(l.agenda_inicio) + " (30 min, Google Meet)" + (new Date(l.agenda_fim) < new Date() ? " — já passou" : "")) +
                                 linha("Confirmou", l.agenda_aceite) +
                                 linha("Veio por", ehInteg(l) ? "Agendamento da página de integradores (querovendercarregador.com.br/agendar)" : "Agendamento de apresentação (anovaprofissao.com.br/agendar)") : "")+
-      (ehInteg(l) ? linha("Veio por", "Página de integradores (querovendercarregador.com.br) — Atuação, Perfil e Objetivo abaixo são as respostas de lá") : "")+
+      (ehInteg(l) && l.tipo !== "direto" ? linha("Veio por", "Página de integradores (querovendercarregador.com.br) — Atuação, Perfil e Objetivo abaixo são as respostas de lá") : "")+
       (l.licenciado ? linha("Espelho", (LICS[l.licenciado] || l.licenciado) + " — anovaprofissao.com.br/" + l.licenciado + ". O aviso deste lead foi para ele.") : "")+
       campo(l.id, "nome", "Nome", l.nome)+
       campo(l.id, "whatsapp", "WhatsApp", l.whatsapp)+

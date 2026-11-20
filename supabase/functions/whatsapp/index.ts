@@ -238,14 +238,22 @@ Deno.serve(async (req) => {
         L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];
 
+      // desde 20/11/2026 a página de integradores também tem o botão (solucao cita a página)
       const corpoDireto = [
-        "🔴 *CADASTRO DIRETO — pessoa decidida*", "",
+        ehInteg ? "🔴 *CADASTRO DIRETO — integrador decidido (Conexão Mob)*" : "🔴 *CADASTRO DIRETO — pessoa decidida*", "",
         `*${L.nome ?? "?"}*`,
         `WhatsApp: ${L.whatsapp ?? "?"}`,
         `E-mail: ${L.email ?? "—"}`, "",
-        "Essa pessoa nao fez o quiz: clicou para se cadastrar agora e foi",
-        "levada ao cadastro oficial. Fale com ela hoje — provavelmente esta",
-        "com o formulario da iGreen aberto neste momento.", "",
+        ehInteg
+          ? "Veio do querovendercarregador.com.br: clicou para se cadastrar como"
+          : "Essa pessoa nao fez o quiz: clicou para se cadastrar agora e foi",
+        ehInteg
+          ? "licenciado e foi para o cadastro oficial. Fale com essa pessoa hoje —"
+          : "levada ao cadastro oficial. Fale com ela hoje — provavelmente esta",
+        ehInteg
+          ? "provavelmente esta com o formulario da iGreen aberto neste momento."
+          : "com o formulario da iGreen aberto neste momento.",
+        typeof L.video_pct === "number" ? `Apresentação: ${L.video_pct}% assistido` : null, "",
         `Origem: ${L.utm_source ?? "direto"}${L.utm_campaign ? " / " + L.utm_campaign : ""}`,
         L.whatsapp_e164 ? `Abrir conversa: https://wa.me/${L.whatsapp_e164}` : null,
       ];
