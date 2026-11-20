@@ -426,10 +426,9 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-**32** (orçamento de geração paga nos shorts do painel, 19/11/2026): escrita, testada e com o código no ar, mas
-ainda **não aplicada**; o modo automático barrou o `db query`. Junto com ela, publicar a função `reunioes`
-(`--no-verify-jwt --yes`). Sem a 32, o "custo para aprovar" não grava (a rotina marca erro) e o resto segue igual.
-
+Nenhuma. 32 (orçamento de geração paga nos shorts do painel) aplicada em 19/nov/2026 com o "Sim, publicar" do
+Jimmy, com a função `reunioes` publicada (`--remote=buapklmgdjcoyzrmhhcd --use-api --no-verify-jwt --yes`).
+Conferido: coluna e checagens no banco; a função recusa orçamento vazio (400) antes de gravar.
 27 (tarefas e lembretes repetidos do diário) aplicada em 12/nov/2026 com o "Aplique" do
 Jimmy, com a função `reunioes` publicada; os 24 lembretes que existiam viraram `tipo = 'lembrete'`.
 22 (link do Turbo no lead do diário) aplicada em 04/nov/2026 com o "Sim, publicar"
