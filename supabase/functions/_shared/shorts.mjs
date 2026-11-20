@@ -6,7 +6,7 @@
 // pede ajuste ou descarta. Puro: testado em tests/shorts.test.mjs; a função "reunioes" e o painel usam
 // as mesmas regras.
 
-export var STATUS_SHORT = ['fila', 'montando', 'pronto', 'ajustar', 'aprovado', 'publicando', 'publicado', 'erro', 'descartado'];
+export var STATUS_SHORT = ['fila', 'montando', 'orcamento', 'pronto', 'ajustar', 'aprovado', 'publicando', 'publicado', 'erro', 'descartado'];
 export var MAX_TRECHOS = 12;
 var LINHAS_TITULO = 3;
 var LETRAS_LINHA = 40;
@@ -92,6 +92,77 @@ export function normalizarDestinos(v) {
 }
 export var DESTINOS_PADRAO = { youtube: true, instagram: true, stories: false };
 
+// Orçamento de geração paga (19/11/2026, migração 32): num ajuste ou no recado o Jimmy pode pedir coisa que
+// precisa ser gerada (imagem/vídeo na Higgsfield; música, efeito ou voz na ElevenLabs). O Mac nunca gera sem
+// o ok dele: propõe o orçamento (status "orcamento") e o painel aprova ("Gerar") ou recusa ("Fazer sem gerar").
+// Créditos de cada plataforma são moedas diferentes: os totais ficam separados; usd é só uma referência.
+export var PLATAFORMAS_GASTO = ['higgsfield', 'elevenlabs'];
+var MAX_CREDITOS = 1000000;
+function numero(v, max) {
+  var n = Number(v);
+  return isFinite(n) && n >= 0 && n <= max ? Math.round(n * 100) / 100 : null;
+}
+export function normalizarOrcamento(v) {
+  if (!v || typeof v !== 'object') throw new Error('Orçamento inválido.');
+  var itens = Array.isArray(v.itens) ? v.itens : [];
+  if (!itens.length || itens.length > 10) throw new Error('O orçamento precisa ter de 1 a 10 itens.');
+  var tot = { higgsfield: 0, elevenlabs: 0 };
+  var usd = 0, temUsd = true;
+  var lista = itens.map(function (it) {
+    it = it || {};
+    var p = String(it.plataforma || '').toLowerCase().trim();
+    if (PLATAFORMAS_GASTO.indexOf(p) < 0) throw new Error('Plataforma fora do orçamento: ' + (p || 'vazia') + '.');
+    var o = texto(it.o_que, 200);
+    if (!o) throw new Error('Diga o que cada item do orçamento gera.');
+    var c = numero(it.creditos, MAX_CREDITOS);
+    if (!c) throw new Error('Créditos inválidos em "' + o + '".');
+    var u = numero(it.usd, 1000);
+    if (u == null) temUsd = false; else usd += u;
+    tot[p] = Math.round((tot[p] + c) * 100) / 100;
+    return { plataforma: p, o_que: o, modelo: texto(it.modelo, 80), creditos: c, usd: u };
+  });
+  var saldo = {};
+  PLATAFORMAS_GASTO.forEach(function (p) {
+    var n = v.saldo ? numero(v.saldo[p], 100 * MAX_CREDITOS) : null;
+    if (n != null) saldo[p] = n;
+  });
+  return {
+    itens: lista,
+    higgsfield: tot.higgsfield,
+    elevenlabs: tot.elevenlabs,
+    usd: temUsd ? Math.round(usd * 100) / 100 : null,
+    saldo: saldo,
+    nota: texto(v.nota, 400),
+    decisao: null,
+    decidido_em: null,
+    gasto: null,
+  };
+}
+// o que o Mac gastou de fato (créditos por plataforma), gravado junto da prévia
+export function normalizarGasto(v) {
+  if (!v || typeof v !== 'object') return null;
+  var out = {}, algum = false;
+  PLATAFORMAS_GASTO.forEach(function (p) {
+    var n = numero(v[p], MAX_CREDITOS);
+    out[p] = n || 0;
+    if (n) algum = true;
+  });
+  return algum ? out : null;
+}
+// soma o que já foi gasto em orçamentos anteriores do mesmo pedido (para o painel mostrar o total)
+export function somarGasto(orc) {
+  var out = { higgsfield: 0, elevenlabs: 0 };
+  if (!orc) return out;
+  [orc.gasto, orc.gasto_antes].forEach(function (g) {
+    PLATAFORMAS_GASTO.forEach(function (p) { out[p] = Math.round((out[p] + (g && Number(g[p]) || 0)) * 100) / 100; });
+  });
+  return out;
+}
+// para onde o pedido volta depois que o Jimmy decide o orçamento: o ajuste (se houver) ou a fila
+export function voltaDoOrcamento(short) {
+  return short && short.ajuste ? 'ajustar' : 'fila';
+}
+
 // Pedidos automáticos (17/11/2026, ordem do Jimmy: "gere todos os shorts, os que eu não gostar eu removo;
 // melhor do que colocar na fila, coisa que eu vou esquecer"). Um short por reunião que tem gravação e
 // trechos marcados e que nunca entrou em pedido nenhum (nem descartado: descartar é a resposta dele).
@@ -142,6 +213,7 @@ export function faltaParaAprovar(short, leads) {
 // passos que o Mac pode dar (de → para); o painel tem os dele na função
 var MAC = {
   montando: ['fila', 'ajustar', 'montando'],
+  orcamento: ['montando'],
   pronto: ['montando'],
   publicando: ['aprovado', 'publicando'],
   publicado: ['publicando'],

@@ -13,8 +13,9 @@ import { normalizarRepeticao, proximaOcorrencia } from "../_shared/repeticao.mjs
 import { idDrive, normalizarMomentos } from "../_shared/momentos.mjs";
 import { cobertosPelaMensagem, normalizarEncaminhado } from "../_shared/encaminhar.mjs";
 import {
-  DESTINOS_PADRAO, faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
-  normalizarPublicacao, normalizarTitulo, pedidosAutomaticos, recusaram, rotuloUsado,
+  DESTINOS_PADRAO, faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos, normalizarGasto,
+  normalizarOrcamento, normalizarPublicacao, normalizarTitulo, pedidosAutomaticos, recusaram, rotuloUsado, somarGasto,
+  voltaDoOrcamento,
 } from "../_shared/shorts.mjs";
 
 const EVO_URL = (Deno.env.get("EVOLUTION_URL") ?? "").replace(/\/+$/, "");
@@ -290,7 +291,15 @@ async function marcarShort(b: any) {
   if (!macPode(s.status, para)) throw new Recusa(`Passo inválido: ${s.status} → ${para}.`, 409);
   const c: Record<string, unknown> = { status: para };
   if (para === "montando") c.erro = null;
+  if (para === "orcamento") {
+    // geração paga pedida no ajuste/recado: o Mac para e o Jimmy aprova o custo no painel (migração 32)
+    const novo = pura(() => normalizarOrcamento(b.orcamento));
+    const antes = s.orcamento ? somarGasto(s.orcamento) : null;
+    c.orcamento = { ...novo, pedido_em: new Date().toISOString(), gasto_antes: antes && (antes.higgsfield || antes.elevenlabs) ? antes : null };
+  }
   if (para === "pronto") {
+    const gasto = normalizarGasto(b.gasto);
+    if (gasto && s.orcamento) c.orcamento = { ...s.orcamento, gasto };
     const v = String(b.video ?? "");
     const m = new RegExp(`^${id}/v(\\d{1,3})\\.mp4$`).exec(v);
     if (!m || !(await videoNoAr(v))) throw new Recusa("A prévia não está no bucket: suba antes de marcar pronto.");
@@ -1070,7 +1079,23 @@ Deno.serve(async (req) => {
     if (acao === "short_ajustar") {
       const ajuste = texto(b.ajuste, 1000);
       if (!ajuste) throw new Recusa("Diga o que mudar no vídeo.");
-      return json({ short: await patchShort(idShort(b.id), { status: "ajustar", ajuste, aprovado_em: null, erro: null }, ["pronto", "erro"]) });
+      const s = await lerShort(idShort(b.id));
+      const c: Record<string, unknown> = { status: "ajustar", ajuste, aprovado_em: null, erro: null };
+      // ajuste no lugar de decidir o custo: o orçamento proposto deixa de valer (o já gasto continua contado)
+      if (s.status === "orcamento" && s.orcamento) {
+        const g = somarGasto({ gasto_antes: s.orcamento.gasto_antes });
+        c.orcamento = g.higgsfield || g.elevenlabs ? { itens: [], decisao: "trocado", gasto: null, gasto_antes: g } : null;
+      }
+      return json({ short: await patchShort(s.id, c, ["pronto", "erro", "orcamento"]) });
+    }
+    // geração paga (migração 32): "Gerar" aprova o orçamento que o Mac propôs; "Fazer sem gerar" recusa
+    if (acao === "short_orcamento") {
+      const s = await lerShort(idShort(b.id));
+      if (s.status !== "orcamento" || !s.orcamento) throw new Recusa("Este short não está esperando a aprovação do custo.", 409);
+      const decisao = b.decisao === "aprovado" || b.decisao === "recusado" ? b.decisao : null;
+      if (!decisao) throw new Recusa("Escolha entre gerar e fazer sem gerar.");
+      const orcamento = { ...s.orcamento, decisao, decidido_em: new Date().toISOString() };
+      return json({ short: await patchShort(s.id, { status: voltaDoOrcamento(s), orcamento, erro: null }, ["orcamento"]) });
     }
     if (acao === "short_tentar") {
       const s = await lerShort(idShort(b.id));
@@ -1079,7 +1104,7 @@ Deno.serve(async (req) => {
     }
     if (acao === "short_descartar") {
       const id = idShort(b.id);
-      const s = await patchShort(id, { status: "descartado", video: null }, ["fila", "montando", "pronto", "ajustar", "aprovado", "erro"]);
+      const s = await patchShort(id, { status: "descartado", video: null }, ["fila", "montando", "orcamento", "pronto", "ajustar", "aprovado", "erro"]);
       await apagarVideos(id).catch(() => {});
       return json({ short: s });
     }

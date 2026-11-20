@@ -426,7 +426,11 @@ Esta seção é o ponto de retomada. Quem abrir o projeto numa sessão nova
 
 ## Migrações SQL pendentes (o Jimmy cola no SQL Editor)
 
-Nenhuma. 27 (tarefas e lembretes repetidos do diário) aplicada em 12/nov/2026 com o "Aplique" do
+**32** (orçamento de geração paga nos shorts do painel, 19/11/2026): escrita, testada e com o código no ar, mas
+ainda **não aplicada**; o modo automático barrou o `db query`. Junto com ela, publicar a função `reunioes`
+(`--no-verify-jwt --yes`). Sem a 32, o "custo para aprovar" não grava (a rotina marca erro) e o resto segue igual.
+
+27 (tarefas e lembretes repetidos do diário) aplicada em 12/nov/2026 com o "Aplique" do
 Jimmy, com a função `reunioes` publicada; os 24 lembretes que existiam viraram `tipo = 'lembrete'`.
 22 (link do Turbo no lead do diário) aplicada em 04/nov/2026 com o "Sim, publicar"
 do Jimmy; a primeira versão da checagem usava `{1,500}` e o Postgres só aceita repetição até
@@ -1435,6 +1439,20 @@ do /admin; mesmo login (Supabase auth, mesma sessão do navegador).
   (`pedidosAutomaticos` em `_shared/shorts.mjs`: trechos não usados, mais fortes até 105 s brutos, o
   mais forte abre e o resto na ordem da conversa). Destino novo `stories` (Stories do @minerandoosol,
   desligado por padrão, `DESTINOS_PADRAO`); `publicado.stories = true` quando sai.
+- **Ajuste criativo com custo aprovado** (19/11/2026, migração 32, pedido do Jimmy: "é usado o /remotion-best-practices
+  com liberdade pra usar o higgsfield pra geração de imagem e o elevenlabs pra geração de audio?" → "Sim, custo aprovado"):
+  no ajuste ou no recado ele pode pedir animação, gráfico, imagem, música, efeito ou voz. O que é Remotion sai de graça
+  (`extras/Extras.tsx` do pedido, manual em `studio/tools/shorts-painel/LEIA-ME.md`). O que precisa ser gerado
+  (Higgsfield: imagem/vídeo; ElevenLabs: música/efeito/voz) para antes: o Mac grava `reunioes_shorts.orcamento`
+  (`{itens: [{plataforma, o_que, modelo, creditos, usd}], higgsfield, elevenlabs, usd, saldo, nota, pedido_em, decisao,
+  decidido_em, gasto, gasto_antes}`) e o status **`orcamento`** ("💳 custo para aprovar"); o painel mostra o que quer
+  gerar e quanto custa, com **Gerar por N créditos** e **Fazer sem gerar** (`short_orcamento`, decisão aprovado/recusado;
+  volta para `ajustar` ou `fila` por `voltaDoOrcamento`) e **Mudar o pedido** (`short_ajustar` também a partir de
+  `orcamento`, que descarta a proposta e guarda o já gasto em `gasto_antes`). O Mac não passa do aprovado (`gastar` no
+  painel.mjs) e grava o gasto real ao marcar "pronto" (`gasto`); o card pronto mostra "Geração aprovada: até X · gastou Y".
+  Créditos de cada plataforma são moedas diferentes: totais separados, `usd` só como referência. Regras puras em
+  `_shared/shorts.mjs` (`normalizarOrcamento`, `normalizarGasto`, `somarGasto`, `voltaDoOrcamento`, `macPode`
+  montando → orcamento), testes em `tests/shorts.test.mjs`. Aviso no WhatsApp pelo assistente do Mac (`orcamento:<pedido_em>`).
 - **Lembrete encaminhado** (12/11/2026, migração 30, "agendei mensagem para o Danilo e ele continua no
   topo dos lembretes"): `reunioes_lembretes.encaminhado` = `{como: agendada|enviada|manual, em, para,
   agendada_id, texto}`. O `agendar` (Turbo) e o `enviar` do painel marcam sozinhos os lembretes abertos

@@ -159,6 +159,11 @@ label.campo .inp,label.campo .sel{font-family:var(--body);letter-spacing:0}
 .short ol li b{color:var(--text);font-weight:500}
 .st-fila,.st-montando,.st-ajustar,.st-aprovado,.st-publicando{color:#9FD3FF;border-color:rgba(107,168,216,.45)}
 .st-pronto{color:var(--short);border-color:rgba(195,166,245,.5)}
+.st-orcamento{color:#F2C14E;border-color:rgba(242,193,78,.5)}
+.orc{border-color:rgba(242,193,78,.45)}
+.orc ul{margin:.4rem 0 0;padding-left:1.1rem;font-size:.84rem}
+.orc li{margin-bottom:.3rem}
+.orc .mono{white-space:nowrap;color:#F2C14E}
 .st-publicado{color:var(--credit);border-color:var(--credit-dim)}
 .st-erro{color:#E3A58C;border-color:rgba(196,120,90,.5)}
 .st-descartado{color:var(--muted-dim)}
@@ -357,8 +362,32 @@ function forcaDe(chave, ini){ var r = D.reunioes.find(function(x){ return x.chav
 var SHORT_OK = {pedido:"🎬 short: pedido, sem resposta", sim:"🎬 short: autorizou", nao:"🎬 short: recusou"};
 var PEDIDO_SHORT = "Oi, {nome}! Tudo bem? Estou montando um vídeo curto com trechos de reuniões reais, e um momento da nossa conversa ficou muito bom. Aparecem a imagem e a voz, sem o seu nome. Posso usar? Se preferir que não, fica tudo certo.";
 // pedidos de short (tabela reunioes_shorts; regras em supabase/functions/_shared/shorts.mjs)
-var STATUS_SHORT = {fila:"⏳ na fila", montando:"🛠️ montando", pronto:"👀 pronto para revisar", ajustar:"✏️ ajuste pedido", aprovado:"✅ aprovado", publicando:"📤 publicando", publicado:"🚀 publicado", erro:"⚠️ deu erro", descartado:"descartado"};
-var ATIVOS = ["fila","montando","pronto","ajustar","aprovado","publicando","erro"];
+var STATUS_SHORT = {fila:"⏳ na fila", montando:"🛠️ montando", orcamento:"💳 custo para aprovar", pronto:"👀 pronto para revisar", ajustar:"✏️ ajuste pedido", aprovado:"✅ aprovado", publicando:"📤 publicando", publicado:"🚀 publicado", erro:"⚠️ deu erro", descartado:"descartado"};
+var ATIVOS = ["fila","montando","orcamento","pronto","ajustar","aprovado","publicando","erro"];
+// geração paga pedida no ajuste (migração 32): o Mac propõe, o Jimmy aprova o custo aqui
+var PLAT = {higgsfield:"Higgsfield", elevenlabs:"ElevenLabs"};
+function creditos(n){ return Number(n || 0).toLocaleString("pt-BR", {maximumFractionDigits:2}); }
+function dolares(n){ return n == null ? "" : "≈ US$ " + Number(n).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function totaisGasto(o){ return ["higgsfield","elevenlabs"].filter(function(p){ return o && Number(o[p]) > 0; }).map(function(p){ return creditos(o[p]) + " créditos " + PLAT[p]; }).join(" + "); }
+function blocoOrcamento(s){
+  var o = s.orcamento;
+  if(!o || !(o.itens || []).length) return "";
+  if(s.status !== "orcamento"){
+    if(o.decisao === "recusado") return '<p class="mini mudo" style="margin-top:.3rem">💳 Geração paga recusada: o Mac faz sem gerar.</p>';
+    if(o.decisao === "aprovado") return '<p class="mini mudo" style="margin-top:.3rem">💳 Geração aprovada: até ' + totaisGasto(o) + (o.gasto ? " · gastou " + (totaisGasto(o.gasto) || "nada") : "") + ".</p>";
+    return "";
+  }
+  var h = '<div class="bloco orc" style="margin-top:.6rem"><h3>O que o Mac quer gerar para o seu pedido</h3><ul>';
+  h += o.itens.map(function(it){ return "<li><b>" + esc(PLAT[it.plataforma] || it.plataforma) + "</b>" + (it.modelo ? ' <span class="mudo">· ' + esc(it.modelo) + "</span>" : "") + " — " + esc(it.o_que) + ' <span class="mono">' + creditos(it.creditos) + " cr" + (it.usd != null ? " · " + dolares(it.usd) : "") + "</span></li>"; }).join("");
+  h += "</ul>";
+  var saldo = ["higgsfield","elevenlabs"].filter(function(p){ return o[p] && o.saldo && o.saldo[p] != null; }).map(function(p){ return "saldo " + PLAT[p] + ": " + creditos(o.saldo[p]); });
+  h += '<p class="mini" style="margin-top:.4rem">Total: <b>' + totaisGasto(o) + "</b>" + (o.usd != null ? " (" + dolares(o.usd) + ")" : "") + (saldo.length ? ' <span class="mudo">· ' + saldo.join(" · ") + "</span>" : "") + "</p>";
+  if(o.nota) h += '<p class="mini mudo">' + esc(o.nota) + "</p>";
+  if(o.gasto_antes && totaisGasto(o.gasto_antes)) h += '<p class="mini mudo">Já gasto em versões anteriores deste short: ' + totaisGasto(o.gasto_antes) + ".</p>";
+  h += '<p class="mini mudo">Nada é gerado sem o seu ok, e o Mac não passa desse valor.</p>';
+  h += '<div class="linha-acoes" style="margin-top:.6rem"><button class="btn btn--primary btn--sm" data-acao="orc-gerar">✅ Gerar por ' + totaisGasto(o) + '</button><button class="btn btn--sm" data-acao="orc-sem">Fazer sem gerar</button></div>';
+  return h + "</div>";
+}
 var TITULO_PADRAO = "Reuniões reais / com quem quer / ter um eletroposto";
 var CESTA_KEY = "reunioes-cesta-short";
 var CESTA = lerCesta();            // trechos escolhidos para o próximo short, na ordem do vídeo
@@ -726,7 +755,7 @@ function renderCesta(){
   var recusa = recusaram(itens.map(function(x){ return {lead_id:x.r.lead_id, data:x.r.data}; }));
   if(recusa.length) h += '<p class="aviso" style="margin-top:.7rem">Recusou aparecer em short: ' + esc(recusa.join(", ")) + ". Tire o trecho para gerar.</p>";
   h += '<div class="grade" style="margin-top:.8rem"><label class="campo">Título de abertura (opcional)<input class="inp" name="titulo" data-rascunho="titulo" maxlength="130" placeholder="' + esc(TITULO_PADRAO) + '" value="' + esc(RASCUNHO.titulo) + '"></label>';
-  h += '<label class="campo">Recado para a edição (opcional)<input class="inp" name="pedido" data-rascunho="pedido" maxlength="1000" placeholder="Ex.: começar pela pergunta da franquia" value="' + esc(RASCUNHO.pedido) + '"></label></div>';
+  h += '<label class="campo">Recado para a edição (opcional)<input class="inp" name="pedido" data-rascunho="pedido" maxlength="1000" placeholder="Ex.: começar pela pergunta da franquia; um gráfico animado no 2º trecho" value="' + esc(RASCUNHO.pedido) + '"></label></div>';
   h += '<div class="linha-acoes" style="margin-top:.8rem"><button class="btn btn--primary" type="submit"' + (recusa.length ? " disabled" : "") + '>🎬 Gerar short</button><button class="btn btn--sm" type="button" data-acao="cesta-limpar">Limpar escolha</button>';
   h += '<span class="mudo mini">O Mac pega o pedido em até meia hora e avisa no WhatsApp quando a prévia chegar.</span></div></form>';
   $("#cesta").innerHTML = h;
@@ -735,12 +764,13 @@ function cardShort(s){
   var h = '<div class="card short" data-short="' + esc(s.id) + '"><div class="short__cab"><span class="pill st-' + esc(s.status) + '">' + esc(STATUS_SHORT[s.status] || s.status) + '</span><span class="mono mini">pedido ' + quandoCurto(s.criado_em) + "</span>";
   if(s.versao) h += '<span class="mudo mini">versão ' + s.versao + (s.duracao ? " · " + Math.round(s.duracao) + " s" : "") + "</span>";
   h += "</div>";
-  var dica = {fila:"Esperando o Mac: a rotina pega em até meia hora.", montando:"O Mac está montando desde " + quandoCurto(s.status_em) + ". Leva uns 20 a 40 minutos.", ajustar:"O Mac monta a nova versão na próxima rodada.", aprovado:"Aprovado: o Mac publica na próxima rodada.", publicando:"Publicando agora."}[s.status];
+  var dica = {orcamento:"O Mac parou antes de gerar: aprove o custo, peça para fazer sem gerar ou mude o pedido.", fila:"Esperando o Mac: a rotina pega em até meia hora.", montando:"O Mac está montando desde " + quandoCurto(s.status_em) + ". Leva uns 20 a 40 minutos.", ajustar:"O Mac monta a nova versão na próxima rodada.", aprovado:"Aprovado: o Mac publica na próxima rodada.", publicando:"Publicando agora."}[s.status];
   if(dica) h += '<p class="mudo mini" style="margin-top:.3rem">' + dica + "</p>";
   if(s.status === "erro") h += '<p class="aviso" style="margin-top:.5rem">' + esc(s.erro || "Falhou sem detalhe.") + "</p>";
   if(s.titulo) h += '<p class="mini" style="margin-top:.35rem">Título de abertura: ' + esc(String(s.titulo).replace(/\n/g, " / ")) + "</p>";
   if(s.pedido) h += '<p class="mini mudo">Recado: ' + esc(s.pedido) + "</p>";
-  if(s.ajuste && ["ajustar","montando","pronto","erro"].indexOf(s.status) >= 0) h += '<p class="mini" style="color:var(--morno)">Ajuste pedido: ' + esc(s.ajuste) + "</p>";
+  if(s.ajuste && ["ajustar","montando","orcamento","pronto","erro"].indexOf(s.status) >= 0) h += '<p class="mini" style="color:var(--morno)">Ajuste pedido: ' + esc(s.ajuste) + "</p>";
+  h += blocoOrcamento(s);
   var lista = "<ol>" + (s.trechos || []).map(function(t){ return "<li><b>" + esc(nomeCurto(t.lead || t.reuniao || "")) + "</b> · " + dataCurta(t.data) + " · ⏱ " + esc(tcurto(t.ini)) + "–" + esc(tcurto(t.fim)) + (forcaDe(t.chave, t.ini) ? " · " + estrelas(forcaDe(t.chave, t.ini)) : "") + " · " + esc(TIPO_MOM[t.tipo] || t.tipo) + (t.fala ? ": “" + esc(t.fala) + "”" : "") + "</li>"; }).join("") + "</ol>";
   var comVideo = ["pronto","aprovado","publicando","publicado"].indexOf(s.status) >= 0;
   if(!comVideo){
@@ -758,9 +788,10 @@ function cardShort(s){
   }
   var acoes = "";
   if(s.status === "erro") acoes += '<button class="btn btn--sm btn--primary" data-acao="short-tentar">Tentar de novo</button><button class="btn btn--sm" data-acao="short-ajuste">✏️ Pedir ajuste</button>';
-  if(["fila","montando","ajustar","aprovado","erro"].indexOf(s.status) >= 0) acoes += '<button class="btn btn--sm btn--perigo" data-acao="short-descartar">Descartar</button>';
+  if(s.status === "orcamento") acoes += '<button class="btn btn--sm" data-acao="short-ajuste">✏️ Mudar o pedido</button>';
+  if(["fila","montando","orcamento","ajustar","aprovado","erro"].indexOf(s.status) >= 0) acoes += '<button class="btn btn--sm btn--perigo" data-acao="short-descartar">Descartar</button>';
   if(acoes) h += '<div class="linha-acoes" style="margin-top:.6rem">' + acoes + "</div>";
-  if(s.status === "pronto" || s.status === "erro") h += '<form class="hidden" data-form="short-ajuste" style="margin-top:.6rem"><textarea class="inp" name="ajuste" maxlength="1000" placeholder="O que mudar? Ex.: tirar o 2º trecho, começar pela reação da Carla, a legenda erra o nome do Mob em 0:12" required></textarea><button class="btn btn--sm" type="submit" style="margin-top:.4rem">Mandar ajuste</button></form>';
+  if(["pronto","erro","orcamento"].indexOf(s.status) >= 0) h += '<form class="hidden" data-form="short-ajuste" style="margin-top:.6rem"><textarea class="inp" name="ajuste" maxlength="1000" placeholder="O que mudar? Ex.: tirar o 2º trecho; começar pela reação da Carla; um gráfico animado quando ele fala dos 80 kW; trocar a música por uma mais calma" required></textarea><p class="mini mudo" style="margin:.3rem 0 0">Animação, texto e gráfico saem de graça. O que precisa ser gerado (imagem ou vídeo na Higgsfield, música, efeito ou voz na ElevenLabs) volta aqui com o custo para você aprovar antes.</p><button class="btn btn--sm" type="submit" style="margin-top:.4rem">Mandar ajuste</button></form>';
   return h + "</div>";
 }
 function formPublicacao(s){
@@ -922,6 +953,12 @@ document.addEventListener("click", function(e){
   }
   if(acao === "short-descartar"){ if(confirm("Descartar este short? A prévia é apagada e os trechos voltam para a lista.")) fazer("short_descartar", {id:sid}, "Short descartado.").catch(function(){}); return; }
   if(acao === "short-tentar"){ fazer("short_tentar", {id:sid}, "Voltou para a fila do Mac.").catch(function(){}); return; }
+  if(acao === "orc-gerar"){
+    var sO = D.shorts.find(function(x){ return x.id === sid; });
+    if(sO && confirm("Gerar por " + totaisGasto(sO.orcamento) + "? O Mac gera na próxima rodada e não passa desse valor.")) fazer("short_orcamento", {id:sid, decisao:"aprovado"}, "Custo aprovado 💳 O Mac gera na próxima rodada.").catch(function(){});
+    return;
+  }
+  if(acao === "orc-sem"){ fazer("short_orcamento", {id:sid, decisao:"recusado"}, "Combinado: o Mac faz sem gerar nada pago.").catch(function(){}); return; }
   if(acao === "abrir"){ abertos[id] = !abertos[id]; renderLeads(); return; }
   if(acao === "editar" || acao === "mensagem"){
     var card = b.closest(".card");
@@ -1272,7 +1309,8 @@ function demoChamar(acao, d){
     if(f2.length) return Promise.reject(new Error("Recusou aparecer em short: " + f2.join(", ") + "."));
     Object.assign(s2, {status:"aprovado", status_em:agora, publicacao:d.publicacao, destinos:d.destinos, aprovado_em:agora});
   }
-  if(acao === "short_ajustar") Object.assign(S(d.id), {status:"ajustar", status_em:agora, ajuste:d.ajuste});
+  if(acao === "short_ajustar"){ var sA = S(d.id); if(sA.status === "orcamento") sA.orcamento = null; Object.assign(sA, {status:"ajustar", status_em:agora, ajuste:d.ajuste}); }
+  if(acao === "short_orcamento"){ var sB = S(d.id); sB.orcamento = Object.assign({}, sB.orcamento, {decisao:d.decisao, decidido_em:agora}); Object.assign(sB, {status:sB.ajuste ? "ajustar" : "fila", status_em:agora}); }
   if(acao === "short_tentar"){ var s3 = S(d.id); s3.status = s3.aprovado_em ? "aprovado" : s3.ajuste ? "ajustar" : "fila"; s3.erro = null; s3.status_em = agora; }
   if(acao === "short_descartar") Object.assign(S(d.id), {status:"descartado", status_em:agora, video_url:null});
   return Promise.resolve({ok:true});
@@ -1305,6 +1343,11 @@ function demoDados(){
       destinos:{youtube:true, instagram:true}, publicacao:{titulo:"É franquia? Reuniões reais com quem quer ter um eletroposto #igreencreaton @igreenenergy", descricao:"Bastidores de reuniões reais pelo Meet apresentando o eletroposto da iGreen.\n\n⚡ Quer o seu eletroposto: https://querocarregador.com.br", legenda:"Bastidores de reuniões reais apresentando o eletroposto da iGreen.\n\n⚡ querocarregador.com.br\n\n#igreencreaton #igreenenergy #eletropostos"}},
     {id:"demo-s2", criado_em:h(-1,"17:10"), status:"erro", status_em:h(-1,"17:40"), versao:0, erro:"Não consegui baixar a gravação de " + dataCurta(dia(-2)) + ": o Chrome abriu o Drive sem a conta contato@. Entre nela no Chrome e clique em Tentar de novo.",
       trechos:[{chave:"doc:x4", i:0, data:dia(-2), lead_id:"a4", lead:"[exemplo] Marcos Ribeiro", ini:"00:08:15", fim:"00:08:42", tipo:"objecao", fala:"Mas e se ninguém usar o carregador?"}]},
+    {id:"demo-s4", criado_em:h(-1,"09:00"), status:"orcamento", status_em:h(0,"07:50"), versao:1, duracao:66, ajuste:"Trocar a música por uma mais calma e mostrar um estacionamento de hotel quando a Carla fala do café",
+      orcamento:{itens:[{plataforma:"higgsfield", o_que:"imagem 9:16 de estacionamento de hotel à noite, vaga vazia, sem carregador (o carregador entra pela foto oficial)", modelo:"Nano Banana 2.1 2k", creditos:2, usd:0.1},
+                        {plataforma:"elevenlabs", o_que:"trilha instrumental calma de 75 s", modelo:"eleven_music_v2_5", creditos:2062.5, usd:0.37}],
+                 higgsfield:2, elevenlabs:2062.5, usd:0.47, saldo:{higgsfield:863.5}, nota:"A música nova toca no vídeo todo; a imagem entra 3 s, por cima do cartão, quando ela diz “café”.", decisao:null, gasto:null},
+      trechos:[{chave:"doc:x1", i:0, data:dia(0), lead_id:"a1", lead:"[exemplo] Carla Menezes", ini:"00:12:40", fim:"00:13:05", tipo:"reacao", fala:"Então o carro fica carregando enquanto a pessoa toma um café?"}]},
     {id:"demo-s3", criado_em:h(-6,"10:00"), status:"publicado", status_em:h(-5,"11:00"), versao:2, duracao:58, publicado:{youtube:"https://youtube.com/shorts/demo", instagram:"https://www.instagram.com/reel/demo/"},
       trechos:[{chave:"doc:x1", i:2, data:dia(0), lead_id:"a1", lead:"[exemplo] Carla Menezes", ini:"00:30:02", fim:"00:30:20", tipo:"depoimento", fala:"Eu já tinha pensado nisso faz um ano."}], destinos:{youtube:true, instagram:true}}
   ];

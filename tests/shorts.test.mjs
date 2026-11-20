@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos,
-  normalizarPublicacao, normalizarTitulo, pedidosAutomaticos, recusaram, rotuloUsado, segundosDosTrechos,
+  faltaParaAprovar, macPode, marcarUsados, montarTrechos, normalizarDestinos, normalizarGasto, normalizarOrcamento,
+  normalizarPublicacao, normalizarTitulo, pedidosAutomaticos, recusaram, rotuloUsado, segundosDosTrechos, somarGasto,
+  voltaDoOrcamento,
 } from '../supabase/functions/_shared/shorts.mjs';
 
 const momentos = [
@@ -121,4 +122,51 @@ test('pedidos automáticos: um por reunião gravada, mais forte abre, nada repet
   // 40 (forte) + 30 + 35 = 105 s; o de força 1 não cabe; o usado fica de fora; o forte abre, resto em ordem
   assert.deepEqual(ps[0].itens.map((x) => x.i), [1, 0, 3]);
   assert.equal(montarTrechos(ps[0].itens, rs, leads).length, 3);
+});
+
+test('orçamento: totais por plataforma, usd só com todos os itens, nada aprovado ainda', () => {
+  const o = normalizarOrcamento({
+    itens: [
+      { plataforma: 'Higgsfield', o_que: '  imagem de estacionamento de hotel à noite, sem carregador ', modelo: 'nano_banana_2', creditos: '2', usd: 0.1 },
+      { plataforma: 'elevenlabs', o_que: 'trilha calma de 75 s', modelo: 'eleven_music_v2_5', creditos: 2062.5, usd: 0.37 },
+      { plataforma: 'higgsfield', o_que: 'B-roll 5 s', creditos: 8.75, usd: 0.43 },
+    ],
+    saldo: { higgsfield: 863.5, elevenlabs: 'x' },
+    nota: 'para o ajuste "pôr um hotel"',
+  });
+  assert.equal(o.higgsfield, 10.75);
+  assert.equal(o.elevenlabs, 2062.5);
+  assert.equal(o.usd, 0.9);
+  assert.equal(o.itens[0].plataforma, 'higgsfield');
+  assert.equal(o.itens[0].o_que, 'imagem de estacionamento de hotel à noite, sem carregador');
+  assert.deepEqual(o.saldo, { higgsfield: 863.5 });
+  assert.equal(o.decisao, null);
+  assert.equal(o.gasto, null);
+  assert.equal(normalizarOrcamento({ itens: [{ plataforma: 'higgsfield', o_que: 'x', creditos: 1 }] }).usd, null);
+});
+
+test('orçamento recusa plataforma de fora, item sem crédito ou sem descrição, lista vazia ou longa', () => {
+  assert.throws(() => normalizarOrcamento(null), /inválido/);
+  assert.throws(() => normalizarOrcamento({ itens: [] }), /1 a 10/);
+  assert.throws(() => normalizarOrcamento({ itens: Array(11).fill({ plataforma: 'higgsfield', o_que: 'x', creditos: 1 }) }), /1 a 10/);
+  assert.throws(() => normalizarOrcamento({ itens: [{ plataforma: 'suno', o_que: 'música', creditos: 1 }] }), /fora do orçamento/);
+  assert.throws(() => normalizarOrcamento({ itens: [{ plataforma: 'higgsfield', o_que: 'x', creditos: 0 }] }), /Créditos/);
+  assert.throws(() => normalizarOrcamento({ itens: [{ plataforma: 'higgsfield', o_que: '', creditos: 2 }] }), /o que cada item/);
+});
+
+test('gasto e soma dos orçamentos do pedido', () => {
+  assert.equal(normalizarGasto(null), null);
+  assert.equal(normalizarGasto({ higgsfield: 0 }), null);
+  assert.deepEqual(normalizarGasto({ higgsfield: '4', elevenlabs: -1 }), { higgsfield: 4, elevenlabs: 0 });
+  assert.deepEqual(somarGasto({ gasto: { higgsfield: 4 }, gasto_antes: { higgsfield: 2, elevenlabs: 1650 } }), { higgsfield: 6, elevenlabs: 1650 });
+  assert.deepEqual(somarGasto(null), { higgsfield: 0, elevenlabs: 0 });
+});
+
+test('orçamento: só o Mac propõe durante a montagem e a decisão volta para o ajuste ou a fila', () => {
+  assert.equal(macPode('montando', 'orcamento'), true);
+  assert.equal(macPode('pronto', 'orcamento'), false);
+  assert.equal(macPode('orcamento', 'montando'), false);
+  assert.equal(macPode('orcamento', 'pronto'), false);
+  assert.equal(voltaDoOrcamento({ ajuste: 'pôr música calma' }), 'ajustar');
+  assert.equal(voltaDoOrcamento({ ajuste: null, pedido: 'com imagem' }), 'fila');
 });
