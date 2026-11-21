@@ -585,6 +585,68 @@ body.static .obhint{display:none}
 body.static .rg,body.static .obn-i,body.static .ob-core,body.static .ob-labels,body.static .ob-links,body.static .obhalo{animation:none!important}
 body.static *{transition:none!important;transition-delay:0s!important}
 body.static .slide.active,body.static .pop{animation:none!important}
+/* ===== 21/11/2026: slide "à prova de raio" ===== */
+.raio-row{display:flex;gap:32px;margin-top:40px;align-items:stretch;flex:1;min-height:0}
+.raio-um{flex:1;display:flex;flex-direction:column}
+.raio-sete{flex:1.85;display:flex;flex-direction:column}
+.raio-bolt{fill:#FFC24B;filter:drop-shadow(0 0 14px rgba(255,194,75,.95)) drop-shadow(0 0 42px rgba(255,194,75,.55));opacity:0;pointer-events:none;z-index:3;overflow:visible}
+.ru-alvo{position:relative;flex:1;display:flex;align-items:flex-end;margin-top:26px;min-height:250px}
+.raio-um .raio-bolt{position:absolute;left:50%;top:-14px;width:110px;margin-left:-55px}
+.ru-bloco{width:100%;height:230px;border-radius:20px;background:linear-gradient(160deg,rgba(0,226,107,.28),rgba(0,226,107,.08));border:1px solid rgba(0,226,107,.5);display:flex;flex-direction:column;justify-content:center;padding:0 30px}
+.ru-lb{font-size:19px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--mut)}
+.ru-v{position:relative;display:block;height:118px;margin-top:6px;font-size:104px;font-weight:900;letter-spacing:-.04em;line-height:1.1}
+.ru-v i{font-style:normal;position:absolute;left:0;top:0}
+.ru-zero{color:#ff7a7a;opacity:0}
+.ru-res{font-size:27px;margin-top:24px;color:var(--mut)}
+.ru-res b{color:#fff}
+.raio-um .ru-res b{color:#ff7a7a}
+.rg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:26px;flex:1;align-content:center}
+.rt{position:relative;display:flex;align-items:center;gap:14px;padding:18px 16px;border-radius:20px;background:rgba(0,226,107,.08);border:1px solid rgba(0,226,107,.32);min-height:118px}
+.rt .ico{width:56px;height:56px;border-radius:16px;flex:none}
+.rt .ico svg{width:30px;height:30px}
+.rt b{font-size:24px;font-weight:800;line-height:1.15}
+.rt.tot{border-style:dashed;justify-content:center;text-align:center;background:transparent}
+.rt.tot b{font-size:20px;color:var(--g)}
+.rt .raio-bolt{position:absolute;left:16px;top:50%;width:58px;margin-top:-48px}  /* em cima do ícone, sem tapar o nome */
+.rt.hit::after{content:"✕";position:absolute;right:14px;top:10px;font-size:22px;font-weight:900;color:#ff7a7a;opacity:0}
+@keyframes raioFlash{0%{opacity:0}6%{opacity:1}11%{opacity:.15}17%{opacity:1}55%{opacity:1}100%{opacity:0}}
+@keyframes raioVis{to{opacity:1}}
+@keyframes raioSome{to{opacity:0}}
+@keyframes raioBorda{to{border-color:rgba(255,90,90,.35);background:rgba(255,255,255,.025)}}
+@keyframes raioApaga{to{filter:grayscale(1);opacity:.32}}
+@keyframes ruBloco{to{filter:grayscale(1) brightness(.6);border-color:rgba(255,90,90,.45);background:rgba(255,90,90,.06)}}
+.slide.active .raio-um .raio-bolt{animation:raioFlash 1.3s 1.1s both}
+.slide.active .ru-bloco{animation:ruBloco .5s 1.35s both}
+.slide.active .ru-cheio{animation:raioSome .3s 1.35s both}
+.slide.active .ru-zero{animation:raioVis .3s 1.45s both}
+.slide.active .rt.hit .raio-bolt{animation:raioFlash 1.3s 2.3s both}
+.slide.active .rt.hit{animation:raioBorda .6s 2.55s both}
+.slide.active .rt.hit>.ico,.slide.active .rt.hit>b{animation:raioApaga .6s 2.55s both}
+.slide.active .rt.hit::after{animation:raioVis .3s 2.7s both}
+body.static .raio-um .raio-bolt,body.static .rt.hit .raio-bolt{animation:none!important;opacity:1}
+body.static .ru-bloco,body.static .ru-cheio,body.static .ru-zero,body.static .rt.hit,body.static .rt.hit>.ico,body.static .rt.hit>b,body.static .rt.hit::after{animation-delay:0s!important;animation-duration:.01s!important}
+/* ===== 21/11/2026: escada com royalties de todas as soluções ===== */
+.ladder2 .s{cursor:pointer;outline:none}
+.ladder2 .s:hover .blk,.ladder2 .s:focus-visible .blk,.ladder2 .s.sel .blk{border-color:var(--g);box-shadow:0 0 0 1px var(--g),0 0 40px -6px rgba(0,226,107,.55)}
+.ladder2 .ry{white-space:normal;margin-top:8px;font-size:14px;line-height:1.36}
+.ladder2 .ry i{display:block;font-style:normal;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g2);margin-bottom:2px}
+.ladder2 .ry span{display:flex;justify-content:space-between;gap:6px;color:var(--mut)}
+.ladder2 .ry span b{color:#fff;font-weight:800}
+.ladder2 .blk.top .ry i,.ladder2 .blk.top .ry span,.ladder2 .blk.top .ry span b{color:#04120a}
+.rtip-hint{position:absolute;top:98px;right:140px;font-size:17px;color:var(--mut);white-space:nowrap}
+.rtip-hint b{color:var(--g)}
+.rtip{position:absolute;z-index:8;width:560px;background:rgba(8,14,11,.96);border:1px solid rgba(0,226,107,.45);border-radius:20px;padding:20px 22px 16px;backdrop-filter:blur(12px);box-shadow:0 28px 70px -14px rgba(0,0,0,.9);opacity:0;transform:translateY(10px) scale(.97);transition:opacity .18s,transform .3s var(--ease);pointer-events:none}
+.rtip.on{opacity:1;transform:none}
+.rtip h4{font-size:24px;font-weight:800;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.rtip h4 small{font-size:13px;font-weight:700;color:var(--g2);letter-spacing:.06em}
+.rtip table{width:100%;border-collapse:collapse;margin-top:10px;font-size:16px}
+.rtip th{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:right;padding:0 0 6px}
+.rtip th:first-child{text-align:left}
+.rtip td{padding:6px 0;border-top:1px solid var(--line);color:var(--mut)}
+.rtip td+td{text-align:right;color:#fff;font-weight:700;white-space:nowrap;padding-left:14px}
+.rtip td.el{color:var(--g)}
+.rtip td.un{text-align:center;color:#fff}
+.rtip .obs{font-size:12.5px;color:var(--dim);margin-top:10px;line-height:1.4}
 body.clean .ui,body.clean .prog{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important;transition-delay:0ms!important}}
 </style>
@@ -685,6 +747,26 @@ body.clean .ui,body.clean .prog{display:none}
       </div>
     </div>
     <div class="disc">Recorrência sobre contratos ativos e adimplentes. Carteira hereditária conforme regulamento iGreen.</div>
+  </section>
+
+  <!-- 05 À PROVA DE RAIO (21/11/2026) -->
+  <section class="slide raio-sl">
+    <div class="k r">Por que várias conexões</div>
+    <h2 class="r" style="--i:1">Uma fonte de renda é vulnerável.<br><span class="hl">Sete são à prova de raio.</span></h2>
+    <div class="raio-row">
+      <div class="card bad r left raio-um" style="--i:2">
+        <div class="tag" style="color:#ff9a9a;background:rgba(255,90,90,.08);border-color:rgba(255,90,90,.3)">Uma fonte só</div>
+        <div class="ru-alvo"><svg class="raio-bolt" viewBox="0 0 60 100" aria-hidden="true"><path d="M36 0 4 56h22l-10 44 40-62H34z"/></svg><div class="ru-bloco"><span class="ru-lb">Sua renda</span><span class="ru-v"><i class="ru-cheio">100%</i><i class="ru-zero">0</i></span></div></div>
+        <p class="ru-res">Caiu um raio: <b>a renda zera.</b></p>
+      </div>
+      <div class="card hot r right raio-sete" style="--i:3">
+        <div class="tag">7 conexões · 1 licença</div>
+        <div class="rg"><div class="rt" data-k><div class="ico"><svg class="i"><use href="#leaf"/></svg></div><b>Green</b></div><div class="rt" data-k><div class="ico"><svg class="i"><use href="#phone"/></svg></div><b>Telecom</b></div><div class="rt" data-k><div class="ico"><svg class="i"><use href="#shield"/></svg></div><b>Seguros</b></div><div class="rt" data-k><div class="ico"><svg class="i"><use href="#factory"/></svg></div><b>Livre</b></div><div class="rt hit" data-k><div class="ico"><svg class="i"><use href="#sun"/></svg></div><b>Placas · Solar</b><svg class="raio-bolt" viewBox="0 0 60 100" aria-hidden="true"><path d="M36 0 4 56h22l-10 44 40-62H34z"/></svg></div><div class="rt" data-k><div class="ico"><svg class="i"><use href="#plug"/></svg></div><b>Mob</b></div><div class="rt" data-k><div class="ico"><svg class="i"><use href="#users"/></svg></div><b>Expansão</b></div><div class="rt tot"><b>Todas na mesma licença</b></div></div>
+        <p class="ru-res">Caiu um raio em uma: <b class="hl">as outras 6 continuam pagando todo mês.</b></p>
+      </div>
+    </div>
+    <div class="quote r" style="--i:6;font-size:32px;margin:34px 0 26px">Pandemia, demissão, IA, mudança de regra: o raio sempre cai em algum lugar.<br><span class="hl">Quem tem várias fontes continua de pé.</span></div>
+    <div class="disc">Thomas C. Corley, pesquisa Rich Habits: 65% dos milionários que construíram a própria fortuna tinham três ou mais fontes de renda.</div>
   </section>
 
   <!-- 05 QUEM SOMOS -->
@@ -972,7 +1054,7 @@ body.clean .ui,body.clean .prog{display:none}
     </div>
     <div class="fill"></div>
     <div class="r" style="--i:9">
-      <div class="small" style="color:var(--mut);font-weight:700">Distribuidoras participantes · ⚡ marcadas no mapa do slide 11 · *com troca de titularidade</div>
+      <div class="small" style="color:var(--mut);font-weight:700">Distribuidoras participantes · ⚡ marcadas no mapa do slide 12 · *com troca de titularidade</div>
       <div class="dists"><span><b>AL</b> Equatorial</span><span><b>BA</b> Coelba</span><span><b>CE</b> Enel</span><span><b>GO</b> Equatorial</span><span><b>MG</b> Cemig</span><span><b>MS</b> Energisa</span><span><b>MT</b> Energisa</span><span><b>PE</b> Neoenergia</span><span><b>PI</b> Equatorial</span><span><b>PR</b> Copel*</span><span><b>RN</b> Cosern</span><span><b>SP</b> CPFL Paulista*</span><span><b>SP/MG</b> Energisa Sul Sudeste*</span><span><b>SP/MS</b> Elektro*</span><span><b>TO</b> Energisa</span><span><b>RJ-MG</b> Energisa Minas Rio</span></div>
     </div>
     <div class="disc" style="bottom:70px">Campanha de novembro/2026 para novos clientes válidos · vale a maior faixa atingida, complementar ao que já foi pago por cliente (inclui cashback) · *com troca de titularidade · regras no Academy.</div>
@@ -1219,25 +1301,27 @@ body.clean .ui,body.clean .prog{display:none}
 
   <!-- 19 CARREIRA + PRÊMIOS -->
   <section class="slide">
+    <div class="rtip-hint r" style="--i:2">👆 Passe o mouse num nível: <b>royalties de todas as soluções</b></div>
     <div class="row" style="justify-content:space-between;align-items:flex-end">
       <div><div class="k r">Plano de carreira · reconhecimento</div>
       <h2 class="r" style="--i:1">Suba de nível. <span class="hl">Ganhe mais e viva mais.</span></h2></div>
     </div>
     <div class="ladder2">
-      <div class="s"><div class="blk" style="--i:0;height:24%"><div class="lv">Sênior</div><div class="rq">10.000 pts</div><div class="ry">Royalty Green <b>0,2% · 0,4%</b></div><div class="val"><small>média/mês</small>R$ 500</div></div></div>
-      <div class="s"><div class="prz" style="--i:1"><em>🏙️</em>iGreen Experience</div><div class="blk" style="--i:1;height:31%"><div class="lv">Gestor</div><div class="rq">50.000 pts</div><div class="ry">Royalty Green <b>0,6% · 0,8%</b></div><div class="val"><small>média/mês</small>R$ 2 mil</div></div></div>
-      <div class="s"><div class="prz" style="--i:2"><em>🛳️</em>Cruzeiro dos Executivos</div><div class="blk" style="--i:2;height:38%"><div class="lv">Executivo</div><div class="rq">150.000 pts</div><div class="ry">Royalty Green <b>1,0% · 1,2%</b></div><div class="val"><small>média/mês</small>R$ 5 mil</div></div></div>
-      <div class="s"><div class="prz" style="--i:3"><em>🏖️</em>Cartagena · COL</div><div class="blk" style="--i:3;height:46%"><div class="lv">Diretor</div><div class="rq">500.000 pts</div><div class="ry">Royalty Green <b>1,6% · 1,8%</b></div><div class="val"><small>média/mês</small>R$ 15 mil+</div></div></div>
-      <div class="s"><div class="prz" style="--i:4"><em>🌍</em>Eurotrip</div><div class="blk" style="--i:4;height:54%"><div class="lv">Acionista</div><div class="rq">1.000.000 pts</div><div class="ry">Royalty Green <b>2,0% · 2,2%</b></div><div class="val"><small>média/mês</small>R$ 30 mil+</div></div></div>
-      <div class="s"><div class="prz" style="--i:5"><em>🚘</em>BYD Seal EV</div><div class="blk" style="--i:5;height:62%"><div class="lv">Royal</div><div class="rq">5 linhas de Diretor</div><div class="ry">Royalty Green <b>2,3% · 2,4%</b></div><div class="val"><small>média/mês</small>R$ 80 mil+</div></div></div>
-      <div class="s"><div class="prz" style="--i:6"><em>🏎️</em>Porsche Taycan</div><div class="blk" style="--i:6;height:71%"><div class="lv">Embaixador</div><div class="rq">12 linhas de Diretor</div><div class="ry">Royalty Green <b>2,5% · 2,6%</b></div><div class="val"><small>média/mês</small>R$ 200 mil+</div></div></div>
-      <div class="s"><div class="prz gold" style="--i:7"><em>🏠</em>Imóvel de<b>R$ 1,5 mi</b></div><div class="blk top" style="--i:7;height:80%"><div class="lv">★ Fundador</div><div class="rq">25 linhas de Diretor</div><div class="val"><small>royalty Green</small>2,7%</div></div></div>
+      <div class="s" tabindex="0" data-nv="Sênior"><div class="blk" style="--i:0;height:34%"><div class="lv">Sênior</div><div class="rq">10.000 pts</div><div class="ry"><i>Elite · 1.000+ GP</i><span>Green <b>0,4%</b></span><span>Seguros <b>0,74%</b></span><span>Telecom <b>R$ 1,04</b></span></div><div class="val"><small>média/mês</small>R$ 500</div></div></div>
+      <div class="s" tabindex="0" data-nv="Gestor"><div class="prz" style="--i:1"><em>🏙️</em>iGreen Experience</div><div class="blk" style="--i:1;height:40%"><div class="lv">Gestor</div><div class="rq">50.000 pts</div><div class="ry"><i>Elite · 2.000+ GP</i><span>Green <b>0,8%</b></span><span>Seguros <b>1,48%</b></span><span>Telecom <b>R$ 2,07</b></span></div><div class="val"><small>média/mês</small>R$ 2 mil</div></div></div>
+      <div class="s" tabindex="0" data-nv="Executivo"><div class="prz" style="--i:2"><em>🛳️</em>Cruzeiro dos Executivos</div><div class="blk" style="--i:2;height:46%"><div class="lv">Executivo</div><div class="rq">150.000 pts</div><div class="ry"><i>Elite · 5.000+ GP</i><span>Green <b>1,2%</b></span><span>Seguros <b>2,22%</b></span><span>Telecom <b>R$ 3,11</b></span></div><div class="val"><small>média/mês</small>R$ 5 mil</div></div></div>
+      <div class="s" tabindex="0" data-nv="Diretor"><div class="prz" style="--i:3"><em>🏖️</em>Cartagena · COL</div><div class="blk" style="--i:3;height:52%"><div class="lv">Diretor</div><div class="rq">500.000 pts</div><div class="ry"><i>Elite · 8.000+ GP</i><span>Green <b>1,8%</b></span><span>Seguros <b>3,33%</b></span><span>Telecom <b>R$ 4,67</b></span></div><div class="val"><small>média/mês</small>R$ 15 mil+</div></div></div>
+      <div class="s" tabindex="0" data-nv="Acionista"><div class="prz" style="--i:4"><em>🌍</em>Eurotrip</div><div class="blk" style="--i:4;height:58%"><div class="lv">Acionista</div><div class="rq">1.000.000 pts</div><div class="ry"><i>Elite · 11.500+ GP</i><span>Green <b>2,2%</b></span><span>Seguros <b>4,07%</b></span><span>Telecom <b>R$ 5,70</b></span></div><div class="val"><small>média/mês</small>R$ 30 mil+</div></div></div>
+      <div class="s" tabindex="0" data-nv="Royal"><div class="prz" style="--i:5"><em>🚘</em>BYD Seal EV</div><div class="blk" style="--i:5;height:64%"><div class="lv">Royal</div><div class="rq">5 linhas de Diretor</div><div class="ry"><i>Elite · 23.000+ GP</i><span>Green <b>2,4%</b></span><span>Seguros <b>4,44%</b></span><span>Telecom <b>R$ 6,22</b></span></div><div class="val"><small>média/mês</small>R$ 80 mil+</div></div></div>
+      <div class="s" tabindex="0" data-nv="Embaixador"><div class="prz" style="--i:6"><em>🏎️</em>Porsche Taycan</div><div class="blk" style="--i:6;height:70%"><div class="lv">Embaixador</div><div class="rq">12 linhas de Diretor</div><div class="ry"><i>Elite · 34.000+ GP</i><span>Green <b>2,6%</b></span><span>Seguros <b>4,81%</b></span><span>Telecom <b>R$ 6,74</b></span></div><div class="val"><small>média/mês</small>R$ 200 mil+</div></div></div>
+      <div class="s" tabindex="0" data-nv="Fundador"><div class="prz gold" style="--i:7"><em>🏠</em>Imóvel de<b>R$ 1,5 mi</b></div><div class="blk top" style="--i:7;height:78%"><div class="lv">★ Fundador</div><div class="rq">25 linhas de Diretor</div><div class="ry"><i>Royalty · topo</i><span>Green <b>2,7%</b></span><span>Seguros <b>5%</b></span><span>Telecom <b>R$ 7,00</b></span></div></div></div>
     </div>
     <div class="zone r" style="--i:9;margin-top:14px">
       <div style="flex:3;background:rgba(0,226,107,.1);color:var(--g)">✓ Até Executivo: só com suas vendas</div>
       <div style="flex:5;background:rgba(255,255,255,.05);color:var(--mut)">De Diretor em diante: rede obrigatória</div>
     </div>
-    <div class="disc">Pontos qualificáveis (1 R$ = 1 pt) · royalty Green por faixa Base · Elite (Green Points do mês anterior) · média mensal ilustrativa · royalties exigem PRO · prêmios conforme regulamento oficial iGreen.</div>
+    <div class="rtip" id="rtip" role="status" aria-live="polite"></div>
+    <div class="disc">Pontos qualificáveis (1 R$ = 1 pt) · royalty Elite com os Green Points do mês anterior acima do limite de cada nível · média mensal ilustrativa · royalties exigem PRO no mês anterior · regras do Academy (13/11/2026) · prêmios conforme regulamento oficial iGreen.</div>
   </section>
 
   <!-- 20 LICENÇAS FULL + MOB -->
@@ -1309,7 +1393,7 @@ body.clean .ui,body.clean .prog{display:none}
       <span class="pill" style="font-size:17px;white-space:nowrap">🤝 Livre · 2 reuniões com Executivo Comercial = PRO + R$ 300</span>
       <span class="pill" style="font-size:17px;white-space:nowrap">🟢 Green Friday · 1ª mensalidade do seguro com 100% de cashback</span>
     </div>
-    <div class="disc">Válidas em novembro/2026 (Início Rápido segue até aviso oficial) · Executor: valor total em 12 meses (5× a licença) · Top: à vista no 1º mês (20× a licença) · Bônus Extra Green no slide 13 · regras e condições no Academy.</div>
+    <div class="disc">Válidas em novembro/2026 (Início Rápido segue até aviso oficial) · Executor: valor total em 12 meses (5× a licença) · Top: à vista no 1º mês (20× a licença) · Bônus Extra Green no slide 14 · regras e condições no Academy.</div>
   </section>
 
   <!-- 23 FAQ -->
@@ -1801,6 +1885,59 @@ body.clean .ui,body.clean .prog{display:none}
     document.title='MEDIDAS '+JSON.stringify([...document.querySelectorAll('a.cta')].map(a=>{const r=a.getBoundingClientRect();return {cta:a.dataset.cta,href:a.href,x:Math.round((r.left-st.left)/k),y:Math.round((r.top-st.top)/k),w:Math.round(r.width/k),h:Math.round(r.height/k)};})); },1200); }
 
 })();
+</script>
+<script>
+// slide "à prova de raio": a cada vez que o slide abre, o raio cai numa conexão sorteada (no ?static fica em Placas · Solar)
+(() => { try {
+  const sec = document.querySelector('.raio-sl'); if (!sec || document.body.classList.contains('static')) return;
+  const tiles = [...sec.querySelectorAll('.rt[data-k]')], bolt = sec.querySelector('.rt .raio-bolt');
+  let ultimo = tiles.findIndex(t => t.classList.contains('hit')), aberto = false;
+  const sorteia = () => {
+    let k; do { k = Math.floor(Math.random() * tiles.length); } while (k === ultimo && tiles.length > 1);
+    ultimo = k; tiles.forEach(t => t.classList.remove('hit')); tiles[k].classList.add('hit'); tiles[k].appendChild(bolt);
+  };
+  const olha = () => { const on = sec.classList.contains('active'); if (on && !aberto) sorteia(); aberto = on; };
+  new MutationObserver(olha).observe(sec, { attributes: true, attributeFilter: ['class'] });
+  olha();
+} catch (e) { console.error('raio:', e); } })();
+</script>
+<script>
+// escada de graduações: passar o mouse / tocar num nível abre os royalties Base · Elite de todas as soluções
+(() => { try {
+  const tip = document.getElementById('rtip'); if (!tip) return;
+  const sec = tip.closest('.slide'), stage = document.getElementById('stage');
+  const R = {"Sênior": {"elite": "1.000", "l": [["Green A/B", "0,2%", "0,4%"], ["Green C/D", "0,1%", "0,2%"], ["Telecom · por linha", "R$ 0,52", "R$ 1,04"], ["Seguros", "0,37%", "0,74%"], ["Mob · venda da licença", "0,59%", "1,19%"], ["Mob · recargas", "0,074%", "0,149%"], ["Livre · bônus B", "0,1%"], ["Placas", "0,2%"], ["Expansão Full · por licença", "R$ 70"], ["iGreen Pay · mensalidades", "1%"]]}, "Gestor": {"elite": "2.000", "l": [["Green A/B", "0,6%", "0,8%"], ["Green C/D", "0,3%", "0,4%"], ["Telecom · por linha", "R$ 1,56", "R$ 2,07"], ["Seguros", "1,11%", "1,48%"], ["Mob · venda da licença", "1,78%", "2,37%"], ["Mob · recargas", "0,223%", "0,296%"], ["Livre · bônus B", "0,25%"], ["Placas", "0,5%"], ["Expansão Full · por licença", "R$ 130"], ["iGreen Pay · mensalidades", "2,5%"]]}, "Executivo": {"elite": "5.000", "l": [["Green A/B", "1%", "1,2%"], ["Green C/D", "0,5%", "0,6%"], ["Telecom · por linha", "R$ 2,59", "R$ 3,11"], ["Seguros", "1,85%", "2,22%"], ["Mob · venda da licença", "2,96%", "3,56%"], ["Mob · recargas", "0,37%", "0,445%"], ["Livre · bônus B", "0,4%"], ["Placas", "0,8%"], ["Expansão Full · por licença", "R$ 190"], ["iGreen Pay · mensalidades", "4%"]]}, "Diretor": {"elite": "8.000", "l": [["Green A/B", "1,6%", "1,8%"], ["Green C/D", "0,8%", "0,9%"], ["Telecom · por linha", "R$ 4,15", "R$ 4,67"], ["Seguros", "2,96%", "3,33%"], ["Mob · venda da licença", "4,74%", "5,33%"], ["Mob · recargas", "0,593%", "0,666%"], ["Livre · bônus B", "0,6%"], ["Placas", "1,2%"], ["Expansão Full · por licença", "R$ 250"], ["iGreen Pay · mensalidades", "7%"]]}, "Acionista": {"elite": "11.500", "l": [["Green A/B", "2%", "2,2%"], ["Green C/D", "1%", "1,1%"], ["Telecom · por linha", "R$ 5,19", "R$ 5,70"], ["Seguros", "3,7%", "4,07%"], ["Mob · venda da licença", "5,93%", "6,52%"], ["Mob · recargas", "0,741%", "0,815%"], ["Livre · bônus B", "0,75%"], ["Placas", "1,5%"], ["Expansão Full · por licença", "R$ 300"], ["iGreen Pay · mensalidades", "9%"]]}, "Royal": {"elite": "23.000", "l": [["Green A/B", "2,3%", "2,4%"], ["Green C/D", "1,15%", "1,2%"], ["Telecom · por linha", "R$ 5,96", "R$ 6,22"], ["Seguros", "4,26%", "4,44%"], ["Mob · venda da licença", "6,81%", "7,11%"], ["Mob · recargas", "0,851%", "0,889%"], ["Livre · bônus B", "—"], ["Placas", "—"], ["Expansão Full · por licença", "R$ 300"], ["iGreen Pay · mensalidades", "9,5%"]]}, "Embaixador": {"elite": "34.000", "l": [["Green A/B", "2,5%", "2,6%"], ["Green C/D", "1,25%", "1,3%"], ["Telecom · por linha", "R$ 6,48", "R$ 6,74"], ["Seguros", "4,63%", "4,81%"], ["Mob · venda da licença", "7,41%", "7,7%"], ["Mob · recargas", "0,926%", "0,963%"], ["Livre · bônus B", "—"], ["Placas", "—"], ["Expansão Full · por licença", "R$ 300"], ["iGreen Pay · mensalidades", "10%"]]}, "Fundador": {"elite": null, "l": [["Green A/B", "2,7%"], ["Green C/D", "1,35%"], ["Telecom · por linha", "R$ 7,00"], ["Seguros", "5%"], ["Mob · venda da licença", "8%"], ["Mob · recargas", "1%"], ["Livre · bônus B", "—"], ["Placas", "—"], ["Expansão Full · por licença", "—"], ["iGreen Pay · mensalidades", "—"]]}};
+  let fixo = null;
+  const k = () => parseFloat(stage.style.getPropertyValue('--s')) || 1;
+  function mostrar(el) {
+    const n = el.dataset.nv, d = R[n], topo = !d.elite;
+    const cab = topo ? '<tr><th>Solução</th><th colspan="2">Topo</th></tr>' : `<tr><th>Solução</th><th>Base</th><th>Elite</th></tr>`;
+    const lin = d.l.map(r => r.length === 3 ? `<tr><td>${r[0]}</td><td>${r[1]}</td><td class="el">${r[2]}</td></tr>`
+                                            : `<tr><td>${r[0]}</td><td class="un" colspan="2">${r[1]}</td></tr>`).join('');
+    tip.innerHTML = `<h4>${n}<small>${topo ? 'royalty máximo' : 'Elite: ' + d.elite + '+ Green Points no mês anterior'}</small></h4><table>${cab}${lin}</table>`
+      + '<div class="obs">Exigem PRO no mês anterior · Seguros: 5 clientes próprios · Mob recargas: 1 eletroposto direto ativo · Livre, Placas, Expansão e Pay pagam igual em Base e Elite · — = o Academy não informa · Solar: até 0,75% no total.</div>';
+    tip.classList.add('on');
+    const b = el.querySelector('.blk').getBoundingClientRect(), r = sec.getBoundingClientRect(), z = k();
+    const W = sec.offsetWidth, tw = tip.offsetWidth, th = tip.offsetHeight;
+    const esq = (b.left - r.left) / z, dir = (b.right - r.left) / z, topoBlk = (b.top - r.top) / z;
+    let x = esq >= W - dir ? esq - tw - 18 : dir + 18; x = Math.max(24, Math.min(W - tw - 24, x));
+    let y = Math.min(topoBlk - 40, sec.offsetHeight - th - 190); y = Math.max(150, y);  // sem cobrir a faixa de baixo
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  const esconder = () => { if (!fixo) tip.classList.remove('on'); };
+  sec.querySelectorAll('.ladder2 .s[data-nv]').forEach(el => {
+    el.addEventListener('pointerenter', () => { if (!fixo) mostrar(el); });
+    el.addEventListener('pointerleave', esconder);
+    el.addEventListener('focus', () => { if (!fixo) mostrar(el); });
+    el.addEventListener('blur', esconder);
+    el.addEventListener('click', e => { e.stopPropagation();
+      if (fixo === el) { el.classList.remove('sel'); fixo = null; tip.classList.remove('on'); return; }
+      if (fixo) fixo.classList.remove('sel'); fixo = el; el.classList.add('sel'); mostrar(el); });
+  });
+  document.addEventListener('click', () => { if (fixo) { fixo.classList.remove('sel'); fixo = null; tip.classList.remove('on'); } });
+  if (location.search.includes('demo=carreira')) { const q = new URLSearchParams(location.search), el = sec.querySelector(`[data-nv="${q.get('nv') || 'Diretor'}"]`);
+    setTimeout(() => { fixo = el; el.classList.add('sel'); mostrar(el); }, 900); }
+} catch (e) { console.error('carreira:', e); } })();
 </script>
 </body>
 </html>

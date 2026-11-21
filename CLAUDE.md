@@ -967,7 +967,7 @@ contador nessas páginas: a política diz que não há cookies.
 
 ## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
 
-Deck HTML animado (28 slides desde 11/11/2026, 16:9, setas/passador) que o Jimmy usa ao vivo
+Deck HTML animado (29 slides desde 21/11/2026, 16:9, setas/passador) que o Jimmy usa ao vivo
 e manda por link. Pedido dele em 27/10/2026. A fonte **não é deste repo**: o
 original fica em `/Volumes/Sandisk/Claude/apresentacao-igreen-2026/` (HTML de
 arquivo único, com fonte Montserrat e imagens embutidas, e o PDF gerado por
@@ -991,14 +991,31 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   outras páginas (integradores, transição) segue sendo decisão a reabrir com
   o Jimmy (CVM/SCP na Licença Mob, ver "Transição energética").
 - A capa traz o aviso de licenciado independente, como a home.
-- Slides de campanha (13 "Bônus Extra Garantido", 25 "Campanhas do mês" e a coluna "Na hora · Nov/26" do 10 "Cashback",
+- **Numeração desde 21/11/2026**: entrou o slide 5 "à prova de raio" e tudo do antigo 5 em diante andou uma casa
+  (Club 10, Cashback 11, mapa 12, Bônus Extra 14, Na prática 21, simulação 22, carreira 23, campanhas 26).
+  As anotações datadas abaixo usam a numeração da época.
+- **Slide 5 "Uma fonte de renda é vulnerável. Sete são à prova de raio." (21/11/2026, pedido do Jimmy)**:
+  volta a ideia do deck original. Esquerda: uma fonte só, o raio cai e a renda zera; direita: as 7 conexões
+  (Green, Telecom, Seguros, Livre, Placas · Solar, Mob, Expansão), o raio cai numa sorteada a cada vez que o
+  slide abre e ela apaga com ✕; no `?static`/PDF fica em Placas · Solar. Rodapé: Thomas C. Corley (Rich Habits),
+  65% dos milionários que fizeram a própria fortuna tinham 3+ fontes de renda (o "7 fontes em média" do deck
+  original não tem fonte séria e ficou de fora). Fonte: `fontes/patch_2026-11-21-raio.py`.
+- **Slide 23 "Suba de nível" (21/11/2026, pedido do Jimmy)**: prêmios Diretor = Cartagena · COL e Acionista =
+  Eurotrip. Cada degrau mostra os royalties Elite de Green, Seguros e Telecom; passando o mouse (ou tocando) num
+  nível abre a tabela Base · Elite de todas as soluções (Green A/B e C/D, Telecom, Seguros, Mob venda e recargas,
+  Livre, Placas, Expansão Full, iGreen Pay). Fonte: backup do Academy de 13/11/2026, conferido com a newsletter
+  de novembro; dados em `apresentacao-igreen-2026/fontes/royalties-academy-2026-11-13.json`, aplicados por
+  `fontes/patch_2026-11-21-carreira.py`. Expansão Plus fica fora (o deck não mostra a Connect PLUS) e Club
+  também (o Academy não diz sobre o que incide). Livre, Placas e Pay só têm valor até Acionista/Embaixador no
+  Academy: o resto aparece como "—". `?demo=carreira&nv=Diretor` abre a tabela de um nível (teste e print).
+- Slides de campanha (14 "Bônus Extra Garantido", 26 "Campanhas do mês" e a coluna "Na hora · Nov/26" do 11 "Cashback",
   mais as etiquetas "Nov/26" em Seguros e Livre e a legenda ⚡ do mapa)
   vencem em 30/11/2026. Desde 03/11/2026 a fonte é a newsletter do mês
   (`~/Downloads/Newsletter_<Mês>-2026.pdf`, a de novembro tem 81 páginas);
   o Academy completa os regulamentos. Os valores de GP são de licenciado PRO
   (regra por vertical). Pendências e histórico do deck: memória
   `apresentacao-plano-negocios-igreen` do Claude.
-- **Mapa de cobertura (slide 11)**: SVG dos 27 estados (malha do IBGE, a mesma
+- **Mapa de cobertura (slide 12)**: SVG dos 27 estados (malha do IBGE, a mesma
   de `mapa-conexao-green/componente/geometria-ufs.js`) com as distribuidoras
   por estado vindas de `mapa-conexao-green/regras.json` (gerado do backup do
   Academy) mais as exceções que o Jimmy passou em 27/10/2026: sem cobertura em
