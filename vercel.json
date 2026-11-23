@@ -8,6 +8,28 @@
   "redirects": [
     {
       "source": "/apresentacao.pdf",
+      "has": [
+        {
+          "type": "host",
+          "value": "querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/apresentacao-integradores/integradores.pdf",
+      "permanent": false
+    },
+    {
+      "source": "/apresentacao.pdf",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/apresentacao-integradores/integradores.pdf",
+      "permanent": false
+    },
+    {
+      "source": "/apresentacao.pdf",
       "destination": "/apresentacao/iGreen-2026-apresentacao.pdf",
       "permanent": false
     },
@@ -38,6 +60,26 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/apresentacao",
+      "has": [
+        {
+          "type": "host",
+          "value": "querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/apresentacao-integradores"
+    },
+    {
+      "source": "/apresentacao",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.querovendercarregador.com.br"
+        }
+      ],
+      "destination": "/apresentacao-integradores"
+    },
     {
       "source": "/meet",
       "has": [

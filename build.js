@@ -504,7 +504,7 @@ PUBLICADOR.forEach(p => {
    /admin): tools/licenciados.mjs lê licenciados_publicos() e baixa as fotos.
    Se o Supabase não responder, o build para (a versão anterior fica no ar). */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
-  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao',
+  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao', 'apresentacao-integradores',
   'agendar', 'agendamento', 'home-agendar', 'painel', 'reunioes', 'grupos']);
 const LICS = JSON.parse(require('child_process').execFileSync(process.execPath,
   [path.join(__dirname, 'tools', 'licenciados.mjs'), out('media', 'licenciados')],
@@ -659,6 +659,31 @@ ${LOUSA}`);
       fs.writeFileSync(out('apresentacao', 'index.html'), html);
     } else if (!f.startsWith('.')) {
       fs.copyFileSync(path.join(APRES, f), out('apresentacao', f));
+    }
+  });
+}
+
+/* ---------------- /apresentacao do querovendercarregador: deck para integradores ----------------
+   Mesmo esquema do Plano de Negócios: arquivo único gerado em
+   /Volumes/Sandisk/Claude/apresentacao-integradores (build.py), copiado como está
+   de apresentacao-integradores/. Servido em querovendercarregador.com.br/apresentacao
+   por rewrite de host no vercel.json; noindex e fora do sitemap. */
+const APRES_INT = path.join(__dirname, 'apresentacao-integradores');
+if (fs.existsSync(APRES_INT)) {
+  mkdir(out('apresentacao-integradores'));
+  fs.readdirSync(APRES_INT).forEach(f => {
+    if (f === 'index.html') {
+      const html = fs.readFileSync(path.join(APRES_INT, f), 'utf8').replace('<head>', `<head>
+<meta name="robots" content="noindex,nofollow">
+<meta property="og:title" content="Integrador, sua próxima usina é recorrência">
+<meta property="og:description" content="Eletropostos iGreen Mob para quem já trabalha com energia: ganho na venda, em cada recarga e na carteira.">
+<meta property="og:url" content="https://querovendercarregador.com.br/apresentacao">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://querovendercarregador.com.br/apresentacao">
+${LOUSA}`);
+      fs.writeFileSync(out('apresentacao-integradores', 'index.html'), html);
+    } else if (!f.startsWith('.')) {
+      fs.copyFileSync(path.join(APRES_INT, f), out('apresentacao-integradores', f));
     }
   });
 }

@@ -965,6 +965,21 @@ script passar a usar outra chamada da API ou guardar dados de outro jeito, a
 política muda junto, antes, e a data também. Nada de script, pixel ou
 contador nessas páginas: a política diz que não há cookies.
 
+## Apresentação para integradores — querovendercarregador.com.br/apresentacao (nov/2026)
+
+Pedido do Jimmy em 23/11/2026. Deck HTML animado de 20 slides (etapas, lista com G,
+`?static`), gerado em `/Volumes/Sandisk/Claude/apresentacao-integradores/` (`build.py` +
+`gerar_pdf.sh`; LEIA-ME de lá manda). Aqui ficam só as cópias em
+`apresentacao-integradores/` (index.html = `dist/integradores.html`, integradores.pdf);
+o build publica em `dist/apresentacao-integradores/` com noindex + OG + LOUSA, e o
+`vercel.json` reescreve `/apresentacao` → `/apresentacao-integradores` e redireciona
+`/apresentacao.pdf` para o PDF só nos hosts do querovendercarregador (nos outros domínios
+`/apresentacao` continua sendo o Plano de Negócios). **Exceção às regras da página de
+integradores, como na /apresentacao do anovaprofissao:** o deck mostra preços dos modelos e
+percentuais de comissão; é material compartilhado por link, fora do sitemap, e não pode virar
+destino de anúncio nem ganhar link na página `/integradores`. Atualizar = copiar os dois
+arquivos de novo e dar push.
+
 ## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
 
 Deck HTML animado (29 slides desde 21/11/2026, 16:9, setas/passador) que o Jimmy usa ao vivo
