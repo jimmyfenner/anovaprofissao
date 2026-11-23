@@ -517,7 +517,7 @@ a.cta .quem{font-size:15px;color:var(--dim);margin-top:12px;font-weight:600}
 .obreq{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .obreq span{font-size:14.5px;font-weight:700;line-height:1.3;padding:7px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
 .obreq span.g{color:#04120a;background:var(--g);border-color:var(--g)}
-.obhint{position:absolute;right:60px;bottom:40px;font-size:15px;color:var(--dim);letter-spacing:.04em}
+.obhint{position:absolute;right:60px;bottom:86px;padding:6px 14px;border-radius:999px;background:rgba(5,8,10,.72);font-size:15px;color:var(--dim);letter-spacing:.04em}
 body.static .obhint{display:none}
 .obwrap{position:absolute;right:30px;top:50%;width:960px;height:960px;margin-top:-480px;z-index:1}
 .orb-svg{width:100%;height:100%;display:block;overflow:visible}
@@ -610,21 +610,43 @@ body.static .slide.active,body.static .pop{animation:none!important}
 .rt .raio-bolt{position:absolute;left:16px;top:50%;width:58px;margin-top:-48px}  /* em cima do ícone, sem tapar o nome */
 .rt.hit::after{content:"✕";position:absolute;right:14px;top:10px;font-size:22px;font-weight:900;color:#ff7a7a;opacity:0}
 @keyframes raioFlash{0%{opacity:0}6%{opacity:1}11%{opacity:.15}17%{opacity:1}55%{opacity:1}100%{opacity:0}}
-@keyframes raioVis{to{opacity:1}}
-@keyframes raioSome{to{opacity:0}}
-@keyframes raioBorda{to{border-color:rgba(255,90,90,.35);background:rgba(255,255,255,.025)}}
-@keyframes raioApaga{to{filter:grayscale(1);opacity:.32}}
-@keyframes ruBloco{to{filter:grayscale(1) brightness(.6);border-color:rgba(255,90,90,.45);background:rgba(255,90,90,.06)}}
-.slide.active .raio-um .raio-bolt{animation:raioFlash 1.3s 1.1s both}
-.slide.active .ru-bloco{animation:ruBloco .5s 1.35s both}
-.slide.active .ru-cheio{animation:raioSome .3s 1.35s both}
-.slide.active .ru-zero{animation:raioVis .3s 1.45s both}
-.slide.active .rt.hit .raio-bolt{animation:raioFlash 1.3s 2.3s both}
-.slide.active .rt.hit{animation:raioBorda .6s 2.55s both}
-.slide.active .rt.hit>.ico,.slide.active .rt.hit>b{animation:raioApaga .6s 2.55s both}
-.slide.active .rt.hit::after{animation:raioVis .3s 2.7s both}
-body.static .raio-um .raio-bolt,body.static .rt.hit .raio-bolt{animation:none!important;opacity:1}
-body.static .ru-bloco,body.static .ru-cheio,body.static .ru-zero,body.static .rt.hit,body.static .rt.hit>.ico,body.static .rt.hit>b,body.static .rt.hit::after{animation-delay:0s!important;animation-duration:.01s!important}
+/* 22/11/2026: o raio cai no clique (etapas 0..2: nada · uma fonte só · uma das 7) */
+.raio-sl .ru-bloco{box-shadow:inset 0 0 0 999px rgba(24,13,13,0);transition:border-color .45s,box-shadow .45s}
+.raio-sl .ru-v i{transform-origin:0 60%}
+.raio-sl .ru-cheio{transition:opacity .22s,transform .3s}
+.raio-sl .ru-zero{transform:scale(1.3);transition:opacity .3s,transform .45s cubic-bezier(.2,.9,.3,1.25)}
+.raio-sl .ru-res{opacity:0;transform:translateY(12px);transition:opacity .45s,transform .45s}
+.raio-sl .rt[data-k]{transition:border-color .5s,background-color .5s}
+.raio-sl .rt[data-k]>.ico,.raio-sl .rt[data-k]>b{transition:filter .5s,opacity .5s}
+.raio-sl .rt.hit::after{transition:opacity .3s}
+/* estado 1: uma fonte só */
+.raio-sl.rai-e1 .ru-bloco{border-color:rgba(255,90,90,.45);box-shadow:inset 0 0 0 999px rgba(24,13,13,.88);transition-delay:.09s}   /* apaga o verde sem tirar o vermelho do 0 */
+.raio-sl.rai-e1 .ru-cheio{opacity:0;transform:scale(.85);transition-delay:.09s}
+.raio-sl.rai-e1 .ru-zero{opacity:1;transform:none;transition-delay:.2s}
+.raio-sl.rai-e1 .raio-um .ru-res{opacity:1;transform:none;transition-delay:.55s}
+/* estado 2: uma das 7 */
+.raio-sl.rai-e2 .rt.hit{border-color:rgba(255,90,90,.35);background:rgba(255,255,255,.025);transition-delay:.12s}
+.raio-sl.rai-e2 .rt.hit>.ico,.raio-sl.rai-e2 .rt.hit>b{filter:grayscale(1);opacity:.32;transition-delay:.12s}
+.raio-sl.rai-e2 .rt.hit::after{opacity:1;transition-delay:.3s}
+.raio-sl.rai-e2 .raio-sete .ru-res{opacity:1;transform:none;transition-delay:.6s}
+/* impacto: só no avanço */
+.raio-sl.rai-z1 .raio-um .raio-bolt,.raio-sl.rai-z2 .rt.hit .raio-bolt{animation:raioFlash 1.3s both}
+.raio-sl.rai-z1 .ru-alvo{animation:raiTreme .5s .07s both}
+.raio-sl.rai-z2 .rt.hit{animation:raiTreme .45s .07s both}
+@keyframes raiTreme{0%,100%{transform:none}14%{transform:translate(-7px,2px) rotate(-.5deg)}28%{transform:translate(6px,-2px) rotate(.4deg)}44%{transform:translate(-4px,1px)}60%{transform:translate(3px,-1px)}78%{transform:translate(-1px,0)}}
+.rai-flash{position:absolute;inset:0;pointer-events:none;z-index:6;opacity:0;mix-blend-mode:screen;background:radial-gradient(560px circle at var(--fx,50%) var(--fy,50%),rgba(255,228,160,.5),rgba(255,194,75,.14) 42%,transparent 74%),rgba(255,236,190,.05)}
+.rai-flash.vai{animation:raiClarao 1.3s ease-out both}
+@keyframes raiClarao{0%{opacity:0}6%{opacity:1}11%{opacity:.2}17%{opacity:.9}46%,100%{opacity:0}}
+/* as conexões ativas pulsam (a atingida para) */
+.raio-sl .rt[data-k]>.ico{position:relative}
+.raio-sl .rt[data-k]>.ico::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;opacity:0}
+.slide.active.raio-sl .rt[data-k]>.ico::after{animation:raiPulso 2.6s ease-out calc(var(--k,0) * .37s + .9s) infinite}
+.slide.active.raio-sl.rai-e2 .rt.hit>.ico::after{animation:none}
+@keyframes raiPulso{0%{opacity:1;box-shadow:0 0 0 0 rgba(0,226,107,.55)}70%,100%{opacity:0;box-shadow:0 0 0 16px rgba(0,226,107,0)}}
+/* abrir completo (voltando do slide 6, PDF): sem transição */
+.raio-sl.rai-inst .ru-bloco,.raio-sl.rai-inst .ru-v i,.raio-sl.rai-inst .ru-res,.raio-sl.rai-inst .rt,.raio-sl.rai-inst .rt>.ico,.raio-sl.rai-inst .rt>b,.raio-sl.rai-inst .rt::after{transition:none!important}
+body.static .raio-sl.rai-e1 .raio-um .raio-bolt,body.static .raio-sl.rai-e2 .rt.hit .raio-bolt{animation:none!important;opacity:1}
+body.static .raio-sl .rt>.ico::after,body.static .rai-flash{animation:none!important;display:none}
 /* ===== 21/11/2026: escada com royalties de todas as soluções ===== */
 .ladder2 .s{cursor:pointer;outline:none}
 .ladder2 .s:hover .blk,.ladder2 .s:focus-visible .blk,.ladder2 .s.sel .blk{border-color:var(--g);box-shadow:0 0 0 1px var(--g),0 0 40px -6px rgba(0,226,107,.55)}
@@ -647,6 +669,156 @@ body.static .ru-bloco,body.static .ru-cheio,body.static .ru-zero,body.static .rt
 .rtip td.el{color:var(--g)}
 .rtip td.un{text-align:center;color:#fff}
 .rtip .obs{font-size:12.5px;color:var(--dim);margin-top:10px;line-height:1.4}
+/* ===== 22/11/2026: linha do tempo com foguete (slide 6) ===== */
+.quem-sl .voo{position:absolute;inset:0;pointer-events:none;z-index:3}
+.quem-sl .voo canvas,.quem-sl .voo svg{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:visible}
+.tl.foguete-tl{margin-top:150px}
+.tl.foguete-tl::before{display:none}
+.tl.foguete-tl .ev{padding-top:0}
+.tl.foguete-tl .ev::before{display:none}
+.quem-sl.voo-pronto .tl .ev>*{opacity:0;transform:translateY(24px);filter:blur(8px);transition:opacity .5s ease-out,transform .8s var(--spring),filter .6s ease-out}
+.quem-sl.voo-pronto .tl .ev.on>*{opacity:1;transform:none;filter:none}
+.quem-sl.voo-pronto .tl .ev.on>.t{transition-delay:.09s}
+.quem-sl.voo-pronto .tl .ev.on>.d{transition-delay:.18s}
+.voo-guia{fill:none;stroke:rgba(255,255,255,.13);stroke-width:2;stroke-dasharray:2 11;stroke-linecap:round}
+.voo-rastro{fill:none;stroke:url(#vooGrad);stroke-width:4;stroke-linecap:round;filter:url(#vooGlow)}
+.voo-no .feixe{stroke:url(#feixeGrad);stroke-width:3;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset .5s cubic-bezier(.2,.7,.3,1)}
+.voo-no .anel{fill:none;stroke:#7CFFB2;stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center}
+.voo-no .miolo{fill:#05080A;stroke:rgba(255,255,255,.28);stroke-width:3;transition:fill .25s,stroke .25s}
+.voo-no .luz{fill:#00E26B;opacity:0;filter:url(#vooGlow);transition:opacity .4s}
+.voo-no.on .feixe{stroke-dashoffset:0}
+.voo-no.on .miolo{fill:#00E26B;stroke:#fff}
+.voo-no.on .luz{opacity:.55}
+.voo-no.on .anel{animation:vooAnel 1s cubic-bezier(.2,.7,.3,1)}
+.voo-no.ult.on .luz{opacity:.85}
+@keyframes vooAnel{0%{opacity:.95;transform:scale(.4)}100%{opacity:0;transform:scale(3.4)}}
+.foguete .chama{transform-box:fill-box;transform-origin:100% 50%}
+.quem-sl.voo-pronto .cont{opacity:0;transform:scale(.7);transform-origin:100% 60%}
+.quem-sl.voo-pronto .cont.on{animation:contPop .9s var(--spring) both}
+@keyframes contPop{0%{opacity:0;transform:scale(.7);filter:brightness(2.2) blur(6px)}40%{opacity:1;filter:brightness(1.6) blur(0)}100%{opacity:1;transform:none;filter:none}}
+/* pontinhos de etapa: só aparecem nos slides com passos internos (foguete, órbita, raio, simulação, escada) */
+.etp{display:inline-flex;gap:6px;align-items:center}
+.etp[hidden]{display:none}
+.etp i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.22);transition:background-color .3s,transform .3s,box-shadow .3s}
+.etp i.on{background:rgba(0,226,107,.5)}
+.etp i.cur{background:var(--g);transform:scale(1.4);box-shadow:0 0 8px var(--g)}
+/* ===== 22/11/2026: slide 9 por etapas (órbita) · 0 só VOCÊ · 1 GP · 2 GI · 3 Royalties · 4 equiparação + PRO ===== */
+#slide-orbita.obe .obn-i{animation:none;opacity:1;transform:none;transition:transform .85s var(--spring) var(--sd,0ms),opacity .4s ease-out var(--sd,0ms)}
+#slide-orbita.obe .rg{animation:none;opacity:1;transform:none;transition:transform 1.1s var(--spring-soft),opacity .55s ease-out}
+#slide-orbita.obe .rg2{animation:obDash2 36s linear infinite}
+#slide-orbita.obe .rg3{animation:obDash3 30s linear infinite}
+#slide-orbita.obe .rg4{animation:obDash4 44s linear infinite;transition-delay:.14s}
+#slide-orbita.obe .obrl{transition:opacity .7s ease-out .35s}
+#slide-orbita.obe .ob-key{transition:opacity .6s ease-out .3s}
+#slide-orbita.obe .obl{transition:background-color .3s,border-color .3s,opacity .7s ease-out,filter .7s ease-out}
+#slide-orbita.obe .obeq{transition-delay:.05s}
+#slide-orbita.obe .obpro{transition-delay:.2s}
+#slide-orbita.obe .obhint{transition:opacity .6s ease-out .9s}
+#slide-orbita.obe:not(.obe-1) .z-gp>.obn-i,
+#slide-orbita.obe:not(.obe-2) .lic.l1>.obn-i,#slide-orbita.obe:not(.obe-2) .moon.m1>.obn-i,
+#slide-orbita.obe:not(.obe-3) .lic.l2>.obn-i,#slide-orbita.obe:not(.obe-3) .obn.deep>.obn-i,#slide-orbita.obe:not(.obe-3) .moon.m2>.obn-i{opacity:0;transform:scale(0);transition:transform .35s ease-in,opacity .3s ease-in}
+#slide-orbita.obe:not(.obe-1) .rg1,#slide-orbita.obe:not(.obe-2) .rg2,#slide-orbita.obe:not(.obe-3) .rg3,#slide-orbita.obe:not(.obe-3) .rg4{opacity:0;transform:scale(.55);transition:transform .4s ease-in,opacity .3s ease-in}
+#slide-orbita.obe:not(.obe-1) .obrl.l1,#slide-orbita.obe:not(.obe-2) .obrl.l2,#slide-orbita.obe:not(.obe-3) .obrl.l3,#slide-orbita.obe:not(.obe-3) .obrl.l4,#slide-orbita.obe:not(.obe-1) .ob-key{opacity:0;transition:opacity .25s}
+#slide-orbita.obe:not(.obe-2) .obk.z-gi,#slide-orbita.obe:not(.obe-3) .obk.z-roy{opacity:0;transition:opacity .25s}
+#slide-orbita.obe:not(.obe-1) .obl[data-t=gp],#slide-orbita.obe:not(.obe-2) .obl[data-t=gi],#slide-orbita.obe:not(.obe-3) .obl[data-t=roy]{opacity:.16;filter:grayscale(1);pointer-events:none}
+#slide-orbita.obe:not(.obe-4) .obeq,#slide-orbita.obe:not(.obe-4) .obpro{opacity:0;transform:translateY(28px);transition:opacity .3s,transform .3s}
+#slide-orbita.obe:not(.obe-4) .obhint{opacity:0;transition:opacity .2s}
+#slide-orbita.obe-inst .obn-i,#slide-orbita.obe-inst .rg,#slide-orbita.obe-inst .obrl,#slide-orbita.obe-inst .ob-key,#slide-orbita.obe-inst .obk,#slide-orbita.obe-inst .obl,#slide-orbita.obe-inst .obeq,#slide-orbita.obe-inst .obpro,#slide-orbita.obe-inst .obhint{transition:none!important}
+/* slide 22 · simulação por etapas (22/11/2026). Os estados escondidos só valem com .sm-pronto (o módulo rodou) */
+.sim-sl .sm-cel{position:relative;display:flex;min-width:0}
+.sim-sl .sm-cel>.card{flex:1;min-width:0}
+.sim-sl .sm-vaga,.sim-sl .sm-mais,.sim-sl .sm-x2,.sim-sl .sm-cometa{display:none}
+.sim-sl.sm-pronto .sm-vaga{display:block;position:absolute;inset:0;border-radius:28px;border:1.5px dashed rgba(255,255,255,.15);background:rgba(255,255,255,.012);pointer-events:none;transition:opacity .45s var(--dh,0s)}
+.sim-sl.sm-pronto .sm-c{opacity:0;transform:translateY(14px) scale(.93);transition:opacity .35s var(--dh,0s),transform .35s var(--dh,0s),box-shadow .5s}
+.sim-sl.sm-pronto .sm-on .sm-c{opacity:1;transform:none;transition:opacity .7s cubic-bezier(.2,.7,.3,1) var(--d,0s),transform var(--spring-d) var(--spring) var(--d,0s),box-shadow .9s}
+.sim-sl.sm-pronto .sm-on .sm-vaga{opacity:0;transition:opacity .5s var(--d,0s)}
+/* a soma: "+" entre as colunas (e "×2" entre as linhas) + um risco de luz que sai do card anterior */
+.sim-sl.sm-pronto .sm-mais,.sim-sl.sm-pronto .sm-x2{display:block;position:absolute;z-index:3;border-radius:999px;background:#06140c;border:1.5px solid var(--g);color:var(--g);font-weight:900;text-align:center;box-shadow:0 0 0 5px rgba(0,226,107,.08),0 0 22px rgba(0,226,107,.45);opacity:0;transform:scale(.3);transition:opacity .25s var(--dh,0s),transform .25s var(--dh,0s);pointer-events:none}
+.sim-sl.sm-pronto .sm-mais{left:-29px;top:50%;width:38px;height:38px;margin-top:-19px;font-size:34px;font-weight:700;line-height:33px}
+.sim-sl.sm-pronto .sm-x2{left:50%;top:-27px;width:62px;height:36px;margin-left:-31px;font-size:18px;line-height:33px}
+.sim-sl.sm-pronto .sm-on .sm-mais,.sim-sl.sm-pronto .sm-on .sm-x2{opacity:1;transform:none;transition:opacity .35s var(--dm,0s),transform var(--spring-d) var(--spring) var(--dm,0s)}
+.sim-sl.sm-pronto .sm-cometa{display:block;position:absolute;z-index:4;top:50%;left:calc(-50% - 170px);width:150px;height:3px;margin-top:-1.5px;border-radius:3px;background:linear-gradient(90deg,transparent,rgba(0,226,107,.55) 60%,#d4ffe6);box-shadow:0 0 14px 2px rgba(0,226,107,.5);opacity:0;pointer-events:none}
+.sim-sl.sm-pronto .sm-go .sm-cometa{animation:smCometa .75s cubic-bezier(.5,0,.3,1) var(--dc,0s) both}
+@keyframes smCometa{0%{left:calc(-50% - 170px);opacity:0}20%{opacity:1}80%{opacity:1}100%{left:calc(50% - 150px);opacity:0}}
+/* clímax: R$ 39.565 */
+.sim-sl.sm-pronto .sm-cel.sm-on.sm-auge .sm-c{transform:scale(1.035);box-shadow:0 0 0 1px rgba(0,226,107,.55),0 0 70px -4px rgba(0,226,107,.7),0 40px 110px -30px rgba(0,226,107,.7);transition:transform .9s var(--spring),box-shadow .9s}
+.sim-sl.sm-pronto .sm-auge .shine::after{animation:smBrilho 1.9s var(--ease) both}
+@keyframes smBrilho{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+.sim-sl.sm-pronto .sm-cel::after{content:"";position:absolute;inset:-2px;border-radius:30px;border:2px solid var(--g);opacity:0;pointer-events:none}
+.sim-sl.sm-pronto .sm-auge::after{animation:smOnda 1.3s cubic-bezier(.2,.7,.3,1) both}
+@keyframes smOnda{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.12,1.3)}}
+.sim-sl .sm-c p b{transition:color .6s,text-shadow .6s}
+.sim-sl.sm-pronto .sm-auge .sm-c p b{color:var(--g);text-shadow:0 0 18px rgba(0,226,107,.55)}
+/* títulos das colunas e rótulo "20" acendem junto com o que revelam */
+.sim-sl.sm-pronto .sm-t{opacity:.3;transition:opacity .4s}
+.sim-sl.sm-pronto .sm-t.sm-lit{opacity:1;transition:opacity .6s var(--d,0s)}
+.sim-sl.sm-pronto .sm-l20>*{opacity:.3;transition:opacity .4s}
+.sim-sl.sm-pronto.sm-20 .sm-l20>*{opacity:1;transition:opacity .5s}
+/* último passo: com equipe, exponencial */
+.sim-sl.sm-pronto .sm-expo{opacity:0;transform:translateY(30px);transition:opacity .35s,transform .35s}
+.sim-sl.sm-pronto.sm-fim .sm-expo{opacity:1;transform:none;transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform var(--spring-d) var(--spring)}
+.sim-sl .sm-curva{stroke-dasharray:1;stroke-dashoffset:0}
+.sim-sl.sm-pronto .sm-curva{stroke-dashoffset:1;transition:stroke-dashoffset .3s}
+.sim-sl.sm-pronto.sm-fim .sm-curva{stroke-dashoffset:0;transition:stroke-dashoffset 1.3s cubic-bezier(.55,0,.25,1) .55s}
+.sim-sl.sm-pronto .sm-voce,.sim-sl.sm-pronto .sm-tv,.sim-sl.sm-pronto .sm-te{opacity:0;transition:opacity .3s}
+.sim-sl.sm-pronto.sm-fim .sm-voce{opacity:1;transition:opacity .6s .3s}
+.sim-sl.sm-pronto.sm-fim .sm-tv{opacity:1;transition:opacity .5s .6s}
+.sim-sl.sm-pronto.sm-fim .sm-te{opacity:1;transition:opacity .5s 1.7s}
+/* estado aplicado sem animação (entrada no slide, PDF) */
+.sim-sl.sm-inst :is(.sm-c,.sm-vaga,.sm-mais,.sm-x2,.sm-t,.sm-l20>*,.sm-expo,.sm-curva,.sm-voce,.sm-tv,.sm-te){transition:none!important}
+.sim-sl.sm-inst .sm-cometa,.sim-sl.sm-inst .sm-cel::after{animation:none!important}
+/* ===== 22/11/2026: escada por etapas (slide 23) ===== */
+.carreira-sl .ladder2{position:relative}
+.carreira-sl .ladder2 .s{position:relative}
+/* degrau ainda não alcançado: só o contorno, o caminho existe */
+.carreira-sl.esc-on .ladder2 .s::before{content:'';position:absolute;left:0;right:0;bottom:0;height:var(--h);border:1.5px dashed rgba(0,226,107,.3);border-bottom:none;border-radius:18px 18px 4px 4px;background:linear-gradient(180deg,rgba(0,226,107,.06),transparent 75%);opacity:0;transition:opacity .45s;pointer-events:none}
+.carreira-sl.esc-on.active .ladder2 .s.esc-fora::before{opacity:1;transition-delay:calc(var(--j)*80ms + 420ms)}
+.carreira-sl.esc-on.esc-anda .ladder2 .s.esc-fora::before{transition-delay:.3s}
+.carreira-sl.esc-on.esc-anda .ladder2 .s:not(.esc-fora)::before{transition:opacity .25s}
+/* no passo a passo, só o bloco e o prêmio abrem os royalties; o vazio da coluna (e o degrau-fantasma) avança */
+.carreira-sl.esc-on .ladder2 .s{pointer-events:none}
+.carreira-sl.esc-on .ladder2 .s:not(.esc-fora) .blk,.carreira-sl.esc-on .ladder2 .s:not(.esc-fora) .prz{pointer-events:auto}
+.carreira-sl.esc-on .ladder2 .s.esc-fora .blk{transform:scaleY(0)}
+.carreira-sl.esc-on .ladder2 .s.esc-fora .prz{opacity:0;transform:translateY(16px) scale(.9)}
+.carreira-sl.esc-on .ladder2 .s.esc-fora .blk>*{opacity:0}
+.carreira-sl .ladder2 .blk>*{transition:opacity .3s}
+/* passo a passo: sem a cascata da entrada */
+.carreira-sl.esc-anda .ladder2 .blk{transition:transform 1s var(--spring-soft)}
+.carreira-sl.esc-anda .ladder2 .s.esc-fora .blk{transition:transform .42s cubic-bezier(.55,0,.8,.2) .14s}
+.carreira-sl.esc-anda .ladder2 .blk>*{transition:opacity .4s .34s}
+.carreira-sl.esc-anda .ladder2 .s.esc-fora .blk>*{transition:opacity .16s}
+.carreira-sl.esc-anda .prz{transition:opacity .45s .5s,transform var(--spring-d) var(--spring) .5s}
+.carreira-sl.esc-anda .ladder2 .s.esc-fora .prz{transition:opacity .2s,transform .3s}
+/* faixa de baixo: a parte da rede acende quando chega o Diretor */
+.carreira-sl .zone>div{transition:opacity .5s .45s,transform .8s var(--ease) .45s}
+.carreira-sl.esc-on .zone>.esc-fora{opacity:0;transform:translateX(-16px);transition:opacity .25s,transform .3s}
+/* "VOCÊ": pula para o topo do degrau atual (x e y separados = salto em arco) */
+.esc-voce{position:absolute;left:0;top:0;z-index:4;transform:translateX(var(--x,0));opacity:0;pointer-events:none}
+.esc-vy{transform:translateY(var(--y,0))}
+.esc-pino{display:flex;align-items:center;gap:7px;height:26px;padding:0 12px 0 10px;transform:translate(-50%,-50%);border-radius:999px;background:#06140c;border:1.5px solid var(--g);color:var(--g);font-size:12px;font-weight:800;letter-spacing:.16em;white-space:nowrap;box-shadow:0 0 0 4px rgba(0,226,107,.12),0 8px 24px -6px rgba(0,226,107,.75)}
+.esc-pino i{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);animation:escPulso 1.8s ease-in-out infinite}
+.carreira-sl.esc-on.active .esc-voce{opacity:1;transition:opacity .5s var(--pd,0s)}
+.carreira-sl:not(.active) .esc-voce{opacity:0;transition:opacity .2s}
+.carreira-sl.esc-anda .esc-voce{transition:transform .8s cubic-bezier(.45,0,.25,1)}
+.carreira-sl.esc-anda .esc-vy{transition:transform .8s cubic-bezier(.34,1.5,.6,1)}
+.carreira-sl.esc-desce .esc-voce,.carreira-sl.esc-desce .esc-vy{transition:transform .6s cubic-bezier(.45,0,.25,1)}
+@keyframes escPulso{50%{transform:scale(.5);opacity:.45}}
+/* Fundador: o imóvel chega com brilho dourado */
+.carreira-sl .prz.gold{position:relative}
+.carreira-sl .prz.gold::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,226,150,.55) 50%,transparent 65%);background-size:300% 100%;background-position:100% 0;opacity:0}
+.carreira-sl.esc-brilho .prz.gold::after{animation:escReflexo 1.3s .85s ease-in-out both}
+.carreira-sl.esc-brilho .prz.gold{animation:escOuro 2.2s .75s ease-out both}
+.esc-faiscas{position:absolute;left:50%;top:42%;width:0;height:0;pointer-events:none}
+.esc-faiscas i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:#FFE08A;box-shadow:0 0 6px #FFD56E,0 0 16px #FFC24B;opacity:0}
+.esc-faiscas i:nth-child(3n){background:#7dffb4;box-shadow:0 0 6px var(--g),0 0 16px var(--g)}
+.esc-faiscas i:nth-child(4n+1){width:5px;height:5px;left:-2.5px;top:-2.5px}
+.carreira-sl.esc-brilho .esc-faiscas i{animation:escFaisca var(--t) cubic-bezier(.15,.7,.3,1) calc(.8s + var(--w)) both}
+@keyframes escFaisca{0%{opacity:0;transform:rotate(var(--a)) translateX(10px) scale(.7)}12%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateX(var(--d)) scale(.25)}}
+@keyframes escReflexo{0%{opacity:0;background-position:100% 0}25%{opacity:1}100%{opacity:0;background-position:0 0}}
+@keyframes escOuro{0%{border-color:rgba(0,226,107,.6);box-shadow:0 20px 60px -20px rgba(0,226,107,.6),0 0 0 0 rgba(255,210,110,0),0 0 0 0 rgba(255,196,80,0)}
+  30%{border-color:rgba(255,214,120,.95);box-shadow:0 20px 60px -20px rgba(0,226,107,.6),0 0 0 7px rgba(255,210,110,.2),0 0 80px 8px rgba(255,196,80,.5)}
+  100%{border-color:rgba(0,226,107,.6);box-shadow:0 20px 60px -20px rgba(0,226,107,.6),0 0 0 0 rgba(255,210,110,0),0 0 0 0 rgba(255,196,80,0)}}
+body.static .esc-voce,body.static .esc-faiscas{display:none}
 body.clean .ui,body.clean .prog{display:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important;transition-delay:0ms!important}}
 </style>
@@ -766,25 +938,54 @@ body.clean .ui,body.clean .prog{display:none}
       </div>
     </div>
     <div class="quote r" style="--i:6;font-size:32px;margin:34px 0 26px">Pandemia, demissão, IA, mudança de regra: o raio sempre cai em algum lugar.<br><span class="hl">Quem tem várias fontes continua de pé.</span></div>
+    <div class="rai-flash" aria-hidden="true"></div>
     <div class="disc">Thomas C. Corley, pesquisa Rich Habits: 65% dos milionários que construíram a própria fortuna tinham três ou mais fontes de renda.</div>
   </section>
 
-  <!-- 05 QUEM SOMOS -->
-  <section class="slide">
+  <!-- 06 QUEM SOMOS · linha do tempo com foguete (22/11/2026) -->
+  <section class="slide quem-sl">
     <div class="row" style="justify-content:space-between;align-items:flex-end">
       <div><div class="k r">A iGreen</div><h2 class="r" style="--i:1">5 anos. O maior<br>ecossistema do setor.</h2></div>
-      <div class="r zoom" style="--i:2;text-align:right"><div style="font-size:150px;font-weight:900;letter-spacing:-.05em;line-height:1" class="grad" data-to="1" data-pre="+" data-suf=" milhão">0</div><div class="mut" style="font-size:26px">clientes ativos · <b class="hl">rumo a 2 milhões</b></div></div>
+      <div class="r zoom cont" style="--i:2;text-align:right"><div style="font-size:150px;font-weight:900;letter-spacing:-.05em;line-height:1" class="grad">+1 milhão</div><div class="mut" style="font-size:26px">clientes ativos · <b class="hl">rumo a 2 milhões</b></div></div>
     </div>
-    <div class="tl" style="margin-top:44px">
-      <div class="bar"></div>
-      <div class="ev r" style="--i:3"><div class="y">2021</div><div class="t">Origem</div><div class="d">Fundada por Thiago Alexander e Amanda Durante em Minas Gerais.</div></div>
-      <div class="ev r" style="--i:4"><div class="y">2023</div><div class="t">Marco histórico</div><div class="d">Vibra + Comerc Energia adquirem 50%. Bilhões em capacidade.</div></div>
-      <div class="ev r" style="--i:5"><div class="y">2024</div><div class="t">Telecom + GPTW</div><div class="d">100 mil clientes em 2 anos e lançamento da iGreen Telecom.</div></div>
-      <div class="ev r" style="--i:6"><div class="y">2025</div><div class="t">Maior do setor</div><div class="d">Líder consolidado em Energia e Telecom.</div></div>
-      <div class="ev r" style="--i:7"><div class="y hl">2026</div><div class="t">Rumo aos 2 mi</div><div class="d">Seguros, Mob e novas conexões no ecossistema.</div></div>
+    <div class="tl foguete-tl">
+      <div class="ev"><div class="y">2021</div><div class="t">Origem</div><div class="d">Fundada por Thiago Alexander e Amanda Durante em Minas Gerais.</div></div>
+      <div class="ev"><div class="y">2023</div><div class="t">Marco histórico</div><div class="d">Vibra + Comerc Energia adquirem 50%. Bilhões em capacidade.</div></div>
+      <div class="ev"><div class="y">2024</div><div class="t">Telecom + GPTW</div><div class="d">100 mil clientes em 2 anos e lançamento da iGreen Telecom.</div></div>
+      <div class="ev"><div class="y">2025</div><div class="t">Maior do setor</div><div class="d">Líder consolidado em Energia e Telecom.</div></div>
+      <div class="ev"><div class="y hl">2026</div><div class="t">Rumo aos 2 mi</div><div class="d">Seguros, Mob e novas conexões no ecossistema.</div></div>
+    </div>
+    <div class="voo" aria-hidden="true">
+      <canvas class="voo-fumaca" width="1920" height="1080"></canvas>
+      <svg class="voo-svg" viewBox="0 0 1920 1080">
+        <defs>
+          <linearGradient id="vooGrad" x1="0" x2="1"><stop offset="0" stop-color="#00E26B" stop-opacity=".15"/><stop offset=".55" stop-color="#00E26B"/><stop offset="1" stop-color="#C9FFE0"/></linearGradient>
+          <linearGradient id="feixeGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7CFFB2"/><stop offset="1" stop-color="#00E26B" stop-opacity="0"/></linearGradient>
+          <filter id="vooGlow" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <radialGradient id="fgChama" cx=".9" cy=".5" r=".9"><stop offset="0" stop-color="#FFF6C8"/><stop offset=".35" stop-color="#FFC24B"/><stop offset=".7" stop-color="#FF7A1A" stop-opacity=".85"/><stop offset="1" stop-color="#FF4D00" stop-opacity="0"/></radialGradient>
+          <radialGradient id="fgNucleo" cx=".95" cy=".5" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#E9FFF3"/><stop offset="1" stop-color="#7CFFB2" stop-opacity="0"/></radialGradient>
+          <linearGradient id="fgCorpo" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#dfe6e2"/><stop offset=".8" stop-color="#9aa6a0"/><stop offset="1" stop-color="#6d7873"/></linearGradient>
+          <linearGradient id="fgBico" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7CFFB2"/><stop offset=".5" stop-color="#00E26B"/><stop offset="1" stop-color="#00994A"/></linearGradient>
+          <linearGradient id="fgAleta" x1="0" x2="1"><stop offset="0" stop-color="#007A3B"/><stop offset="1" stop-color="#00C85E"/></linearGradient>
+          <radialGradient id="fgVidro" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#3d7ea0"/><stop offset="1" stop-color="#06131c"/></radialGradient>
+        </defs>
+        <path class="voo-guia"/>
+        <path class="voo-rastro"/>
+        <g class="voo-nos"></g>
+        <g class="foguete" transform="translate(-300,-300)">
+        <g class="chama"><path class="ch1" d="M2 0C-10-12-38-16-78 0-38 16-10 12 2 0Z" fill="url(#fgChama)"/><path class="ch2" d="M2 0C-6-6-20-8-40 0-20 8-6 6 2 0Z" fill="url(#fgNucleo)"/></g>
+        <rect x="-4" y="-8" width="11" height="16" rx="2" fill="#4c5652"/>
+        <path d="M14-13 1-30h-7l9 17z" fill="url(#fgAleta)"/><path d="M14 13 1 30h-7l9-17z" fill="url(#fgAleta)"/>
+        <path d="M6-13h64c14 0 26 6 32 13-6 7-18 13-32 13H6z" fill="url(#fgCorpo)"/>
+        <path d="M74-12.6c12 .8 22 6 28 12.6-6 6.6-16 11.8-28 12.6 4-4 6-8 6-12.6S78-8.6 74-12.6z" fill="url(#fgBico)"/>
+        <rect x="56" y="-13" width="6" height="26" fill="#00C85E"/>
+        <circle cx="38" cy="0" r="7.5" fill="url(#fgVidro)" stroke="#e8eeeb" stroke-width="2.2"/><ellipse cx="35.6" cy="-2.6" rx="2.6" ry="1.6" fill="#fff" opacity=".75"/>
+        <path d="M10 0h44" stroke="#fff" stroke-opacity=".5" stroke-width="1.4" transform="translate(0,-8)"/>
+      </g>
+      </svg>
     </div>
     <div class="fill"></div>
-    <div class="row" style="align-items:stretch;gap:32px;height:300px;margin-top:36px">
+    <div class="row" style="align-items:stretch;gap:32px;height:250px;margin-top:30px">
       <div class="card r left" style="--i:8;flex:1;display:flex;flex-direction:column;justify-content:center">
         <div class="tag">Sócios estratégicos</div>
         <h3 style="margin-top:20px;font-size:38px;line-height:1.2">A força da <span class="hl">Vibra Energia</span> por trás da iGreen.</h3>
@@ -1275,32 +1476,32 @@ body.clean .ui,body.clean .prog{display:none}
   </section>
 
   <!-- 21 SIMULAÇÃO · 60 MESES SÓ COM AS SUAS VENDAS (11/11/2026) -->
-  <section class="slide">
+  <section class="slide sim-sl">
     <div class="row" style="justify-content:space-between;align-items:flex-end">
       <div><div class="k r">★ Simulação · 60 meses só com as suas vendas</div>
       <h2 class="r" style="--i:1;font-size:60px">Quanto a carteira paga <span class="hl">no mês 60</span>.</h2></div>
       <div class="r" style="--i:2;text-align:right"><div class="pill g" style="font-size:22px">Churn de 5% ao ano</div><div class="small" style="margin-top:10px">de cada 600 vendas,<br>cerca de 530 seguem pagando</div></div>
     </div>
     <div class="sim6">
-      <div></div><div class="sh r" style="--i:2">Green</div><div class="sh r" style="--i:2">Green + Telecom</div><div class="sh r" style="--i:2">Green + Telecom + Seguros</div>
+      <div></div><div class="sh r" style="--i:2"><span class="sm-t">Green</span></div><div class="sh r" style="--i:2"><span class="sm-t">Green + Telecom</span></div><div class="sh r" style="--i:2"><span class="sm-t">Green + Telecom + Seguros</span></div>
       <div class="sl r" style="--i:3"><b>10</b><span>de cada produto<br>por mês</span></div>
-      <div class="card r zoom" style="--i:4"><div class="big" data-to="6789" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 216 mil</b></p></div>
-      <div class="card r zoom" style="--i:5"><div class="big" data-to="10501" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 334 mil</b></p></div>
-      <div class="card r zoom" style="--i:6"><div class="big" data-to="19783" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 629 mil</b></p></div>
-      <div class="sl r" style="--i:6"><b>20</b><span>de cada produto<br>por mês</span></div>
-      <div class="card r zoom" style="--i:7"><div class="big" data-to="13577" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 431 mil</b></p></div>
-      <div class="card r zoom" style="--i:8"><div class="big" data-to="21003" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 667 mil</b></p></div>
-      <div class="card hot r zoom shine" style="--i:9"><div class="big grad" data-to="39565" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 1,26 mi</b></p></div>
+      <div class="sm-cel r zoom" style="--i:4"><div class="sm-vaga"></div><div class="card sm-c"><div class="big" data-to="6789" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 216 mil</b></p></div></div>
+      <div class="sm-cel r zoom" style="--i:5"><div class="sm-vaga"></div><b class="sm-mais" aria-hidden="true">+</b><div class="card sm-c"><div class="big" data-to="10501" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 334 mil</b></p></div><i class="sm-cometa" aria-hidden="true"></i></div>
+      <div class="sm-cel r zoom" style="--i:6"><div class="sm-vaga"></div><b class="sm-mais" aria-hidden="true">+</b><div class="card sm-c"><div class="big" data-to="19783" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 629 mil</b></p></div><i class="sm-cometa" aria-hidden="true"></i></div>
+      <div class="sl r sm-l20" style="--i:6"><b>20</b><span>de cada produto<br>por mês</span></div>
+      <div class="sm-cel r zoom" style="--i:7"><div class="sm-vaga"></div><b class="sm-x2" aria-hidden="true">×2</b><div class="card sm-c"><div class="big" data-to="13577" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 431 mil</b></p></div></div>
+      <div class="sm-cel r zoom" style="--i:8"><div class="sm-vaga"></div><b class="sm-mais" aria-hidden="true">+</b><div class="card sm-c"><div class="big" data-to="21003" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 667 mil</b></p></div><i class="sm-cometa" aria-hidden="true"></i></div>
+      <div class="sm-cel r zoom" style="--i:9"><div class="sm-vaga"></div><b class="sm-mais" aria-hidden="true">+</b><div class="card hot shine sm-c"><div class="big grad" data-to="39565" data-pre="R$ ">0</div><p>/mês no mês 60 · acumulado <b>R$ 1,26 mi</b></p></div><i class="sm-cometa" aria-hidden="true"></i></div>
     </div>
-    <div class="card r expo" style="--i:10">
-      <svg viewBox="0 0 300 118" aria-hidden="true"><path d="M8 110H240M8 110V6" stroke="rgba(255,255,255,.25)" stroke-width="2" fill="none"/><path d="M8 110 C 80 88, 150 74, 236 64" stroke="rgba(255,255,255,.6)" stroke-width="3" stroke-dasharray="7 7" fill="none"/><path d="M8 110 C 130 108, 190 86, 236 8" stroke="#00E26B" stroke-width="5" fill="none" style="filter:drop-shadow(0 0 8px rgba(0,226,107,.7))"/><text x="246" y="70" fill="rgba(255,255,255,.75)" font-size="16" font-weight="700">você</text><text x="246" y="16" fill="#00E26B" font-size="16" font-weight="800">equipe</text></svg>
+    <div class="sm-expo-w r" style="--i:10"><div class="card expo sm-expo">
+      <svg viewBox="0 0 300 118" aria-hidden="true"><path d="M8 110H240M8 110V6" stroke="rgba(255,255,255,.25)" stroke-width="2" fill="none"/><path class="sm-voce" d="M8 110 C 80 88, 150 74, 236 64" stroke="rgba(255,255,255,.6)" stroke-width="3" stroke-dasharray="7 7" fill="none"/><path class="sm-curva" pathLength="1" d="M8 110 C 130 108, 190 86, 236 8" stroke="#00E26B" stroke-width="5" fill="none" style="filter:drop-shadow(0 0 8px rgba(0,226,107,.7))"/><text class="sm-tv" x="246" y="70" fill="rgba(255,255,255,.75)" font-size="16" font-weight="700">você</text><text class="sm-te" x="246" y="16" fill="#00E26B" font-size="16" font-weight="800">equipe</text></svg>
       <div><h3>Com equipe, o ganho é <span class="hl">exponencial</span>.</h3><p>Sozinho, a carteira cresce no ritmo das suas vendas. Cada licenciado que você forma repete esses números, e você passa a ganhar GI, royalties e equiparação sobre a produção de toda a equipe.</p></div>
-    </div>
+    </div></div>
     <div class="disc">Simulação ilustrativa, não constitui promessa de ganho · só GP de licenciado PRO: Green 4% de uma fatura média de R$ 320 (R$ 12,80/cliente), Telecom R$ 7/linha, Seguros 5% de uma mensalidade de R$ 350 (R$ 17,50) · churn de 5% ao ano sobre a carteira · sem royalties, bônus, campanhas e Expansão.</div>
   </section>
 
   <!-- 19 CARREIRA + PRÊMIOS -->
-  <section class="slide">
+  <section class="slide carreira-sl">
     <div class="rtip-hint r" style="--i:2">👆 Passe o mouse num nível: <b>royalties de todas as soluções</b></div>
     <div class="row" style="justify-content:space-between;align-items:flex-end">
       <div><div class="k r">Plano de carreira · reconhecimento</div>
@@ -1318,7 +1519,7 @@ body.clean .ui,body.clean .prog{display:none}
     </div>
     <div class="zone r" style="--i:9;margin-top:14px">
       <div style="flex:3;background:rgba(0,226,107,.1);color:var(--g)">✓ Até Executivo: só com suas vendas</div>
-      <div style="flex:5;background:rgba(255,255,255,.05);color:var(--mut)">De Diretor em diante: rede obrigatória</div>
+      <div class="esc-z2" style="flex:5;background:rgba(255,255,255,.05);color:var(--mut)">De Diretor em diante: rede obrigatória</div>
     </div>
     <div class="rtip" id="rtip" role="status" aria-live="polite"></div>
     <div class="disc">Pontos qualificáveis (1 R$ = 1 pt) · royalty Elite com os Green Points do mês anterior acima do limite de cada nível · média mensal ilustrativa · royalties exigem PRO no mês anterior · regras do Academy (13/11/2026) · prêmios conforme regulamento oficial iGreen.</div>
@@ -1459,6 +1660,7 @@ body.clean .ui,body.clean .prog{display:none}
   <button id="prev" aria-label="Anterior"><svg class="i"><use href="#left"/></svg></button>
   <button id="next" aria-label="Próximo"><svg class="i"><use href="#right"/></svg></button>
   <span class="count" id="count">01 / 26</span>
+  <span class="etp" id="etp" hidden aria-hidden="true"></span>
   <div class="dots" id="dots"></div>
   <span class="hint">← → navegar · F tela cheia · N avisos</span>
   <a class="pdf" id="pdf" href="iGreen-2026-apresentacao.pdf" download="iGreen-2026-Plano-de-Negocios.pdf" aria-label="Baixar a apresentação em PDF"><svg class="i"><use href="#dl"/></svg><span>PDF</span></a>
@@ -1554,24 +1756,53 @@ body.clean .ui,body.clean .prog{display:none}
     document.getElementById('count').textContent=String(cur+1).padStart(2,'0')+' / '+N;
     document.getElementById('prog').style.transform='scaleX('+((cur+1)/N)+')';
     [...dots.children].forEach((d,k)=>d.classList.toggle('on',k===cur));
+    marcaEtapa();
     glowA.style.transform=`translate(${(cur%4)*260}px,${(cur%3)*160}px)`;
     glowB.style.transform=`translate(${-(cur%3)*220}px,${-(cur%4)*120}px)`;
     history.replaceState(null,'','#'+(cur+1));
   }
 
-  document.getElementById('prev').onclick=()=>go(cur-1);
-  document.getElementById('next').onclick=()=>go(cur+1);
+  // passo(±1): seta, botão, clique e deslize. Um slide com etapas (ex.: foguete do slide 6) consome o passo em slide._passo
+  function passo(d){ const h=slides[cur]._passo; if(!STATIC && h && h(d)) return; go(cur+d); }
+  // ---- etapas: slides com passos internos (slide._passo). O indicador ao lado do contador mostra o passo atual ----
+  const etp=document.getElementById('etp');
+  function marcaEtapa(){
+    const s=slides[cur], n=s._etapas;
+    if(!n||STATIC){ etp.hidden=true; etp.innerHTML=''; return; }
+    const k=Math.max(0,Math.min(n,s._etapa|0));
+    if(etp.children.length!==n+1) etp.innerHTML='<i></i>'.repeat(n+1);
+    [...etp.children].forEach((d,j)=>{ d.classList.toggle('on',j<=k); d.classList.toggle('cur',j===k); });
+    etp.hidden=false;
+  }
+  // etapas(sec, n, ir, op): o slide passa pelos estados 0..n. ir(k, inst) desenha o estado k (inst = sem animação).
+  // Entrando pela frente abre no 0; voltando do slide seguinte abre completo (n). ?static e reduzir movimento: completo, sem passos.
+  // Clique no slide = próximo passo (op.ignora: seletor de áreas clicáveis que não avançam). Fora de 0..n, o deck troca de slide.
+  function etapas(sec,n,ir,op={}){
+    if(STATIC||matchMedia('(prefers-reduced-motion: reduce)').matches){ sec._etapa=n; ir(n,true); return; }
+    let ativo=false;
+    sec._etapas=n; sec._etapa=0;
+    const vai=(k,inst)=>{ sec._etapa=k; ir(k,inst); if(slides[cur]===sec) marcaEtapa(); };
+    sec._passo=d=>{ if(!ativo) return false; const k=sec._etapa+d; if(k<0||k>n) return false; vai(k,false); return true; };
+    sec.addEventListener('click',e=>{ if(ativo && !e.target.closest('a,button,input,select,textarea'+(op.ignora?','+op.ignora:''))) passo(1); });
+    const olha=()=>{ const on=sec.classList.contains('active');
+      if(on&&!ativo){ ativo=true; vai(stage.style.getPropertyValue('--dir').trim()==='-1'?n:0,true); }
+      if(!on&&ativo) ativo=false; };
+    new MutationObserver(olha).observe(sec,{attributes:true,attributeFilter:['class']}); olha();
+  }
+  window.deck={ countUp, marcaEtapa, etapas, passo:d=>passo(d), go:i=>go(i), get cur(){ return cur; }, slides, STATIC };
+  document.getElementById('prev').onclick=()=>passo(-1);
+  document.getElementById('next').onclick=()=>passo(1);
   const fs=()=>{ document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.(); };
   document.getElementById('fs').onclick=fs;
   if(location.protocol.startsWith('http')) document.getElementById('pdf').href='/apresentacao/iGreen-2026-apresentacao.pdf';
   addEventListener('keydown',e=>{
-    if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();go(cur+1);}
-    else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();go(cur-1);}
+    if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();passo(1);}
+    else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();passo(-1);}
     else if(e.key==='Home')go(0); else if(e.key==='End')go(N-1);
     else if(e.key==='f'||e.key==='F')fs();
   });
   let tx=null; addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
-  addEventListener('touchend',e=>{ if(tx==null)return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>40) go(cur+(dx<0?1:-1)); tx=null; });
+  addEventListener('touchend',e=>{ if(tx==null)return; const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>40) passo(dx<0?1:-1); tx=null; });
 
   // o slide inicial abre aqui, antes de qualquer módulo opcional (avisos, mapa, medição):
   // um erro neles nunca pode deixar a apresentação em branco
@@ -1769,7 +2000,7 @@ body.clean .ui,body.clean .prog{display:none}
     const clamp=v=>Math.max(0,Math.min(1,v));
     const pick=a=>a[Math.floor(Math.random()*a.length)];
     const f1=v=>v.toFixed(1);
-    let events=[], focus=null, raf=0, t0=0, script=[], nextAt=0;
+    let events=[], focus=null, raf=0, t0=0, script=[], nextAt=0, lvl=4, stepMode=false;
 
     function spawn(kind,t,o){
       o=o||{};
@@ -1856,7 +2087,9 @@ body.clean .ui,body.clean .prog{display:none}
           const r=Math.random();
           let k=r<.34?'gp':r<.67?'gi':r<.87?'roy':'deep';
           if(focus) k=focus==='roy'?(Math.random()<.7?'roy':'deep'):focus;
-          spawn(k,t);
+          if(lvl<3 && (k==='roy'||k==='deep')) k=lvl>=2&&Math.random()<.5?'gi':'gp';
+          if(lvl<2 && k==='gi') k='gp';
+          if(lvl>0) spawn(k,t);
         }
         nextAt=t+.6+Math.random()*.65;
       }
@@ -1868,17 +2101,61 @@ body.clean .ui,body.clean .prog{display:none}
       focus=null; Object.values(rows).forEach(x=>x.classList.remove('sel')); svg.classList.remove('f-gp','f-gi','f-roy');
       // roteiro de abertura: uma conta de cada tipo, com legenda, antes do fluxo livre
       script=[[1.5,'gp',{origin:OWN[3],cap:1}],[3.3,'gi',{origin:L1[1].moons[1],cap:1}],[5.3,'roy',{origin:L2[4].moons[0],cap:1}],[7,'deep',{origin:L3[2]}]];
-      nextAt=8.2; t0=performance.now(); place(0);
+      nextAt=8.2;
+      if(stepMode && lvl<4){ script=[]; nextAt=0; }   // por etapas: cada passo solta a sua ficha de exemplo
+      t0=performance.now(); place(0);
       cancelAnimationFrame(raf); raf=requestAnimationFrame(frame);
     }
     function stop(){ cancelAnimationFrame(raf); raf=0; events.forEach(kill); events=[]; }
     place(0);
+    // ---- 22/11/2026: por etapas. 0 = só VOCÊ · 1 = seus clientes (GP) · 2 = licenciados diretos (GI)
+    // 3 = a equipe deles, sem limite (Royalties) · 4 = equiparação + PRO. Registrado antes do observador de abaixo,
+    // para o passo já estar definido quando start() roda. Clique numa legenda acesa isola o fluxo e não avança.
+    try {
+      const NIV={gp:1,gi:2,roy:3,deep:3}, pode=k=>lvl>=NIV[k];
+      const sd=(arr,base,step)=>arr.forEach((n,i)=>n.g.firstChild.style.setProperty('--sd',(base+i*step)+'ms'));
+      sd(OWN,140,70); sd(L1,140,110); sd(L1.flatMap(p=>p.moons),480,45); sd(L2,140,80); sd(L3,420,22); sd(L2.flatMap(q=>q.moons),600,40);
+      const DEMO={1:[[.95,'gp',{origin:OWN[3],cap:1}]],2:[[1.15,'gi',{origin:L1[1].moons[1],cap:1}]],3:[[1.35,'roy',{origin:L2[4].moons[0],cap:1}],[2.8,'deep',{origin:L3[2]}]]};
+      const CLS=['obe','obe-inst','obe-1','obe-2','obe-3','obe-4'];
+      let tms=[];
+      const limpa=()=>{ tms.forEach(clearTimeout); tms=[]; };
+      const classes=k=>{ for(let j=1;j<=4;j++) sec.classList.toggle('obe-'+j,j<=k); };
+      const falha=err=>{ console.error('orbita etapas:',err); limpa(); stepMode=false; lvl=4; sec.classList.remove(...CLS); sec._passo=null; sec._etapas=0; window.deck?.marcaEtapa(); };
+      function ir(k,inst){
+        if(!stepMode) return;
+        try{
+          limpa();
+          const de=lvl; lvl=k;
+          if(k<de){                                   // voltando: some o que esse passo ainda não mostra
+            events=events.filter(ev=>{ const ok=pode(ev.ty); if(!ok) kill(ev); return ok; });
+            script=script.filter(q=>pode(q[1]));
+            if(focus && !pode(focus)){ focus=null; Object.values(rows).forEach(x=>x.classList.remove('sel')); svg.classList.remove('f-gp','f-gi','f-roy'); }
+          }
+          if(inst){                                   // entrando no slide: zera sem animação
+            sec.classList.add('obe-inst'); classes(0); void sec.offsetWidth; sec.classList.remove('obe-inst');
+            // vindo do slide seguinte (completo): monta os anéis em sequência rápida, como a abertura de antes
+            for(let j=1;j<=k;j++) tms.push(setTimeout(()=>classes(j),150+j*260));
+            return;
+          }
+          classes(k);
+          if(k>de){
+            const t=raf?(performance.now()-t0)/1000:0;
+            for(let j=de+1;j<=k;j++) (DEMO[j]||[]).forEach(([dt,kind,o])=>script.push([t+dt,kind,o]));
+            script.sort((a,b)=>a[0]-b[0]);
+            nextAt=Math.max(nextAt,t+1.8);
+            const ty=['','gp','gi','roy'][k]; if(ty) tms.push(setTimeout(()=>ping(ty),420));
+          }
+        }catch(err){ falha(err); }
+      }
+      sec.classList.add('obe'); stepMode=true; lvl=0;
+      window.deck.etapas(sec,4,ir,{ignora:'.obl'});
+    } catch(err){ console.error('orbita etapas:',err); stepMode=false; lvl=4; sec.classList.remove('obe','obe-inst','obe-1','obe-2','obe-3','obe-4'); sec._passo=null; sec._etapas=0; }
     const ativo=()=>sec.classList.contains('active')||sec.classList.contains('leaving');
     new MutationObserver(()=>{ const on=ativo(); if(on && !raf) start(); else if(!on && raf) stop(); }).observe(sec,{attributes:true,attributeFilter:['class']});
     if(ativo()) start();
     document.addEventListener('visibilitychange',()=>{ if(document.hidden) stop(); else if(ativo()) start(); });
   })();
-  } catch(e){ console.error('orbita:',e); }
+  } catch(e){ console.error('orbita:',e); const q=document.getElementById('slide-orbita'); if(q){ q.classList.remove('obe','obe-inst','obe-1','obe-2','obe-3','obe-4'); q._passo=null; q._etapas=0; } }
 
   // ?medir: grava no título os retângulos dos links do último slide (usado para o PDF)
   if(location.search.includes('medir')){ setTimeout(()=>{ const st=stage.getBoundingClientRect(), k=parseFloat(stage.style.getPropertyValue('--s'))||1;
@@ -1887,19 +2164,42 @@ body.clean .ui,body.clean .prog{display:none}
 })();
 </script>
 <script>
-// slide "à prova de raio": a cada vez que o slide abre, o raio cai numa conexão sorteada (no ?static fica em Placas · Solar)
-(() => { try {
-  const sec = document.querySelector('.raio-sl'); if (!sec || document.body.classList.contains('static')) return;
+// slide 5 "à prova de raio" por etapas (22/11/2026): 0 = nada atingido · 1 = o raio cai em "uma fonte só" (renda vai a 0)
+// · 2 = o raio cai numa das 7 conexões, sorteada cada vez que o slide abre pela frente (no ?static fica em Placas · Solar).
+// ← desfaz; voltando do slide 6 abre completo. Erro aqui: slide fica completo, sem passos.
+(() => { const sec = document.querySelector('.raio-sl'); if (!sec) return; try {
   const tiles = [...sec.querySelectorAll('.rt[data-k]')], bolt = sec.querySelector('.rt .raio-bolt');
-  let ultimo = tiles.findIndex(t => t.classList.contains('hit')), aberto = false;
+  const fl = sec.querySelector('.rai-flash'), bolt1 = sec.querySelector('.raio-um .raio-bolt');
+  const STATIC = document.body.classList.contains('static');
+  tiles.forEach((t, i) => t.style.setProperty('--k', i));
+  let ultimo = tiles.findIndex(t => t.classList.contains('hit')), est = 0, raf = 0;
   const sorteia = () => {
     let k; do { k = Math.floor(Math.random() * tiles.length); } while (k === ultimo && tiles.length > 1);
-    ultimo = k; tiles.forEach(t => t.classList.remove('hit')); tiles[k].classList.add('hit'); tiles[k].appendChild(bolt);
+    ultimo = k; tiles.forEach(t => t.classList.remove('hit')); tiles[k].appendChild(bolt); tiles[k].classList.add('hit');
   };
-  const olha = () => { const on = sec.classList.contains('active'); if (on && !aberto) sorteia(); aberto = on; };
-  new MutationObserver(olha).observe(sec, { attributes: true, attributeFilter: ['class'] });
-  olha();
-} catch (e) { console.error('raio:', e); } })();
+  const reinicia = c => { sec.classList.remove(c); void sec.offsetWidth; sec.classList.add(c); };
+  function clarao(el) {                                  // clarão centrado no raio (coordenadas do palco 1920×1080)
+    const r = el.getBoundingClientRect(), rs = sec.getBoundingClientRect(), k = rs.width / sec.offsetWidth || 1;
+    fl.style.setProperty('--fx', (r.left - rs.left + r.width / 2) / k + 'px');
+    fl.style.setProperty('--fy', (r.top - rs.top + r.height * .8) / k + 'px');
+    fl.classList.remove('vai'); void fl.offsetWidth; fl.classList.add('vai');
+  }
+  function ir(k, inst) {
+    cancelAnimationFrame(raf);
+    if (inst && k === 0 && !STATIC) sorteia();           // abriu pela frente: novo sorteio
+    const ant = est; est = k;
+    sec.classList.toggle('rai-inst', !!inst);
+    sec.classList.toggle('rai-e1', k >= 1); sec.classList.toggle('rai-e2', k >= 2);
+    if (inst || k < 2) sec.classList.remove('rai-z2');
+    if (inst || k < 1) sec.classList.remove('rai-z1');
+    if (inst) { fl.classList.remove('vai'); if (!STATIC) raf = requestAnimationFrame(() => raf = requestAnimationFrame(() => sec.classList.remove('rai-inst'))); return; }
+    if (k > ant) { reinicia(k === 1 ? 'rai-z1' : 'rai-z2'); clarao(k === 1 ? bolt1 : bolt); }
+  }
+  window.deck.etapas(sec, 2, ir);
+} catch (e) {
+  console.error('raio:', e);
+  sec.classList.add('rai-inst', 'rai-e1', 'rai-e2'); sec._passo = null; sec._etapas = 0;
+} })();
 </script>
 <script>
 // escada de graduações: passar o mouse / tocar num nível abre os royalties Base · Elite de todas as soluções
@@ -1938,6 +2238,241 @@ body.clean .ui,body.clean .prog{display:none}
   if (location.search.includes('demo=carreira')) { const q = new URLSearchParams(location.search), el = sec.querySelector(`[data-nv="${q.get('nv') || 'Diretor'}"]`);
     setTimeout(() => { fixo = el; el.classList.add('sel'); mostrar(el); }, 900); }
 } catch (e) { console.error('carreira:', e); } })();
+</script>
+<script>
+// slide 6: foguete pela linha do tempo 2021 → 2026, uma parada por ano (22/11/2026)
+// Ao abrir, o foguete entra e para em 2021. Cada → / clique / deslize leva ao próximo ano; depois de 2026 ele sai
+// e aparece o "+1 milhão"; o passo seguinte vai para o slide 7. ← volta um ano (em 2021, volta ao slide 5).
+// Chegando de trás (do slide 7), o slide já abre completo.
+(() => { try {
+  const sec = document.querySelector('.quem-sl'); if (!sec) return;
+  const guia = sec.querySelector('.voo-guia'), rastro = sec.querySelector('.voo-rastro');
+  const nosG = sec.querySelector('.voo-nos'), fog = sec.querySelector('.foguete'), chama = fog.querySelector('.chama');
+  const cv = sec.querySelector('.voo-fumaca'), cx = cv.getContext('2d');
+  const evs = [...sec.querySelectorAll('.tl .ev')], cont = sec.querySelector('.cont');
+  const STATIC = document.body.classList.contains('static') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SUBIDA = [0, 14, 33, 58, 88], FOLGA = 28, ULT = evs.length - 1, FIM = evs.length;   // etapas: 0..ULT = anos, FIM = saída
+  const ease = { io: t => t < .5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2, out: t => 1 - (1 - t) ** 3, in: t => t * t };
+  const pos = el => { let x = 0, y = 0; for (let e = el; e && e !== sec; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; } return { x, y }; };
+  let L = 0, nos = [], comp = [], paradas = [], raf = 0, parts = [], ativo = false;
+  let s = 0, anim = null, etapa = 0, ult = 0, vel = 0, pf = 1;
+
+  function monta() {
+    const tl = pos(sec.querySelector('.tl'));
+    nos = evs.map((ev, i) => { const p = pos(ev); return { x: p.x + 16, y: tl.y - 44 - SUBIDA[i], topo: tl.y - 6 }; });
+    const a = nos[0], z = nos[ULT];
+    const P = [{ x: a.x - 260, y: a.y + 70 }, { x: a.x - 120, y: a.y + 22 }, ...nos, { x: z.x + 180, y: z.y + 6 }, { x: z.x + 380, y: z.y - 26 }, { x: z.x + 540, y: z.y - 150 }, { x: z.x + 660, y: z.y - 320 }];
+    let d = `M${P[0].x},${P[0].y}`;
+    for (let i = 0; i < P.length - 1; i++) {           // Catmull-Rom → Bézier
+      const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+      d += `C${p1.x + (p2.x - p0.x) / 6},${p1.y + (p2.y - p0.y) / 6} ${p2.x - (p3.x - p1.x) / 6},${p2.y - (p3.y - p1.y) / 6} ${p2.x},${p2.y}`;
+    }
+    guia.setAttribute('d', d); rastro.setAttribute('d', d);
+    L = rastro.getTotalLength(); rastro.style.strokeDasharray = L;
+    comp = nos.map(n => { let m = 0, dm = 1e9; for (let q = 0; q <= L; q += 2) { const k = rastro.getPointAtLength(q), dd = (k.x - n.x) ** 2 + (k.y - n.y) ** 2; if (dd < dm) { dm = dd; m = q; } } return m; });
+    paradas = comp.map(c => c + FOLGA);
+    nosG.innerHTML = nos.map((n, i) => `<g class="voo-no${i === ULT ? ' ult' : ''}"><line class="feixe" x1="${n.x}" y1="${n.y + 12}" x2="${n.x}" y2="${n.topo}" style="--len:${n.topo - n.y}"/><circle class="luz" cx="${n.x}" cy="${n.y}" r="${i === ULT ? 16 : 11}"/><circle class="anel" cx="${n.x}" cy="${n.y}" r="12"/><circle class="miolo" cx="${n.x}" cy="${n.y}" r="${i === ULT ? 12 : 10}"/></g>`).join('');
+  }
+  const noEls = () => [...nosG.children];
+  function acende(i, on) { evs[i].classList.toggle('on', on); noEls()[i]?.classList.toggle('on', on); }   // toggle com o mesmo valor não reinicia a animação
+
+  // desenha o foguete na posição s do caminho; b = flutuação (parado), k = tamanho da chama
+  function poe(sv, b, k) {
+    rastro.style.strokeDashoffset = L - sv;
+    if (sv <= 0 || sv >= L - .5) { fog.setAttribute('transform', 'translate(-300,-300)'); return null; }
+    const p = rastro.getPointAtLength(sv), q = rastro.getPointAtLength(Math.min(L, sv + 2));
+    const ang = Math.atan2(q.y - p.y, q.x - p.x);
+    const x = p.x - Math.sin(ang) * b, y = p.y + Math.cos(ang) * b;
+    fog.setAttribute('transform', `translate(${x},${y}) rotate(${ang * 180 / Math.PI + b * .35}) scale(1.15)`);
+    chama.setAttribute('transform', `scale(${k},${.88 + Math.random() * .16})`);
+    return { x, y, ang };
+  }
+  function revela() {
+    comp.forEach((c, i) => acende(i, s >= c - 4));
+    cont.classList.toggle('on', s >= comp[ULT] + 160);
+  }
+  function fumaca(p, mov) {
+    const bx = p.x - Math.cos(p.ang) * 14, by = p.y - Math.sin(p.ang) * 14;
+    const n = mov > .5 ? 3 : (Math.random() < .3 + mov ? 1 : 0);
+    for (let j = 0; j < n; j++) {
+      const a = p.ang + Math.PI + (Math.random() - .5) * (mov > .5 ? .5 : 1.1), v = (.25 + Math.random() * .5) * (mov > .5 ? 1 : .45);
+      parts.push({ x: bx, y: by, vx: Math.cos(a) * v, vy: Math.sin(a) * v + .05 + (1 - mov) * .12, r: 5 + Math.random() * 4, cr: .55 + Math.random() * .35, vida: 0, max: 1100 + Math.random() * 700, tipo: 0 });
+    }
+    if (Math.random() < .9 * mov) { const a = p.ang + Math.PI + (Math.random() - .5), v = 2 + Math.random() * 2.5; parts.push({ x: bx, y: by, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 1.6 + Math.random() * 1.4, vida: 0, max: 260 + Math.random() * 260, tipo: 1 }); }
+  }
+  function desenhaFumaca(dt) {
+    cx.clearRect(0, 0, 1920, 1080);
+    parts = parts.filter(o => (o.vida += dt) < o.max);
+    for (const o of parts) {
+      const f = o.vida / o.max; o.x += o.vx * dt / 16; o.y += o.vy * dt / 16; o.vx *= .985; o.vy *= .985;
+      if (o.tipo === 0) {
+        const r = o.r + o.cr * o.vida / 16, al = .2 * (1 - f) * (1 - f);
+        const g = cx.createRadialGradient(o.x, o.y, 0, o.x, o.y, r); g.addColorStop(0, `rgba(222,240,231,${al})`); g.addColorStop(1, 'rgba(222,240,231,0)');
+        cx.globalCompositeOperation = 'source-over'; cx.fillStyle = g; cx.beginPath(); cx.arc(o.x, o.y, r, 0, 6.283); cx.fill();
+      } else {
+        cx.globalCompositeOperation = 'lighter'; cx.fillStyle = `rgba(255,${180 + 60 * (1 - f) | 0},90,${1 - f})`;
+        cx.beginPath(); cx.arc(o.x, o.y, o.r * (1 - f * .6), 0, 6.283); cx.fill();
+      }
+    }
+    cx.globalCompositeOperation = 'source-over';
+  }
+
+  // leva o foguete até "para" (posição no caminho); se já estava voando, termina o voo anterior na hora
+  function vai(para, dur, e, atraso = 0) {
+    if (anim) s = anim.para;
+    anim = { de: s, para, t0: performance.now() + atraso, dur, e };
+  }
+  function quadro(now) {
+    const dt = Math.min(48, now - (ult || now)); ult = now;
+    const s0 = s;
+    if (anim && now >= anim.t0) {
+      const t = Math.min(1, (now - anim.t0) / anim.dur);
+      s = anim.de + (anim.para - anim.de) * anim.e(t);
+      if (t >= 1) anim = null;
+    }
+    vel += ((dt ? Math.abs(s - s0) / dt : 0) - vel) * .25;            // px/ms, suavizado
+    const mov = Math.min(1, vel / .45);
+    pf += ((anim ? 0 : 1) - pf) * .06;                                 // 1 = parado, flutuando
+    const b = Math.sin(now / 480) * 2.6 * pf;
+    const k = .42 + .78 * mov + Math.sin(now / 37) * .05 + (Math.random() - .5) * .12;
+    const p = poe(s, b, k);
+    if (p && (s > 0)) fumaca(p, mov);
+    revela();
+    desenhaFumaca(dt);
+    raf = ativo ? requestAnimationFrame(quadro) : 0;
+  }
+  const marca = () => { sec._etapa = etapa; window.deck?.marcaEtapa(); };   // pontinhos de etapa ao lado do contador
+  function entra() {
+    cancelAnimationFrame(raf); monta(); parts = []; anim = null; ult = 0; vel = 0; pf = 1;
+    const voltando = getComputedStyle(sec).getPropertyValue('--dir').trim() === '-1';
+    if (voltando) { etapa = FIM; s = L; }                               // veio do slide 7: já completo
+    else { etapa = 0; s = 0; pf = 0; vai(paradas[0], 1300, ease.out, 550); }
+    poe(s, 0, .5); revela(); marca();
+    raf = requestAnimationFrame(quadro);
+  }
+  sec._passo = d => {
+    if (!ativo) return false;
+    const alvo = etapa + d;
+    if (alvo < 0 || alvo > FIM) return false;                          // passa para o slide anterior / seguinte
+    etapa = alvo; marca();
+    if (d > 0) vai(etapa < FIM ? paradas[etapa] : L, etapa < FIM ? 1150 : 1500, etapa < FIM ? ease.io : ease.in);
+    else vai(paradas[etapa], 650, ease.io);
+    return true;
+  };
+  // clique em qualquer lugar do slide = próximo passo (mesmo caminho do botão →)
+  sec.addEventListener('click', e => { if (ativo && !e.target.closest('a,button,input')) window.deck?.passo(1); });
+
+  function final() {                                     // ?static (PDF) / reduzir movimento: quadro final
+    s = comp[ULT] + 150; poe(s, 0, .75); evs.forEach((_, i) => acende(i, true)); cont.classList.add('on');
+  }
+  monta();
+  sec.classList.add('voo-pronto');
+  if (STATIC) { final(); document.fonts?.ready.then(() => { monta(); final(); }); return; }
+  sec._etapas = FIM;
+  const olha = () => { const on = sec.classList.contains('active'); if (on && !ativo) { ativo = true; entra(); } if (!on && ativo) { ativo = false; anim = null; } };
+  new MutationObserver(olha).observe(sec, { attributes: true, attributeFilter: ['class'] });
+  olha();
+} catch (e) { console.error('foguete:', e); const q = document.querySelector('.quem-sl'); if (q) { q.classList.remove('voo-pronto'); q._passo = null; q._etapas = 0; } } })();
+</script>
+<script>
+// slide 22: simulação de 60 meses por etapas (22/11/2026)
+// 0 = só o Green da linha 10 · 1 = + Telecom · 2 = + Seguros · 3 = linha 20 inteira (clímax R$ 39.565 / R$ 1,26 mi)
+// 4 = card "Com equipe, o ganho é exponencial". Cada card novo chega com "+" e um risco de luz vindo do anterior (a soma).
+// ← desfaz. Voltando do slide 23: completo. ?static (PDF): completo. Erro aqui → slide completo como antes.
+(() => { const sec = document.querySelector('.sim-sl'); if (!sec) return; try {
+  const D = window.deck; if (!D || !D.etapas) throw new Error('deck.etapas ausente');
+  const cels = [...sec.querySelectorAll('.sm-cel')], tits = [...sec.querySelectorAll('.sm-t')];
+  if (cels.length !== 6 || tits.length !== 3) throw new Error('marcação inesperada');
+  const QUER = [1, 2, 3, 6, 6];                                  // quantos cards (na ordem) cada estado mostra
+  const ATRASO = { 1: [.45], 2: [.45], 3: [.25, .85, 1.45] };   // segundos até cada card novo aparecer
+  const seg = v => v.toFixed(2) + 's';
+  const tira = c => { (c._t || []).forEach(clearTimeout); c._t = []; };
+  const depois = (c, f, ms) => c._t.push(setTimeout(f, ms));
+  function mostra(c, i, d, inst) {
+    tira(c);
+    c.style.setProperty('--d', seg(d)); c.style.setProperty('--dm', seg(Math.max(0, d - .25))); c.style.setProperty('--dc', seg(Math.max(0, d - .5)));
+    c.classList.add('sm-on');
+    if (inst) return;                                            // entrada/PDF: o número já foi contado pelo go()
+    c.classList.remove('sm-go'); void c.offsetWidth; c.classList.add('sm-go');
+    const big = c.querySelector('[data-to]');
+    depois(c, () => D.countUp(big), Math.max(0, d * 1000 - 120));
+    if (i === 5) depois(c, () => c.classList.add('sm-auge'), d * 1000 + 2000);
+  }
+  function esconde(c, dh) { tira(c); c.style.setProperty('--dh', seg(dh)); c.classList.remove('sm-on', 'sm-go', 'sm-auge'); }
+  function ir(k, inst) {
+    if (inst) sec.classList.add('sm-inst');
+    const n = QUER[k], at = ATRASO[k] || [0]; let j = 0;
+    cels.forEach((c, i) => {
+      const on = i < n, era = c.classList.contains('sm-on');
+      if (on && !era) mostra(c, i, inst ? 0 : (at[j++] ?? 0), inst);
+      else if (!on && era) esconde(c, inst ? 0 : (5 - i) * .07);
+      else if (on && inst) { tira(c); c.classList.remove('sm-go', 'sm-auge'); }
+    });
+    tits.forEach((t, i) => {
+      const on = i < Math.min(n, 3);
+      if (on !== t.classList.contains('sm-lit')) { t.style.setProperty('--d', seg(on && !inst ? at[0] : 0)); t.classList.toggle('sm-lit', on); }
+    });
+    sec.classList.toggle('sm-20', n > 3);
+    sec.classList.toggle('sm-fim', k >= 4);
+    if (inst) { void sec.offsetWidth; sec.classList.remove('sm-inst'); }
+  }
+  sec.classList.add('sm-pronto');
+  D.etapas(sec, 4, ir);
+} catch (e) { console.error('simulação:', e); sec.classList.remove('sm-pronto', 'sm-inst'); sec._passo = null; sec._etapas = 0; } })();
+</script>
+<script>
+// slide 23: escada da carreira por etapas (22/11/2026)
+// Abre com o Sênior de pé e os outros degraus em contorno; cada → / clique numa área vazia sobe um degrau
+// (o bloco cresce, o prêmio entra e o "VOCÊ" pula para o topo). ← desce. Voltando do slide 24, abre completo.
+// Clicar num degrau já alcançado continua fixando os royalties (não avança). ?static (PDF): igual ao de antes.
+(() => { const sec = document.querySelector('.carreira-sl'); if (!sec || !window.deck) return;
+  const lad = sec.querySelector('.ladder2'), cols = [...lad.querySelectorAll('.s[data-nv]')];
+  const z2 = sec.querySelector('.zone .esc-z2'), tip = document.getElementById('rtip');
+  const N = cols.length - 1, DIRETOR = cols.findIndex(c => c.dataset.nv === 'Diretor');
+  let voce = null, k0 = -1;
+  function desliga(e) {                                   // qualquer erro: escada completa, como antes
+    if (e) console.error('escada:', e);
+    sec.classList.remove('esc-on', 'esc-anda', 'esc-desce', 'esc-brilho');
+    cols.forEach(c => { c.classList.remove('esc-fora'); c.tabIndex = 0; }); z2?.classList.remove('esc-fora');
+    sec._passo = null; sec._etapas = 0; window.deck?.marcaEtapa();
+  }
+  function lugar(k) {                                     // topo do degrau k, em px da .ladder2
+    const c = cols[k], b = c.querySelector('.blk');
+    voce.style.setProperty('--x', (c.offsetLeft + c.offsetWidth / 2) + 'px');
+    voce.querySelector('.esc-vy').style.setProperty('--y', (c.offsetTop + b.offsetTop) + 'px');
+  }
+  function ir(k, inst) { try {
+    if (!sec._etapas) { desliga(); return; }              // ?static / reduzir movimento: escada completa
+    sec.classList.add('esc-on');
+    sec.classList.toggle('esc-anda', !inst);
+    sec.classList.toggle('esc-desce', !inst && k < k0);
+    cols.forEach((c, j) => { const fora = j > k; c.classList.toggle('esc-fora', fora); c.tabIndex = fora ? -1 : 0; });
+    z2?.classList.toggle('esc-fora', k < DIRETOR);
+    if (inst) voce.style.setProperty('--pd', (k * 110 + 950) + 'ms');   // aparece depois que o degrau sobe na entrada
+    lugar(k);
+    sec.classList.toggle('esc-brilho', !inst && k === N && k0 === N - 1);
+    // royalties abertos de um degrau que voltou a ser contorno: fecha
+    const sel = lad.querySelector('.s.sel');
+    if (sel && cols.indexOf(sel) > k) sel.click();
+    else if (!sel && tip?.classList.contains('on') && cols.findIndex(c => c.matches(':hover')) > k) tip.classList.remove('on');
+    k0 = k;
+  } catch (e) { desliga(e); } }
+  try {
+    cols.forEach((c, j) => { c.style.setProperty('--h', c.querySelector('.blk').style.height); c.style.setProperty('--j', j); });
+    voce = document.createElement('div'); voce.className = 'esc-voce'; voce.setAttribute('aria-hidden', 'true');
+    voce.innerHTML = '<div class="esc-vy"><div class="esc-pino"><i></i>VOCÊ</div></div>';
+    lad.appendChild(voce);
+    const ouro = sec.querySelector('.prz.gold');
+    if (ouro) {
+      const F = [[-150,120,1300,0],[-128,150,1200,60],[-112,105,1100,20],[-96,160,1400,90],[-84,120,1150,30],[-70,140,1250,120],[-55,110,1000,40],
+                 [-36,130,1300,80],[-165,90,950,140],[-15,95,1000,160],[-104,190,1500,10],[-62,175,1450,70],[-140,170,1350,110],[-24,150,1200,50]];
+      const f = document.createElement('div'); f.className = 'esc-faiscas'; f.setAttribute('aria-hidden', 'true');
+      f.innerHTML = F.map(([a, d, t, w]) => `<i style="--a:${a}deg;--d:${d}px;--t:${t}ms;--w:${w}ms"></i>`).join('');
+      ouro.appendChild(f);
+    }
+    window.deck.etapas(sec, N, ir, { ignora: '.ladder2 .s,.rtip' });
+  } catch (e) { desliga(e); }
+})();
 </script>
 </body>
 </html>

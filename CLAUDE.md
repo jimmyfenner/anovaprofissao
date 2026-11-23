@@ -1008,6 +1008,19 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   `fontes/patch_2026-11-21-carreira.py`. Expansão Plus fica fora (o deck não mostra a Connect PLUS) e Club
   também (o Academy não diz sobre o que incide). Livre, Placas e Pay só têm valor até Acionista/Embaixador no
   Academy: o resto aparece como "—". `?demo=carreira&nv=Diretor` abre a tabela de um nível (teste e print).
+- **Slides por etapas (22/11/2026, pedido do Jimmy)**: em 5 slides o passo (→, espaço, PageDown, Enter, clique no
+  slide, botão ›, deslize ou passador) avança uma etapa dentro do slide antes de trocar; ← volta uma etapa. Vindo do
+  slide seguinte (←) o slide abre completo; `?static`/PDF e "reduzir movimento" mostram o quadro final, sem etapas.
+  Pontinhos ao lado do contador ("06 / 29 ●●○○") mostram a etapa. Slide 5: o raio cai na fonte única (1) e numa das
+  7 conexões (2). Slide 6: foguete pela linha do tempo, para em cada ano (2021 → 2026) e sai mostrando o "+1 milhão"
+  (6 etapas). Slide 9: órbita em camadas (VOCÊ → clientes/GP → licenciados/GI → equipe/royalties → equiparação + PRO);
+  clique em GP/GI/Royalties continua isolando sem avançar. Slide 22: simulação empilhando Green → +Telecom → +Seguros →
+  linha de 20 (R$ 39.565) → curva da equipe. Slide 23: o "VOCÊ" sobe um degrau por passo (Sênior → Fundador, prêmio a
+  cada degrau, imóvel dourado no fim); clique num degrau já alcançado fixa os royalties sem avançar. Mecânica no script
+  principal: `passo(d)` consulta `slide._passo(d)` (true = consumiu), `window.deck.etapas(sec, n, ir, op)` e
+  `deck.marcaEtapa()`. Fontes em `apresentacao-igreen-2026/fontes/etapas/` (`aplicar.sh` aplica em cadeia foguete →
+  base → raio → órbita → simulação → escada sobre `deck-antes-das-etapas.html`; patch de um slide que mude depois
+  precisa ser refeito sobre o deck atual, não sobre essa cópia).
 - Slides de campanha (14 "Bônus Extra Garantido", 26 "Campanhas do mês" e a coluna "Na hora · Nov/26" do 11 "Cashback",
   mais as etiquetas "Nov/26" em Seguros e Livre e a legenda ⚡ do mapa)
   vencem em 30/11/2026. Desde 03/11/2026 a fonte é a newsletter do mês
