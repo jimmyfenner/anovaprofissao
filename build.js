@@ -504,7 +504,7 @@ PUBLICADOR.forEach(p => {
    /admin): tools/licenciados.mjs lê licenciados_publicos() e baixa as fotos.
    Se o Supabase não responder, o build para (a versão anterior fica no ar). */
 const RESERVADOS = new Set(['admin', 'home', 'integradores', 'transicao-energetica', 'transicaoenergetica',
-  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao', 'apresentacao-integradores',
+  'privacidade', 'termos', 'aviso-legal', 'media', 'fonts', 'seo', 'dados', 'og', 'api', 'blog', 'publicador', 'apresentacao', 'apresentacao-integradores', 'apresentacao-plano',
   'agendar', 'agendamento', 'home-agendar', 'painel', 'reunioes', 'grupos']);
 const LICS = JSON.parse(require('child_process').execFileSync(process.execPath,
   [path.join(__dirname, 'tools', 'licenciados.mjs'), out('media', 'licenciados')],
@@ -642,10 +642,14 @@ Object.entries(LICS).forEach(([slug, l]) => {
    Arquivo único já com <head> (fonte e imagens embutidas), copiado como está
    de apresentacao/. Só ganha noindex — é material de apoio compartilhado por
    link, não página de recrutamento — e Open Graph para a prévia no WhatsApp.
-   O PDF ao lado é servido no mesmo caminho. */
+   O PDF ao lado é servido no mesmo caminho.
+   Sai em dist/apresentacao-plano/ (não em dist/apresentacao/): na Vercel o arquivo
+   ganha dos rewrites, e /apresentacao precisa abrir o deck de integradores no host
+   do querovendercarregador. O vercel.json leva /apresentacao e /apresentacao/* para cá
+   nos demais domínios. */
 const APRES = path.join(__dirname, 'apresentacao');
 if (fs.existsSync(APRES)) {
-  mkdir(out('apresentacao'));
+  mkdir(out('apresentacao-plano'));
   fs.readdirSync(APRES).forEach(f => {
     if (f === 'index.html') {
       const html = fs.readFileSync(path.join(APRES, f), 'utf8').replace('<head>', `<head>
@@ -656,9 +660,9 @@ if (fs.existsSync(APRES)) {
 <meta property="og:type" content="website">
 <link rel="canonical" href="${SITE.url}/apresentacao">
 ${LOUSA}`);
-      fs.writeFileSync(out('apresentacao', 'index.html'), html);
+      fs.writeFileSync(out('apresentacao-plano', 'index.html'), html);
     } else if (!f.startsWith('.')) {
-      fs.copyFileSync(path.join(APRES, f), out('apresentacao', f));
+      fs.copyFileSync(path.join(APRES, f), out('apresentacao-plano', f));
     }
   });
 }

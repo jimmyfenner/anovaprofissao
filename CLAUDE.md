@@ -974,7 +974,7 @@ Pedido do Jimmy em 23/11/2026. Deck HTML animado de 20 slides (etapas, lista com
 o build publica em `dist/apresentacao-integradores/` com noindex + OG + LOUSA, e o
 `vercel.json` reescreve `/apresentacao` → `/apresentacao-integradores` e redireciona
 `/apresentacao.pdf` para o PDF só nos hosts do querovendercarregador (nos outros domínios
-`/apresentacao` continua sendo o Plano de Negócios). **Exceção às regras da página de
+`/apresentacao` continua sendo o Plano de Negócios, que por isso o build gera em `dist/apresentacao-plano/` e o `vercel.json` reescreve `/apresentacao` e `/apresentacao/*` para lá; se ficasse em `dist/apresentacao/`, o arquivo ganharia do rewrite de host). **Exceção às regras da página de
 integradores, como na /apresentacao do anovaprofissao:** o deck mostra preços dos modelos e
 percentuais de comissão; é material compartilhado por link, fora do sitemap, e não pode virar
 destino de anúncio nem ganhar link na página `/integradores`. Atualizar = copiar os dois

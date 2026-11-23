@@ -29,11 +29,6 @@
       "permanent": false
     },
     {
-      "source": "/apresentacao.pdf",
-      "destination": "/apresentacao/iGreen-2026-apresentacao.pdf",
-      "permanent": false
-    },
-    {
       "source": "/home",
       "destination": "/",
       "permanent": true
@@ -57,6 +52,11 @@
       "source": "/agenda",
       "destination": "/agendar",
       "permanent": true
+    },
+    {
+      "source": "/apresentacao.pdf",
+      "destination": "/apresentacao/iGreen-2026-apresentacao.pdf",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -79,6 +79,14 @@
         }
       ],
       "destination": "/apresentacao-integradores"
+    },
+    {
+      "source": "/apresentacao",
+      "destination": "/apresentacao-plano"
+    },
+    {
+      "source": "/apresentacao/:file*",
+      "destination": "/apresentacao-plano/:file*"
     },
     {
       "source": "/meet",
