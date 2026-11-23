@@ -1021,6 +1021,11 @@ são cópias idênticas; para atualizar, copiar os dois de novo e dar push.
   `deck.marcaEtapa()`. Fontes em `apresentacao-igreen-2026/fontes/etapas/` (`aplicar.sh` aplica em cadeia foguete →
   base → raio → órbita → simulação → escada sobre `deck-antes-das-etapas.html`; patch de um slide que mude depois
   precisa ser refeito sobre o deck atual, não sobre essa cópia).
+- **Escolher slide (23/11/2026, pedido do Jimmy)**: o contador "06 / 29" da barra é um botão (ícone de grade) que abre
+  um painel com os 29 slides (número, chamada `.k` e título h1/h2; o Manifesto usa as três frases); clique vai direto.
+  Tecla G abre/fecha; no painel, setas escolhem, Enter vai, Esc fecha. Com o painel fechado, número + Enter vai direto
+  (como no PowerPoint), Esc cancela. Os pontinhos da barra têm o título no hover. Indo por aqui, slide com etapas começa
+  do início (`go(i, 1)` força a direção). Fonte: `apresentacao-igreen-2026/fontes/patch_2026-11-23-navegador.py`.
 - Slides de campanha (14 "Bônus Extra Garantido", 26 "Campanhas do mês" e a coluna "Na hora · Nov/26" do 11 "Cashback",
   mais as etiquetas "Nov/26" em Seguros e Livre e a legenda ⚡ do mapa)
   vencem em 30/11/2026. Desde 03/11/2026 a fonte é a newsletter do mês
