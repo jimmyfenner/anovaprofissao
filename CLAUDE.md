@@ -979,7 +979,7 @@ integradores, como na /apresentacao do anovaprofissao:** o deck mostra preços d
 percentuais de comissão, sem projeção de retorno. **Indexada e no sitemap desde 25/11/2026**
 (pedido do Jimmy: "a palavra-chave VENDER CARREGADOR me interessa demais! Não tem promessa de
 retornos, pode liberar"). Continua fora dos anúncios: não usar como destino de anúncio do Google
-(verificação de serviços financeiros lê o destino). Atualizar = copiar os dois
+(verificação de serviços financeiros lê o destino). **Desde 25/11/2026 a página de integradores linka o deck** (pedido do Jimmy): botão de texto "Ver a apresentação em slides: como vender carregador de carro elétrico" abaixo do vídeo da seção `#apresentacao`, URL absoluta do querovendercarregador (no espelho anovaprofissao.com.br/integradores o `/apresentacao` relativo abriria o Plano de Negócios), aba nova, evento `apresentacao_slides`. Preços e percentuais continuam só no deck, nunca na página. Atualizar = copiar os dois
 arquivos de novo e dar push.
 
 ## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
