@@ -671,15 +671,23 @@ ${LOUSA}`);
    Mesmo esquema do Plano de Negócios: arquivo único gerado em
    /Volumes/Sandisk/Claude/apresentacao-integradores (build.py), copiado como está
    de apresentacao-integradores/. Servido em querovendercarregador.com.br/apresentacao
-   por rewrite de host no vercel.json; noindex e fora do sitemap. */
+   por rewrite de host no vercel.json. Indexada e no sitemap desde 25/11/2026
+   (pedido do Jimmy: a busca "vender carregador" interessa); o <title> e a
+   description do arquivo são trocados aqui pelos de SEO. */
 const APRES_INT = path.join(__dirname, 'apresentacao-integradores');
 if (fs.existsSync(APRES_INT)) {
   mkdir(out('apresentacao-integradores'));
   fs.readdirSync(APRES_INT).forEach(f => {
     if (f === 'index.html') {
-      const html = fs.readFileSync(path.join(APRES_INT, f), 'utf8').replace('<head>', `<head>
-<meta name="robots" content="noindex,nofollow">
-<meta property="og:title" content="Integrador, sua próxima usina é recorrência">
+      const html = fs.readFileSync(path.join(APRES_INT, f), 'utf8')
+        .replace(/<title>[^<]*<\/title>/, '<title>Vender carregador de carro elétrico: apresentação para integradores | Quero Vender Carregador</title>')
+        .replace(/<meta name="description"[^>]*>/, '<meta name="description" content="Como vender carregador de carro elétrico com a iGreen Mob: modelos de 7 a 80 kW, ganho na venda e em cada recarga, troca de bandeira e o que o integrador solar já tem a favor.">')
+        .replace('<head>', `<head>
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:image" content="${QVC}/media/og/integradores.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:title" content="Vender carregador de carro elétrico: apresentação para integradores">
 <meta property="og:description" content="Eletropostos iGreen Mob para quem já trabalha com energia: ganho na venda, em cada recarga e na carteira.">
 <meta property="og:url" content="https://querovendercarregador.com.br/apresentacao">
 <meta property="og:type" content="website">
@@ -715,6 +723,7 @@ const DOMINIOS = {
   ],
   'querovendercarregador.com.br': [
     { loc: QVC + '/', mod: ultimaMudanca('integradores.html'), freq: 'weekly', pri: '1.0' },
+    { loc: QVC + '/apresentacao', mod: ultimaMudanca('apresentacao-integradores/index.html'), freq: 'monthly', pri: '0.8' },
   ],
   'transicaoenergetica.com.br': [
     { loc: TE + '/', mod: ultimaMudanca('transicao-energetica.html', 'dados/transicao.json'), freq: 'weekly', pri: '1.0' },

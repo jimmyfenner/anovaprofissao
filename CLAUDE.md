@@ -971,13 +971,15 @@ Pedido do Jimmy em 23/11/2026. Deck HTML animado de 20 slides (etapas, lista com
 `?static`), gerado em `/Volumes/Sandisk/Claude/apresentacao-integradores/` (`build.py` +
 `gerar_pdf.sh`; LEIA-ME de lá manda). Aqui ficam só as cópias em
 `apresentacao-integradores/` (index.html = `dist/integradores.html`, integradores.pdf);
-o build publica em `dist/apresentacao-integradores/` com noindex + OG + LOUSA, e o
+o build publica em `dist/apresentacao-integradores/` com OG + LOUSA e `<title>`/description de SEO ("vender carregador de carro elétrico"), e o
 `vercel.json` reescreve `/apresentacao` → `/apresentacao-integradores` e redireciona
 `/apresentacao.pdf` para o PDF só nos hosts do querovendercarregador (nos outros domínios
 `/apresentacao` continua sendo o Plano de Negócios, que por isso o build gera em `dist/apresentacao-plano/` e o `vercel.json` reescreve `/apresentacao` e `/apresentacao/*` para lá; se ficasse em `dist/apresentacao/`, o arquivo ganharia do rewrite de host). **Exceção às regras da página de
 integradores, como na /apresentacao do anovaprofissao:** o deck mostra preços dos modelos e
-percentuais de comissão; é material compartilhado por link, fora do sitemap, e não pode virar
-destino de anúncio nem ganhar link na página `/integradores`. Atualizar = copiar os dois
+percentuais de comissão, sem projeção de retorno. **Indexada e no sitemap desde 25/11/2026**
+(pedido do Jimmy: "a palavra-chave VENDER CARREGADOR me interessa demais! Não tem promessa de
+retornos, pode liberar"). Continua fora dos anúncios: não usar como destino de anúncio do Google
+(verificação de serviços financeiros lê o destino). Atualizar = copiar os dois
 arquivos de novo e dar push.
 
 ## Apresentação do Plano de Negócios — anovaprofissao.com.br/apresentacao (out/2026)
